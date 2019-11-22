@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
-//        applicationId "com.xc.framework"
+//        applicationId "com.xc.framework"test
         minSdkVersion 19
         targetSdkVersion 25
         versionCode 1
