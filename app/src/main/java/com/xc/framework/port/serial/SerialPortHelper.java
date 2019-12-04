@@ -1,20 +1,20 @@
-package com.xc.framework.serialport;
+package com.xc.framework.port.serial;
 
 /**
- * Date：2019/11/27
+ * Date：2019/11/25
  * Author：ZhangXuanChen
- * Description：SerialPortManager
+ * Description：串口助手
  */
-public class SerialPortManager {
-    SerialPortHelper mSerialPortHelper;
-    SerialPortParam mSerialPortParam;
-    SerialPortReceivedThread mSerialPortReceivedThread;
-    SerialPortSendThread mSerialPortSendThread;
-    boolean isOpen = false;
+public class SerialPortHelper {
+    private SerialPort mSerialPort;
+    private SerialPortParam mSerialPortParam;
+    private SerialPortReceivedThread mSerialPortReceivedThread;
+    private SerialPortSendThread mSerialPortSendThread;
+    private boolean isOpen = false;
 
-//    public static SerialPortManager getInstance() {
+//    public static SerialPortHelper getInstance() {
 //        if (mSerialPortHelper == null) {
-//            mSerialPortHelper = new SerialPortManager();
+//            mSerialPortHelper = new SerialPortHelper();
 //        }
 //        return mSerialPortHelper;
 //    }
@@ -24,13 +24,12 @@ public class SerialPortManager {
      * Author：ZhangXuanChen
      * Time：2019/11/25 15:30
      * Description：初始化串口
-     * Param：builder 构建参数
+     * Param：SerialPortParam 串口参数
      */
     public void init(SerialPortParam serialPortParam) {
         this.mSerialPortParam = serialPortParam;
         initData();
     }
-
 
     /**
      * Author：ZhangXuanChen
@@ -46,23 +45,30 @@ public class SerialPortManager {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/26 11:01
-     * Description：initData
+     * Time：2019/11/25 13:17
+     * Description：打开串口
+     *
+     * @param suPath     su路径，默认：/system/bin/su
+     * @param devicePath 串口地址
+     * @param baudrate   波特率
+     * @param dataBits   数据位，默认8
+     * @param stopBits   停止位，默认1
+     * @param parity     奇偶校验位，默认0（无校验）
+     * @param flowCon    流控，默认0（不使用）
      */
-    private void initData() {
-        if (mSerialPortHelper == null) {
-            mSerialPortHelper = new SerialPortHelper();
-        }
+    public void init(String suPath, String devicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
+        this.mSerialPortParam = new SerialPortParam(suPath, devicePath, baudrate, dataBits, stopBits, parity, flowCon);
+        initData();
     }
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/27 16:15
-     * Description：串口发送
+     * Time：2019/11/26 11:01
+     * Description：initData
      */
-    public void send(byte[] bytes) {
-        if (bytes != null && bytes.length > 0) {
-            startSendThread(bytes);
+    private void initData() {
+        if (mSerialPort == null) {
+            mSerialPort = new SerialPort();
         }
     }
 
@@ -74,8 +80,8 @@ public class SerialPortManager {
      */
     public boolean open() {
         try {
-            if (mSerialPortHelper != null && mSerialPortParam != null) {
-                isOpen = mSerialPortHelper.openSerialPort(mSerialPortParam);
+            if (mSerialPort != null && mSerialPortParam != null) {
+                isOpen = mSerialPort.openSerialPort(mSerialPortParam);
                 if (isOpen) {
                     startReceivedThread();
                 }
@@ -95,8 +101,8 @@ public class SerialPortManager {
     public boolean close() {
         boolean isClose = false;
         try {
-            if (mSerialPortHelper != null) {
-                isClose = mSerialPortHelper.closeSerialPort();
+            if (mSerialPort != null) {
+                isClose = mSerialPort.closeSerialPort();
                 if (isClose) {
                     stopReceivedThread();
                     stopSendThread();
@@ -110,6 +116,17 @@ public class SerialPortManager {
         return isClose;
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 16:15
+     * Description：串口发送
+     */
+    public void send(byte[] bytes) {
+        if (bytes != null && bytes.length > 0) {
+            startSendThread(bytes);
+        }
+    }
+
 
     /**
      * Author：ZhangXuanChen
@@ -117,7 +134,7 @@ public class SerialPortManager {
      * Description：startReceivedThread
      */
     private void startReceivedThread() {
-        mSerialPortReceivedThread = new SerialPortReceivedThread(mSerialPortHelper.getInputStream()) {
+        mSerialPortReceivedThread = new SerialPortReceivedThread(mSerialPort) {
             @Override
             public void onReceive(byte[] bytes) {
                 if (onSerialPortReceiveListener != null) {
@@ -145,7 +162,7 @@ public class SerialPortManager {
      * Description：startSendThread
      */
     private void startSendThread(byte[] bytes) {
-        mSerialPortSendThread = new SerialPortSendThread(mSerialPortHelper.getOutputStream(), bytes);
+        mSerialPortSendThread = new SerialPortSendThread(mSerialPort, bytes);
         mSerialPortSendThread.startThread();
     }
 

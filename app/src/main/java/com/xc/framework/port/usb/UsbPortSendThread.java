@@ -1,19 +1,18 @@
-package com.xc.framework.serialport;
-
-import java.io.OutputStream;
+package com.xc.framework.port.usb;
 
 /**
  * Date：2019/11/27
  * Author：ZhangXuanChen
  * Description：串口发送线程
  */
-public  class SerialPortSendThread extends Thread {
-    private OutputStream mOutputStream;
+public class UsbPortSendThread extends Thread {
+    private UsbPort mUsbPort;
     private byte[] bytes;
+    private final int timeout = 5 * 1000;
     private boolean isRun = false;
 
-    public SerialPortSendThread(OutputStream outputStream, byte[] bytes) {
-        this.mOutputStream = outputStream;
+    public UsbPortSendThread(UsbPort usbPort, byte[] bytes) {
+        this.mUsbPort = usbPort;
         this.bytes = bytes;
     }
 
@@ -21,9 +20,13 @@ public  class SerialPortSendThread extends Thread {
     public void run() {
         super.run();
         while (isRun && !isInterrupted()) {
-            synchronized (mOutputStream) {
+            synchronized (mUsbPort) {
                 try {
-                    write(bytes);
+                    int write = write(bytes,timeout);
+                    if (write > 0) {
+                        stopThread();
+                    }
+                    Thread.sleep(1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -53,14 +56,10 @@ public  class SerialPortSendThread extends Thread {
      * Description：write
      * Return：boolean
      */
-    public synchronized boolean write(byte[] buffer) {
-        try {
-            if (mOutputStream != null && buffer != null && buffer.length > 0) {
-                mOutputStream.write(buffer);
-            }
-        } catch (Exception e) {
-            return false;
+    public synchronized int write(byte[] buffer, int timeout ) {
+        if (mUsbPort == null) {
+            return -1;
         }
-        return true;
+        return mUsbPort.writeUsbPort(buffer,timeout);
     }
 }

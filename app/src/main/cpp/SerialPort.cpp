@@ -110,7 +110,7 @@ static speed_t getBaudrate(jint baudrate) {
  */
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_xc_framework_serialport_SerialPort_open(JNIEnv *env, jobject thiz, jstring path,
+Java_com_xc_framework_port_serial_SerialPort_open(JNIEnv *env, jobject thiz, jstring path,
                                         jint baudrate, jint dataBits, jint stopBits,
                                         jint parity, jint flowCon) {
     int fd;
@@ -247,7 +247,7 @@ Java_com_xc_framework_serialport_SerialPort_open(JNIEnv *env, jobject thiz, jstr
  */
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_xc_framework_serialport_SerialPort_close(JNIEnv *env, jobject thiz) {
+Java_com_xc_framework_port_serial_SerialPort_close(JNIEnv *env, jobject thiz) {
     jclass SerialPortClass = env->GetObjectClass(thiz);
     jclass FileDescriptorClass = env->FindClass("java/io/FileDescriptor");
 

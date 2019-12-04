@@ -1,4 +1,6 @@
-package com.xc.framework.serialport;
+package com.xc.framework.port.serial;
+
+import com.xc.framework.util.XCStringUtil;
 
 import java.io.File;
 
@@ -13,9 +15,9 @@ public class SerialPortParam {
      */
     private String suPath = "/system/bin/su";
     /**
-     * 串口地址地址
+     * 串口地址
      */
-    private File device;
+    private File serialDevice;
     /**
      * 波特率
      */
@@ -37,15 +39,26 @@ public class SerialPortParam {
      */
     private int flowCon = 0;
 
-    public SerialPortParam(String devicePath, int baudrate) {
-        this.device = new File(devicePath);
+    public SerialPortParam(File serialDevice, int baudrate) {
+        this.serialDevice = serialDevice;
         this.baudrate = baudrate;
     }
 
-    public SerialPortParam(File device, int baudrate) {
-        this.device = device;
+    public SerialPortParam(String serialDevicePath, int baudrate) {
+        this.serialDevice = new File(serialDevicePath);
         this.baudrate = baudrate;
     }
+
+    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
+        this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
+        this.serialDevice = new File(serialDevicePath);
+        this.baudrate = baudrate;
+        this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
+        this.stopBits = stopBits >= 0 ? stopBits : this.stopBits;
+        this.parity = parity >= 0 ? parity : this.parity;
+        this.flowCon = flowCon >= 0 ? flowCon : this.flowCon;
+    }
+
 
     public String getSuPath() {
         return suPath;
@@ -55,14 +68,16 @@ public class SerialPortParam {
         this.suPath = suPath;
     }
 
-    public File getDevice() {
-        return device;
+    public File getSerialDevice() {
+        return serialDevice;
     }
 
-    public void setDevice(File device) {
-        this.device = device;
+    public void setSerialDevice(File serialDevice) {
+        this.serialDevice = serialDevice;
     }
-
+    public void setSerialDevice(String  serialDevicePath) {
+        this.serialDevice = new File(serialDevicePath);
+    }
     public int getBaudrate() {
         return baudrate;
     }
@@ -107,7 +122,7 @@ public class SerialPortParam {
     public String toString() {
         return "SerialPortParam{" +
                 "suPath='" + suPath + '\'' +
-                ", device=" + device.getAbsolutePath() +
+                ", serialDevice=" + serialDevice.getAbsolutePath() +
                 ", baudrate=" + baudrate +
                 ", dataBits=" + dataBits +
                 ", stopBits=" + stopBits +
