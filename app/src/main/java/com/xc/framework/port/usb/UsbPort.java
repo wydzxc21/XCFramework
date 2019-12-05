@@ -25,7 +25,7 @@ public class UsbPort {
     /**
      * timeout
      */
-    private static final int USB_WRITE_TIMEOUT_MILLIS = 5000;
+    private static final int READ_AND_WRITE_MAX_SIZE = 16 * 1024;//16384
     /**
      * Configuration Request Types
      */
@@ -243,13 +243,13 @@ public class UsbPort {
      * Time：2019/12/4 14:40
      * Description：readUsbPort
      * Param：buffer 待读取
-     * Param：timeout 超时
      * Return：int
      */
-    public int readUsbPort(byte[] buffer, int timeout) {
+    public int readUsbPort(byte[] buffer) {
         int read = -1;
         try {
-            read = mUc.bulkTransfer(mReadEndpoint, buffer, buffer.length, timeout);
+            int maxSize = Math.min(buffer.length, getMaxPacketSize());
+            read = mUc.bulkTransfer(mReadEndpoint, buffer, maxSize, 1);
         } catch (Exception e) {
         }
         return read;
@@ -260,13 +260,13 @@ public class UsbPort {
      * Time：2019/12/4 14:40
      * Description：writeUsbPort
      * Param：buffer 待写入
-     * Param：timeout 超时
      * Return：int
      */
-    public int writeUsbPort(byte[] buffer, int timeout) {
+    public int writeUsbPort(byte[] buffer) {
         int write = -1;
         try {
-            write = mUc.bulkTransfer(mWriteEndpoint, buffer, buffer.length, timeout);
+            int maxSize = Math.min(buffer.length, getMaxPacketSize());
+            write = mUc.bulkTransfer(mWriteEndpoint, buffer, maxSize, 1);
         } catch (Exception e) {
         }
         return write;
@@ -407,7 +407,7 @@ public class UsbPort {
                 (byte) ((baudRate >> 16) & 0xff),
                 (byte) ((baudRate >> 24) & 0xff)
         };
-        int ret = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE, 0, 0, data, 4, USB_WRITE_TIMEOUT_MILLIS);
+        int ret = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE, 0, 0, data, 4, 1);
         if (ret < 0) {
             throw new IOException("Error setting baud rate");
         }
@@ -421,10 +421,19 @@ public class UsbPort {
      * Return：
      */
     private int setConfigSingle(UsbDeviceConnection connection, int request, int value) throws IOException {
-        int result = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, request, value, 0, null, 0, USB_WRITE_TIMEOUT_MILLIS);
+        int result = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, request, value, 0, null, 0, 1);
         if (result != 0) {
             throw new IOException("Setting baudrate failed: result=" + result);
         }
         return result;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/12/5 10:05
+     * Description：获取最大读写包大小
+     */
+    public int getMaxPacketSize() {
+        return READ_AND_WRITE_MAX_SIZE;
     }
 }

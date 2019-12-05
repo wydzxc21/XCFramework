@@ -1,30 +1,39 @@
 package com.xc.framework.port.usb;
 
+import java.util.Arrays;
+
 /**
  * Date：2019/11/27
  * Author：ZhangXuanChen
  * Description：串口接收线程
  */
 public abstract class UsbPortReceivedThread extends Thread {
+    private final String TAG = "UsbPortReceivedThread";
     private UsbPort mUsbPort;
-    private final int timeout = 5 * 1000;
     private boolean isRun = false;
+    private byte[] completeDatas;//完整数据
+    private int completePosition = 0;//数据索引
 
     public UsbPortReceivedThread(UsbPort usbPort) {
         this.mUsbPort = usbPort;
+        this.completeDatas = new byte[mUsbPort != null ? mUsbPort.getMaxPacketSize() : 16 * 1024];
     }
 
     @Override
     public void run() {
         super.run();
-        while (isRun && !isInterrupted()) {
-            synchronized (mUsbPort) {
+        synchronized (mUsbPort) {
+            while (isRun && !isInterrupted()) {
                 try {
                     byte[] buffer = new byte[4096];
-                    int size = read(buffer, timeout);
-                    if (size > 0) {
-                        byte[] buff = java.util.Arrays.copyOfRange(buffer, 0, size);
-                        onReceive(buff);
+                    int size = read(buffer);
+                    if (size > 0) {//开始读取
+                        byte[] readDatas = java.util.Arrays.copyOf(buffer, size);
+                        System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
+                        completePosition = completePosition + readDatas.length;
+                    } else if (completePosition > 0) {//读取结束
+                        onReceive(Arrays.copyOf(completeDatas, completePosition));
+                        completePosition = 0;
                     }
                     Thread.sleep(1);
                 } catch (Exception e) {
@@ -56,11 +65,11 @@ public abstract class UsbPortReceivedThread extends Thread {
      * Description：write
      * Return：boolean
      */
-    public synchronized int read(byte[] buffer, int timeout) {
+    public synchronized int read(byte[] buffer) {
         if (mUsbPort == null) {
             return -1;
         }
-        return mUsbPort.readUsbPort(buffer,timeout);
+        return mUsbPort.readUsbPort(buffer);
     }
 
     /**

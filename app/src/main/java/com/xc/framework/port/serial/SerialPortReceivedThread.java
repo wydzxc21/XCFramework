@@ -1,5 +1,7 @@
 package com.xc.framework.port.serial;
 
+import java.util.Arrays;
+
 /**
  * Date：2019/11/27
  * Author：ZhangXuanChen
@@ -8,9 +10,12 @@ package com.xc.framework.port.serial;
 public abstract class SerialPortReceivedThread extends Thread {
     private SerialPort mSerialPort;
     private boolean isRun = false;
+    private byte[] completeDatas;//完整数据
+    private int completePosition = 0;//数据索引
 
     public SerialPortReceivedThread(SerialPort serialPort) {
         this.mSerialPort = serialPort;
+        this.completeDatas = new byte[16 * 1024];
     }
 
     @Override
@@ -21,9 +26,13 @@ public abstract class SerialPortReceivedThread extends Thread {
                 try {
                     byte[] buffer = new byte[4096];
                     int size = read(buffer);
-                    if (size > 0) {
-                        byte[] buff = java.util.Arrays.copyOfRange(buffer, 0, size);
-                        onReceive(buff);
+                    if (size > 0) {//开始读取
+                        byte[] readDatas = java.util.Arrays.copyOf(buffer, size);
+                        System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
+                        completePosition = completePosition + readDatas.length;
+                    } else if (completePosition > 0) {//读取结束
+                        onReceive(Arrays.copyOf(completeDatas, completePosition));
+                        completePosition = 0;
                     }
                     Thread.sleep(1);
                 } catch (Exception e) {

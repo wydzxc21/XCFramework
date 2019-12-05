@@ -8,7 +8,6 @@ package com.xc.framework.port.usb;
 public class UsbPortSendThread extends Thread {
     private UsbPort mUsbPort;
     private byte[] bytes;
-    private final int timeout = 5 * 1000;
     private boolean isRun = false;
 
     public UsbPortSendThread(UsbPort usbPort, byte[] bytes) {
@@ -22,7 +21,7 @@ public class UsbPortSendThread extends Thread {
         while (isRun && !isInterrupted()) {
             synchronized (mUsbPort) {
                 try {
-                    int write = write(bytes,timeout);
+                    int write = write(bytes);
                     if (write > 0) {
                         stopThread();
                     }
@@ -56,10 +55,10 @@ public class UsbPortSendThread extends Thread {
      * Description：write
      * Return：boolean
      */
-    public synchronized int write(byte[] buffer, int timeout ) {
+    public synchronized int write(byte[] buffer) {
         if (mUsbPort == null) {
             return -1;
         }
-        return mUsbPort.writeUsbPort(buffer,timeout);
+        return mUsbPort.writeUsbPort(buffer);
     }
 }
