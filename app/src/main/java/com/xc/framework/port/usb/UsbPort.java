@@ -22,14 +22,36 @@ import java.io.IOException;
  */
 public class UsbPort {
     private static final String ACTION_USB_PERMISSION = "com.xc.framework.USB_PERMISSION";
-    private static final int MAX_SIZE = 16 * 1024;
+    /**
+     * timeout
+     */
     private static final int USB_WRITE_TIMEOUT_MILLIS = 5000;
-    private static final int REQTYPE_HOST_TO_DEVICE = 0x41;//Configuration Request Types
+    /**
+     * Configuration Request Types
+     */
+    private static final int REQTYPE_HOST_TO_DEVICE = 0x41;
     /**
      * Configuration Request Codes
      */
+    private static final int SILABSER_IFC_ENABLE_REQUEST_CODE = 0x00;
+    private static final int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
     private static final int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
+    private static final int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
     private static final int SILABSER_SET_BAUDRATE = 0x1E;
+    /**
+     * SILABSER_IFC_ENABLE_REQUEST_CODE
+     */
+    private static final int UART_ENABLE = 0x0001;
+    /**
+     * SILABSER_SET_BAUDDIV_REQUEST_CODE
+     */
+    private static final int BAUD_RATE_GEN_FREQ = 0x384000;
+    /**
+     * SILABSER_SET_MHS_REQUEST_CODE
+     */
+    private static final int MCR_ALL = 0x0003;
+    private static final int CONTROL_WRITE_DTR = 0x0100;
+    private static final int CONTROL_WRITE_RTS = 0x0200;
     /**
      * 5 data bits.
      */
@@ -177,6 +199,10 @@ public class UsbPort {
             if (mReadEndpoint == null || mWriteEndpoint == null) {
                 return false;
             }
+            //setConfigSingle
+            setConfigSingle(mUc, SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
+            setConfigSingle(mUc, SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
+            setConfigSingle(mUc, SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / baudrate);
             //setParameters
             setParameters(mUc, baudrate, dataBits, stopBits, parity);
         } catch (Exception e) {
@@ -223,8 +249,7 @@ public class UsbPort {
     public int readUsbPort(byte[] buffer, int timeout) {
         int read = -1;
         try {
-            int readMax = Math.min(buffer.length, MAX_SIZE);
-            read = mUc.bulkTransfer(mReadEndpoint, buffer, readMax, timeout);
+            read = mUc.bulkTransfer(mReadEndpoint, buffer, buffer.length, timeout);
         } catch (Exception e) {
         }
         return read;
@@ -241,8 +266,7 @@ public class UsbPort {
     public int writeUsbPort(byte[] buffer, int timeout) {
         int write = -1;
         try {
-            int writeMax = Math.min(buffer.length, MAX_SIZE);
-            write = mUc.bulkTransfer(mWriteEndpoint, buffer, writeMax, timeout);
+            write = mUc.bulkTransfer(mWriteEndpoint, buffer, buffer.length, timeout);
         } catch (Exception e) {
         }
         return write;
