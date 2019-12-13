@@ -137,7 +137,7 @@ public class DBManager {
 	 * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取插入数据,只支持String变量(完全相同的数据不会重复插入)
 	 * @return
 	 */
-	public synchronized boolean insert(Object classObject) {
+	public synchronized <T> boolean insert(T classObject) {
 		if (!isTableExist(classObject.getClass())) {
 			createTable(classObject.getClass());
 		}
@@ -170,7 +170,7 @@ public class DBManager {
 	 *                    new空对象删除该表所有数据 )
 	 * @return
 	 */
-	public synchronized boolean delete(Object classObject) {
+	public synchronized <T> boolean delete(T classObject) {
 		if (!isTableExist(classObject.getClass())) {
 			createTable(classObject.getClass());
 		}
@@ -204,7 +204,7 @@ public class DBManager {
 	 *                        条件不唯一更新符合条件的所有数据, new空对象更新该表所有数据)
 	 * @return
 	 */
-	public synchronized boolean update(Object updateObject, Object conditionObject) {
+	public synchronized <T> boolean update(T updateObject, T conditionObject) {
 		if (!isTableExist(conditionObject.getClass())) {
 			createTable(conditionObject.getClass());
 		}

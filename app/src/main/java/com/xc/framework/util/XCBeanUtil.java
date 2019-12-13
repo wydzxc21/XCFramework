@@ -1,12 +1,13 @@
 package com.xc.framework.util;
 
+import android.util.ArrayMap;
+
 import com.xc.framework.annotation.FieldAlias;
 import com.xc.framework.annotation.FieldIgnore;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,7 +19,6 @@ import java.util.Map;
  * @description 实体类工具类
  */
 public class XCBeanUtil {
-	private static Class<?> objectClass;
 
 	/**
 	 * 获取bean成员变量名集合
@@ -52,24 +52,29 @@ public class XCBeanUtil {
 		Map<String, String> mMap = null;
 		if (objectClass != null) {
 			try {
-				Field[] fields = objectClass.getDeclaredFields();
-				if (fields != null && fields.length > 0) {
-					mMap = new HashMap<String, String>();
-					for (int i = 0; i < fields.length; i++) {
-						Field field = fields[i];
-						if (field != null) {
-							String filter = "serialVersionUID";// 序列化变量
-							String change = "$";// studio 2.0以上反射多出参数:$change
-							String name = field.getName() != null ? field.getName() : "";
-							if (!name.equals(filter) && !name.contains(change)) {
-								boolean isFieldIgnore = field.isAnnotationPresent(FieldIgnore.class);//忽略字段
-								if (!isFieldIgnore) {
-									FieldAlias alias = field.getAnnotation(FieldAlias.class);
-									mMap.put(name, alias != null ? !XCStringUtil.isEmpty(alias.value()) ? alias.value() : "" : "");
+				mMap = new ArrayMap<String, String>();
+				Class<?> tempClass = objectClass;
+				while (tempClass != null) {
+					Field[] fields = tempClass.getDeclaredFields();
+					if (fields != null && fields.length > 0) {
+						for (int i = 0; i < fields.length; i++) {
+							Field field = fields[i];
+							if (field != null) {
+								String filter = "serialVersionUID";// 序列化变量
+								String change = "$";// studio 2.0以上反射多出参数:$change
+								String name = field.getName() != null ? field.getName() : "";
+								if (!name.equals(filter) && !name.contains(change)) {
+									boolean isFieldIgnore = field.isAnnotationPresent(FieldIgnore.class);//忽略字段
+									if (!isFieldIgnore) {
+										FieldAlias alias = field.getAnnotation(FieldAlias.class);
+										mMap.put(name, alias != null ? !XCStringUtil.isEmpty(alias.value()) ? alias.value() : "" : "");
+									}
 								}
 							}
 						}
 					}
+					//
+					tempClass = tempClass.getSuperclass();//递归父类
 				}
 			} catch (Exception e) {
 			}
