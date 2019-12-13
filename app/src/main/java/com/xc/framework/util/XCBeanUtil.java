@@ -91,7 +91,6 @@ public class XCBeanUtil {
 	 */
 	public static Method getGetMethod(Class<?> objectClass, String fieldName) {
 		try {
-			Field field = objectClass.getDeclaredField(fieldName);
 			String newFieldName = "get" + fieldName.substring(0, 1).toUpperCase(Locale.ENGLISH) + fieldName.substring(1);
 			if (fieldName.length() >= 2) {
 				if (Character.isUpperCase(fieldName.charAt(1))) {
@@ -140,10 +139,15 @@ public class XCBeanUtil {
 	public static Object invokeGetMethod(Object classObject, String fieldName) {
 		if (classObject != null && !XCStringUtil.isEmpty(fieldName)) {
 			try {
-				Method methods = getGetMethod(classObject.getClass(), fieldName);
-				return methods.invoke(classObject);
+				Class<?> tempClass = classObject.getClass();
+				Object object = getGetMethod(tempClass, fieldName).invoke(classObject);
+				while (object == null) {
+					tempClass = tempClass.getSuperclass();//递归父类
+					object = getGetMethod(tempClass, fieldName).invoke(classObject);
+				}
+				return object;
 			} catch (Exception e) {
-
+				return null;
 			}
 		}
 		return null;
@@ -160,7 +164,12 @@ public class XCBeanUtil {
 	public static boolean invokeSetMethod(Object classObject, String fieldName, Object setValue) {
 		if (classObject != null && !XCStringUtil.isEmpty(fieldName) && setValue != null) {
 			try {
-				Method method = getSetMethod(classObject.getClass(), fieldName);
+				Class<?> tempClass = classObject.getClass();
+				Method method = getSetMethod(tempClass, fieldName);
+				while (method == null) {
+					tempClass = tempClass.getSuperclass();//递归父类
+					method = getSetMethod(tempClass, fieldName);
+				}
 				method.invoke(classObject, setValue);
 			} catch (Exception e) {
 				return false;

@@ -22,9 +22,13 @@ public class XCTimeUtil {
      */
     public static final String FORMAT_TIME = "HH:mm:ss";
     /**
+     * 日期格式（yyyy-MM-dd HH:mm）
+     */
+    public static final String FORMAT_DATE_TIME = "yyyy-MM-dd HH:mm";
+    /**
      * 日期格式（yyyy-MM-dd HH:mm:ss）
      */
-    public static final String FORMAT_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT_DATE_SECOND = "yyyy-MM-dd HH:mm:ss";
     /**
      * 日期格式（yyyy-MM-dd E）
      */
@@ -47,13 +51,13 @@ public class XCTimeUtil {
     /**
      * 获取时间
      *
-     * @param millisecond 时间戳字符串
-     * @param dateFormat  时间格式
+     * @param milliseconds 时间戳字符串
+     * @param dateFormat   时间格式
      * @return 时间格式字符串
      */
-    public static String getTime(String millisecond, String dateFormat) {
-        if (!XCStringUtil.isEmpty(millisecond)) {
-            return getTime(Long.parseLong(millisecond), dateFormat);
+    public static String getTime(String milliseconds, String dateFormat) {
+        if (!XCStringUtil.isEmpty(milliseconds)) {
+            return getTime(Long.parseLong(milliseconds), dateFormat);
         }
         return "";
     }
@@ -61,20 +65,20 @@ public class XCTimeUtil {
     /**
      * 获取时间
      *
-     * @param millisecond 时间戳
-     * @param dateFormat  时间格式
+     * @param milliseconds 时间戳
+     * @param dateFormat   时间格式
      * @return 时间格式字符串
      */
-    public static String getTime(long millisecond, String dateFormat) {
+    public static String getTime(long milliseconds, String dateFormat) {
         try {
-            if (millisecond <= 0) {
-                millisecond = System.currentTimeMillis();
+            if (milliseconds <= 0) {
+                milliseconds = System.currentTimeMillis();
             }
             if (XCStringUtil.isEmpty(dateFormat)) {
                 dateFormat = FORMAT_DATE_TIME;
             }
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
-            return simpleDateFormat.format(new Date(millisecond));
+            return simpleDateFormat.format(new Date(milliseconds));
         } catch (Exception e) {
             e.printStackTrace();
         }
