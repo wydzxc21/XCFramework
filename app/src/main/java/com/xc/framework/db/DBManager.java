@@ -261,7 +261,7 @@ public class DBManager {
 								for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
 									String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
 									String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
-									//有限采用别名，无别用再采用原名
+									//优先采用别名，无别名再采用原名
 									String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
 									// key
 									String key = name;
@@ -320,7 +320,7 @@ public class DBManager {
 			for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
 				String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
 				String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
-				//有限采用别名，无别用再采用原名
+				//优先采用别名，无别名再采用原名
 				String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
 				sql += "," + name + " text";
 			}
@@ -342,7 +342,7 @@ public class DBManager {
 			for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
 				String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
 				String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
-				//有限采用别名，无别用再采用原名
+				//优先采用别名，无别名再采用原名
 				String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
 				// key
 				key += name + ",";
@@ -416,7 +416,7 @@ public class DBManager {
 			for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
 				String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
 				String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
-				//有限采用别名，无别用再采用原名
+				//优先采用别名，无别名再采用原名
 				String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
 				// key
 				String key = name;
