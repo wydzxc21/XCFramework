@@ -218,7 +218,7 @@ public class XCPercentLayoutHelper {
     public static PercentLayoutInfo getPercentLayoutInfo(Context context,
                                                          AttributeSet attrs) {
         PercentLayoutInfo info = null;
-        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.XC_PercentLayout_Layout);
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.XCPercentLayout);
 
         info = setWidthAndHeightVal(array, info);
 
@@ -240,7 +240,7 @@ public class XCPercentLayoutHelper {
     }
 
     private static PercentLayoutInfo setWidthAndHeightVal(TypedArray array, PercentLayoutInfo info) {
-        PercentLayoutInfo.PercentVal percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_widthPercent, true);
+        PercentLayoutInfo.PercentVal percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_widthPercentXC, true);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent width: " + percentVal.percent);
@@ -248,7 +248,7 @@ public class XCPercentLayoutHelper {
             info = checkForInfoExists(info);
             info.widthPercent = percentVal;
         }
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_heightPercent, false);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_heightPercentXC, false);
 
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
@@ -263,7 +263,7 @@ public class XCPercentLayoutHelper {
 
     private static PercentLayoutInfo setTextSizeSupportVal(TypedArray array, PercentLayoutInfo info) {
         //textSizePercent 默认以高度作为基准
-        PercentLayoutInfo.PercentVal percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_textSizePercent, false);
+        PercentLayoutInfo.PercentVal percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_textSizePercentXC, false);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent text size: " + percentVal.percent);
@@ -278,7 +278,7 @@ public class XCPercentLayoutHelper {
     private static PercentLayoutInfo setMinMaxWidthHeightRelatedVal(TypedArray array, PercentLayoutInfo info) {
         //maxWidth
         PercentLayoutInfo.PercentVal percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_maxWidthPercent,
+                R.styleable.XCPercentLayout_layout_maxWidthPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -286,7 +286,7 @@ public class XCPercentLayoutHelper {
         }
         //maxHeight
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_maxHeightPercent,
+                R.styleable.XCPercentLayout_layout_maxHeightPercentXC,
                 false);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -294,7 +294,7 @@ public class XCPercentLayoutHelper {
         }
         //minWidth
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_minWidthPercent,
+                R.styleable.XCPercentLayout_layout_minWidthPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -302,7 +302,7 @@ public class XCPercentLayoutHelper {
         }
         //minHeight
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_minHeightPercent,
+                R.styleable.XCPercentLayout_layout_minHeightPercentXC,
                 false);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -316,7 +316,7 @@ public class XCPercentLayoutHelper {
         //默认margin参考宽度
         PercentLayoutInfo.PercentVal percentVal =
                 getPercentVal(array,
-                        R.styleable.XC_PercentLayout_Layout_layout_marginPercent,
+                        R.styleable.XCPercentLayout_layout_marginPercentXC,
                         true);
 
         if (percentVal != null) {
@@ -330,7 +330,7 @@ public class XCPercentLayoutHelper {
             info.bottomMarginPercent = percentVal;
         }
 
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginLeftPercent, true);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginLeftPercentXC, true);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent left margin: " + percentVal.percent);
@@ -339,7 +339,7 @@ public class XCPercentLayoutHelper {
             info.leftMarginPercent = percentVal;
         }
 
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginTopPercent, false);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginTopPercentXC, false);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent top margin: " + percentVal.percent);
@@ -348,7 +348,7 @@ public class XCPercentLayoutHelper {
             info.topMarginPercent = percentVal;
         }
 
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginRightPercent, true);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginRightPercentXC, true);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent right margin: " + percentVal.percent);
@@ -357,7 +357,7 @@ public class XCPercentLayoutHelper {
             info.rightMarginPercent = percentVal;
         }
 
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginBottomPercent, false);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginBottomPercentXC, false);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent bottom margin: " + percentVal.percent);
@@ -365,7 +365,7 @@ public class XCPercentLayoutHelper {
             info = checkForInfoExists(info);
             info.bottomMarginPercent = percentVal;
         }
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginStartPercent, true);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginStartPercentXC, true);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent start margin: " + percentVal.percent);
@@ -374,7 +374,7 @@ public class XCPercentLayoutHelper {
             info.startMarginPercent = percentVal;
         }
 
-        percentVal = getPercentVal(array, R.styleable.XC_PercentLayout_Layout_layout_marginEndPercent, true);
+        percentVal = getPercentVal(array, R.styleable.XCPercentLayout_layout_marginEndPercentXC, true);
         if (percentVal != null) {
             if (Log.isLoggable(TAG, Log.VERBOSE)) {
                 Log.v(TAG, "percent end margin: " + percentVal.percent);
@@ -395,7 +395,7 @@ public class XCPercentLayoutHelper {
     private static PercentLayoutInfo setPaddingRelatedVal(TypedArray array, PercentLayoutInfo info) {
         //默认padding以宽度为标准
         PercentLayoutInfo.PercentVal percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_paddingPercent,
+                R.styleable.XCPercentLayout_layout_paddingPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -407,7 +407,7 @@ public class XCPercentLayoutHelper {
 
 
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_paddingLeftPercent,
+                R.styleable.XCPercentLayout_layout_paddingLeftPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -415,7 +415,7 @@ public class XCPercentLayoutHelper {
         }
 
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_paddingRightPercent,
+                R.styleable.XCPercentLayout_layout_paddingRightPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -423,7 +423,7 @@ public class XCPercentLayoutHelper {
         }
 
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_paddingTopPercent,
+                R.styleable.XCPercentLayout_layout_paddingTopPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);
@@ -431,7 +431,7 @@ public class XCPercentLayoutHelper {
         }
 
         percentVal = getPercentVal(array,
-                R.styleable.XC_PercentLayout_Layout_layout_paddingBottomPercent,
+                R.styleable.XCPercentLayout_layout_paddingBottomPercentXC,
                 true);
         if (percentVal != null) {
             info = checkForInfoExists(info);

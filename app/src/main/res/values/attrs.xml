@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 百分比布局 -->
-    <declare-styleable name="XC_PercentLayout_Layout">
+    <declare-styleable name="XCPercentLayout">
         <!-- width/height -->
-        <attr name="layout_widthPercent" format="string"/>
-        <attr name="layout_heightPercent" format="string"/>
+        <attr name="layout_widthPercentXC" format="string"/>
+        <attr name="layout_heightPercentXC" format="string"/>
         <!-- margin -->
-        <attr name="layout_marginPercent" format="string"/>
-        <attr name="layout_marginLeftPercent" format="string"/>
-        <attr name="layout_marginTopPercent" format="string"/>
-        <attr name="layout_marginRightPercent" format="string"/>
-        <attr name="layout_marginBottomPercent" format="string"/>
-        <attr name="layout_marginStartPercent" format="string"/>
-        <attr name="layout_marginEndPercent" format="string"/>
+        <attr name="layout_marginPercentXC" format="string"/>
+        <attr name="layout_marginLeftPercentXC" format="string"/>
+        <attr name="layout_marginTopPercentXC" format="string"/>
+        <attr name="layout_marginRightPercentXC" format="string"/>
+        <attr name="layout_marginBottomPercentXC" format="string"/>
+        <attr name="layout_marginStartPercentXC" format="string"/>
+        <attr name="layout_marginEndPercentXC" format="string"/>
         <!-- textSize -->
-        <attr name="layout_textSizePercent" format="string"/>
+        <attr name="layout_textSizePercentXC" format="string"/>
         <!-- max/min -->
-        <attr name="layout_maxWidthPercent" format="string"/>
-        <attr name="layout_maxHeightPercent" format="string"/>
-        <attr name="layout_minWidthPercent" format="string"/>
-        <attr name="layout_minHeightPercent" format="string"/>
+        <attr name="layout_maxWidthPercentXC" format="string"/>
+        <attr name="layout_maxHeightPercentXC" format="string"/>
+        <attr name="layout_minWidthPercentXC" format="string"/>
+        <attr name="layout_minHeightPercentXC" format="string"/>
         <!-- padding -->
-        <attr name="layout_paddingPercent" format="string"/>
-        <attr name="layout_paddingTopPercent" format="string"/>
-        <attr name="layout_paddingBottomPercent" format="string"/>
-        <attr name="layout_paddingLeftPercent" format="string"/>
-        <attr name="layout_paddingRightPercent" format="string"/>
+        <attr name="layout_paddingPercentXC" format="string"/>
+        <attr name="layout_paddingTopPercentXC" format="string"/>
+        <attr name="layout_paddingBottomPercentXC" format="string"/>
+        <attr name="layout_paddingLeftPercentXC" format="string"/>
+        <attr name="layout_paddingRightPercentXC" format="string"/>
     </declare-styleable>
 </resources>
