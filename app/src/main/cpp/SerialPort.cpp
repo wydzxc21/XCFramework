@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 #include <stdlib.h>
-#include <stdio.h>
 #include <jni.h>
 #include <string>
-#include <assert.h>
-
 #include <termios.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <string.h>
-#include <jni.h>
-
 #include "android/log.h"
 
-static const char *TAG = "SerialPort";
-#define LOGI(fmt, args...) __android_log_print(ANDROID_LOG_INFO,  TAG, fmt, ##args)
 #define LOGD(fmt, args...) __android_log_print(ANDROID_LOG_DEBUG, TAG, fmt, ##args)
 #define LOGE(fmt, args...) __android_log_print(ANDROID_LOG_ERROR, TAG, fmt, ##args)
+static const char *TAG = "SerialPort";
 
 static speed_t getBaudrate(jint baudrate) {
     switch (baudrate) {
@@ -111,11 +102,12 @@ static speed_t getBaudrate(jint baudrate) {
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_xc_framework_port_serial_SerialPort_open(JNIEnv *env, jobject thiz, jstring path,
-                                        jint baudrate, jint dataBits, jint stopBits,
-                                        jint parity, jint flowCon) {
+                                                  jint baudrate, jint dataBits, jint stopBits,
+                                                  jint parity, jint flowCon) {
     int fd;
     speed_t speed;
     jobject mFileDescriptor;
+    int errno;
 
     LOGD("init native Check arguments");
     /* Check arguments */
@@ -138,7 +130,7 @@ Java_com_xc_framework_port_serial_SerialPort_open(JNIEnv *env, jobject thiz, jst
         env->ReleaseStringUTFChars(path, path_utf);
         if (fd == -1) {
             /* Throw an exception */
-            LOGE("Cannot open port %d", baudrate);
+            LOGE("Cannot open port %d,%s", baudrate, strerror(errno));
             return NULL;
         }
     }

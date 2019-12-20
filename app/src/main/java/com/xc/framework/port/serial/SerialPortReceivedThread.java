@@ -8,13 +8,16 @@ import java.util.Arrays;
  * Description：串口接收线程
  */
 public abstract class SerialPortReceivedThread extends Thread {
+    private final String TAG = "SerialPortReceivedThread";
     private SerialPort mSerialPort;
     private boolean isRun = false;
+    private byte[] bufferDatas;//缓存数据
     private byte[] completeDatas;//完整数据
     private int completePosition = 0;//数据索引
 
     public SerialPortReceivedThread(SerialPort serialPort) {
         this.mSerialPort = serialPort;
+        this.bufferDatas = new byte[1024];
         this.completeDatas = new byte[16 * 1024];
     }
 
@@ -24,10 +27,9 @@ public abstract class SerialPortReceivedThread extends Thread {
         while (isRun && !isInterrupted()) {
             synchronized (mSerialPort) {
                 try {
-                    byte[] buffer = new byte[4096];
-                    int size = read(buffer);
+                    int size = read(bufferDatas);
                     if (size > 0) {//开始读取
-                        byte[] readDatas = java.util.Arrays.copyOf(buffer, size);
+                        byte[] readDatas = java.util.Arrays.copyOf(bufferDatas, size);
                         System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
                         completePosition = completePosition + readDatas.length;
                     } else if (completePosition > 0) {//读取结束
