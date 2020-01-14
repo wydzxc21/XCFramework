@@ -36,7 +36,7 @@ public abstract class SerialPortReceivedThread extends Thread {
                         onReceive(Arrays.copyOf(completeDatas, completePosition));
                         completePosition = 0;
                     }
-                    Thread.sleep(1);
+                    Thread.sleep(100);//太快易丢包
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
