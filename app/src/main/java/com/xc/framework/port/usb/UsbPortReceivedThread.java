@@ -1,5 +1,7 @@
 package com.xc.framework.port.usb;
 
+import java.util.Arrays;
+
 /**
  * Date：2019/11/27
  * Author：ZhangXuanChen
@@ -10,10 +12,13 @@ public abstract class UsbPortReceivedThread extends Thread {
     private UsbPort mUsbPort;
     private boolean isRun = false;
     private byte[] bufferDatas;//缓存数据
+    private byte[] completeDatas;//完整数据
+    private int completePosition = 0;//数据索引
 
     public UsbPortReceivedThread(UsbPort usbPort) {
         this.mUsbPort = usbPort;
-        this.bufferDatas = new byte[1024 * 4];
+        this.bufferDatas = new byte[1024];
+        this.completeDatas = new byte[mUsbPort != null ? mUsbPort.getMaxPacketSize() : 16 * 1024];
     }
 
     @Override
@@ -23,9 +28,13 @@ public abstract class UsbPortReceivedThread extends Thread {
             while (isRun && !isInterrupted()) {
                 try {
                     int size = read(bufferDatas);
-                    if (size > 0) {
+                    if (size > 0) {//开始读取
                         byte[] readDatas = java.util.Arrays.copyOf(bufferDatas, size);
-                        onReceive(readDatas);
+                        System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
+                        completePosition = completePosition + readDatas.length;
+                    } else if (completePosition > 0) {//读取结束
+                        onReceive(Arrays.copyOf(completeDatas, completePosition));
+                        completePosition = 0;
                     }
                     Thread.sleep(100);
                 } catch (Exception e) {

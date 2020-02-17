@@ -141,10 +141,13 @@ public class XCTimeUtil {
      * Time：2019/12/11 11:39
      * Description：比较相差天数
      */
-    public static int compareDay(String beforeDate, String afterDate) {
+    public static int compareDay(String beforeDate, String afterDate, String dateFormat) {
         int day = 0;
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            if (XCStringUtil.isEmpty(dateFormat)) {
+                dateFormat = FORMAT_DATE;
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
             day = compareDay(sdf.parse(beforeDate), sdf.parse(afterDate));
         } catch (ParseException e) {
         }

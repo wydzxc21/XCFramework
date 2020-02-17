@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * Author：ZhangXuanChen
  * Description：忽视注释（忽视字段映射）
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented

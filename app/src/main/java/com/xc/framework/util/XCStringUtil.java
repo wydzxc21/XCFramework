@@ -1,5 +1,7 @@
 package com.xc.framework.util;
 
+import java.util.regex.Pattern;
+
 /**
  * @author ZhangXuanChen
  * @date 2015-9-18
@@ -21,66 +23,40 @@ public class XCStringUtil {
     }
 
     /**
-     * 十六进制转字符串
-     *
-     * @param str 16进制字符串
-     * @return 结果值
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 是否为数字
      */
-    public static String hexToString(String str) {
-        if (!XCStringUtil.isEmpty(str)) {
-            byte[] baKeyword = new byte[str.length() / 2];
-            for (int i = 0; i < baKeyword.length; i++) {
-                try {
-                    baKeyword[i] = (byte) (0xff & Integer.parseInt(str.substring(i * 2, i * 2 + 2), 16));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            try {
-                str = new String(baKeyword, "utf-8");// UTF-16le:Not
-            } catch (Exception e1) {
-
-            }
+    public static boolean isInteger(String intStr) {
+        boolean isInteger = false;
+        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+        if (!XCStringUtil.isEmpty(intStr)) {
+            isInteger = pattern.matcher(intStr).matches();
         }
-        return str;
+        return isInteger;
     }
 
     /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/28 15:06
-     * Description：十六进制转字节数组
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 16进制字符串转10进制字符串
      */
-    public static byte[] hexStringToBytes(String src) {
-        src = src.replace(" ", "");
-        byte[] res = new byte[src.length() / 2];
-        char[] chs = src.toCharArray();
-        for (int i = 0, c = 0; i < chs.length; i += 2, c++) {
-            res[c] = (byte) (Integer.parseInt(new String(chs, i, 2), 16));
+    public static String hexStrToDecStr(String hexStr) {
+        if (hexStr.contains(" ")) {
+            hexStr = hexStr.replaceAll(" ", "").toUpperCase();
         }
-
-        return res;
+        if (hexStr.length() == 1) {
+            hexStr = "0" + hexStr;
+        }
+        String str = "0123456789ABCDEF";
+        char[] hexChar = hexStr.toCharArray();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hexChar.length / 2; i++) {
+            int n = str.indexOf(hexChar[2 * i]) * 16;
+            n += str.indexOf(hexChar[2 * i + 1]);
+            sb.append(n & 0xff);
+        }
+        return sb.toString();
     }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/28 14:58
-     * Description：字节数组转字符串
-     */
-    public static String bytesToHexString(byte[] bytes) {
-        StringBuilder stringBuilder = new StringBuilder("");
-        if (bytes == null || bytes.length <= 0) {
-            return null;
-        }
-        for (int i = 0; i < bytes.length; i++) {
-            int v = bytes[i] & 0xFF;
-            String hv = Integer.toHexString(v);
-            if (hv.length() < 2) {
-                stringBuilder.append(0);
-            }
-            stringBuilder.append(hv);
-        }
-        return stringBuilder.toString().toUpperCase();
-    }
-
 
 }

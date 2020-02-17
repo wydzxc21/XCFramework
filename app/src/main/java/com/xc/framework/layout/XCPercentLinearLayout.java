@@ -13,10 +13,10 @@ import android.widget.ScrollView;
 /**
  * Author：ZhangXuanChen
  * Time：2019/12/6 14:18
- * Description：PercentLinearLayout
+ * Description：XCPercentLinearLayout
  * Param：xmlns:app="http://schemas.android.com/apk/res-auto"
- * Param：app:layout_widthPercent="50%h"
- * Param：app:layout_heightPercent="50%w"
+ * Param：app:layout_widthPercentXC="50%h"
+ * Param：app:layout_heightPercentXC="50%w"
  */
 public class XCPercentLinearLayout extends LinearLayout {
 

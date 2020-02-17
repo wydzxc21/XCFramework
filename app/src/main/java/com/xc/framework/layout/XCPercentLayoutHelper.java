@@ -96,6 +96,7 @@ public class XCPercentLayoutHelper {
 
         for (int i = 0, N = mHost.getChildCount(); i < N; i++) {
             View view = mHost.getChildAt(i);
+
             ViewGroup.LayoutParams params = view.getLayoutParams();
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "should adjust " + view + " " + params);

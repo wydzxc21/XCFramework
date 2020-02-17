@@ -25,10 +25,10 @@ import android.widget.FrameLayout;
 /**
  * Author：ZhangXuanChen
  * Time：2019/12/6 14:22
- * Description：PercentFrameLayout
+ * Description：XCPercentFrameLayout
  * Param：xmlns:app="http://schemas.android.com/apk/res-auto"
- * Param：app:layout_widthPercent="50%h"
- * Param：app:layout_heightPercent="50%w"
+ * Param：app:layout_widthPercentXC="50%h"
+ * Param：app:layout_heightPercentXC="50%w"
  */
 public class XCPercentFrameLayout extends FrameLayout {
     private final XCPercentLayoutHelper mHelper = new XCPercentLayoutHelper(this);
