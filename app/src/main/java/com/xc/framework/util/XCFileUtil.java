@@ -3,11 +3,16 @@ package com.xc.framework.util;
 import android.content.Context;
 import android.os.Environment;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.Random;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author ZhangXuanChen
@@ -16,99 +21,270 @@ import java.util.Random;
  * @description 文件工具类
  */
 public class XCFileUtil {
-	/**
-	 * SDCard是否存在
-	 * 
-	 * @return 是否存在
-	 */
-	public static boolean isSDCardExist() {
-		if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-			return true;
-		}
-		return false;
-	}
 
-	/**
-	 * 获取SDCard根目录
-	 * 
-	 * @return 例:/storage/emulated/0
-	 */
-	public static String getSDCardRootDir() {
-		if (isSDCardExist()) {
-			String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-			if (!XCStringUtil.isEmpty(rootPath)) {
-				return rootPath;
-			}
-		}
-		return "";
-	}
+    /**
+     * SDCard是否存在
+     *
+     * @return 是否存在
+     */
+    public static boolean isSDCardExist() {
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            return true;
+        }
+        return false;
+    }
 
-	/**
-	 * 获取手机缓存路径
-	 * 
-	 * @param context
-	 *            上下文
-	 * @return 不可管理,卸载不会被删.例:
-	 *         /storage/emulated/0/Android/data/com.xc.sample/cache 或
-	 *         可管理,卸载会被删.例: /data/data/com.xc.sample/cache
-	 */
-	public static String getDiskCacheDir(Context context) {
-		String cachePath = "";
-		if (isSDCardExist()) {
-			// 不可管理,卸载不会被删.例:
-			// /storage/emulated/0/Android/data/com.xc.sample/cache
-			File externalCacheDir = context.getExternalCacheDir();
-			if (externalCacheDir != null) {
-				cachePath = externalCacheDir.getPath();
-			}
-		}
-		// 可管理,卸载会被删.例: /data/data/com.xc.sample/cache
-		if ("".equals(cachePath)) {
-			File cacheDir = context.getCacheDir();
-			if (cacheDir != null && cacheDir.exists()) {
-				cachePath = cacheDir.getPath();
-			}
-		}
-		return cachePath;
-	}
+    /**
+     * 获取SDCard根目录
+     *
+     * @return 例:/storage/emulated/0
+     */
+    public static String getSDCardDir() {
+        if (isSDCardExist()) {
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+            if (!XCStringUtil.isEmpty(path)) {
+                return path;
+            }
+        }
+        return "";
+    }
 
-	/**
-	 * 获取下载文件名
-	 * 
-	 * @param downloadUrl
-	 *            下载地址
-	 * @return 文件名
-	 */
-	public static String getDownloadFileName(String downloadUrl) {
-		if (!XCStringUtil.isEmpty(downloadUrl)) {
-			try {
-				if (downloadUrl.contains("/")) {
-					String[] split = downloadUrl.split("/");
-					String temp = split[split.length - 1];
-					if (temp.contains("?")) {
-						return temp.split("\\?")[0];
-					} else {
-						return temp;
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return "";
-	}
+    /**
+     * 获取手机内部缓存路径
+     *
+     * @param context 上下文
+     * @return 内存少时会被自动清除，例:/data/data/com.xc.sample/cache
+     */
+    public static String getCacheDir(Context context) {
+        File cacheDir = context.getCacheDir();
+        if (cacheDir != null) {
+            return cacheDir.getPath();
+        }
+        return "";
+    }
 
-	/**
-	 * 获取一个已时间命名的文件名
-	 * 
-	 * @param suffix
-	 *            文件后缀名
-	 * @return 文件名
-	 */
-	public static String getFileName(String suffix) {
-		Date date = new Date(System.currentTimeMillis());
-		SimpleDateFormat dateFormat = new SimpleDateFormat("'xc'_yyyyMMddHHmmss", Locale.CHINESE);
-		String randomNumber = "_" + new Random().nextInt(10000);
-		return dateFormat.format(date) + randomNumber + suffix;
-	}
+    /**
+     * 获取手机外部缓存路径
+     *
+     * @param context 上下文
+     * @return 内存少时不会被自动清除，例:/storage/emulated/0/Android/data/com.xc.sample/cache
+     */
+    public static String getExternalCacheDir(Context context) {
+        File externalCacheDir = context.getExternalCacheDir();
+        if (externalCacheDir != null) {
+            return externalCacheDir.getPath();
+        }
+        return "";
+    }
+
+    /**
+     * 获取下载文件名
+     *
+     * @param downloadUrl 下载地址
+     * @return 文件名
+     */
+    public synchronized static String getDownloadFileName(String downloadUrl) {
+        try {
+            if (!XCStringUtil.isEmpty(downloadUrl)) {
+                if (downloadUrl.contains("/")) {
+                    String[] split = downloadUrl.split("/");
+                    String temp = split[split.length - 1];
+                    if (temp.contains("?")) {
+                        return temp.split("\\?")[0];
+                    } else {
+                        return temp;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * @param folderPath 绝对路径
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 创建文件夹
+     */
+    public synchronized static boolean createFolder(String folderPath) {
+        try {
+            if (!XCStringUtil.isEmpty(folderPath)) {
+                File dirFile = new File(folderPath);
+                if (!dirFile.exists()) {
+                    return dirFile.mkdirs();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param folderPath 绝对路径
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 删除文件夹(含其根目录文件)
+     */
+    public synchronized static boolean deleteFolder(String folderPath) {
+        try {
+            if (!XCStringUtil.isEmpty(folderPath)) {
+                File dirFile = new File(folderPath);
+                if (dirFile.exists() && dirFile.isDirectory()) {
+                    File[] files = dirFile.listFiles();
+                    if (files != null && files.length > 0) {
+                        for (int i = files.length - 1; i >= 0; i--) {
+                            File file = files[i];
+                            if (file != null) {
+                                deleteFile(file.getAbsolutePath());
+                            }
+                        }
+                    }
+                    return dirFile.delete();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param filePath 绝对路径
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 文件是否存在
+     */
+    public synchronized static boolean isFileExist(String filePath) {
+        try {
+            if (!XCStringUtil.isEmpty(filePath)) {
+                return new File(filePath).exists();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param filePath 绝对路径
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 创建文件（含后缀名）
+     */
+    public synchronized static boolean createFile(String filePath) {
+        try {
+            if (!XCStringUtil.isEmpty(filePath)) {
+                File file = new File(filePath);
+                if (!file.exists()) {
+                    return file.createNewFile();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param filePath 文件绝对路径
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 删除文件（含后缀名）
+     */
+    public synchronized static boolean deleteFile(String filePath) {
+        try {
+            if (!XCStringUtil.isEmpty(filePath)) {
+                File file = new File(filePath);
+                if (file.exists() && file.isFile()) {
+                    return file.delete();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+    /**
+     * @param content  写入内容
+     * @param filePath 文件绝对路径（含后缀名）
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 写入文件
+     */
+    public synchronized static boolean writeFile(String content, String filePath) {
+        try {
+            if (!XCStringUtil.isEmpty(content) && !XCStringUtil.isEmpty(filePath)) {
+                File file = new File(filePath);
+                if (file.exists() && file.isFile()) {
+                    FileOutputStream os = new FileOutputStream(file, true);
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                    bw.write(content);
+                    bw.newLine();
+                    bw.close();
+                    os.close();
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param filePath 文件绝对路径（含后缀名）
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取文件
+     */
+    public synchronized static String readFile(String filePath) {
+        try {
+            if (!XCStringUtil.isEmpty(filePath)) {
+                File file = new File(filePath);
+                if (file.exists() && file.isFile()) {
+                    FileInputStream is = new FileInputStream(file);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                    StringBuffer sb = new StringBuffer();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line).append("\n");
+                    }
+                    br.close();
+                    is.close();
+                    return sb.toString();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * @param folderPath 文件夹绝对路径
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/20
+     * @description 获取文件list
+     */
+    public synchronized  static List<File> getFileList(String folderPath) {
+        List<File> fileList = new ArrayList<File>();
+        if (!XCStringUtil.isEmpty(folderPath)) {
+            File dirFile = new File(folderPath);
+            if (dirFile.exists() && dirFile.isDirectory()) {
+                File[] files = dirFile.listFiles();
+                if (files != null && files.length > 0) {
+                    Collections.addAll(fileList, files);
+                }
+            }
+        }
+        return fileList;
+    }
 }

@@ -25,21 +25,19 @@ public abstract class SerialPortReceivedThread extends Thread {
     public void run() {
         super.run();
         while (isRun && !isInterrupted()) {
-            synchronized (mSerialPort) {
-                try {
-                    int size = read(bufferDatas);
-                    if (size > 0) {//开始读取
-                        byte[] readDatas = java.util.Arrays.copyOf(bufferDatas, size);
-                        System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
-                        completePosition = completePosition + readDatas.length;
-                    } else if (completePosition > 0) {//读取结束
-                        onReceive(Arrays.copyOf(completeDatas, completePosition));
-                        completePosition = 0;
-                    }
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            try {
+                int size = read(bufferDatas);
+                if (size > 0) {//开始读取
+                    byte[] readDatas = java.util.Arrays.copyOf(bufferDatas, size);
+                    System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
+                    completePosition = completePosition + readDatas.length;
+                } else if (completePosition > 0) {//读取结束
+                    onReceive(Arrays.copyOf(completeDatas, completePosition));
+                    completePosition = 0;
                 }
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

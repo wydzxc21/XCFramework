@@ -20,6 +20,7 @@ import java.util.Map;
 public class DBManager {
     private Context context;
     public static DBManager mDBManager;
+    public final String KEY_ID = "_id";
 
     public DBManager(Context context) {
         this.context = context;
@@ -255,6 +256,42 @@ public class DBManager {
     }
 
     /**
+     * @author ZhangXuanChen
+     * @date 2020/2/25
+     * @description 查询主键id
+     */
+    public synchronized <T> String queryKeyId(T classObject) {
+        String keyId = "";
+        if (!isTableExist(classObject.getClass())) {
+            createTable(classObject.getClass());
+        }
+        SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
+        if (db != null && classObject != null) {
+            Cursor cursor = null;
+            try {
+                cursor = db.rawQuery(getQuerySql(classObject), null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        do {
+                            keyId = cursor.getString(cursor.getColumnIndex(KEY_ID));
+                        } while (cursor.moveToNext());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (db != null) {
+                    db.close();
+                }
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        return keyId;
+    }
+
+    /**
      * 查询
      *
      * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
@@ -345,7 +382,7 @@ public class DBManager {
                 sql += "," + name + " text";
             }
         }
-        return "create table if not exists " + tableClass.getSimpleName() + "(_id integer not null primary key autoincrement" + sql + ")";
+        return "create table if not exists " + tableClass.getSimpleName() + "(" + KEY_ID + " integer not null primary key autoincrement" + sql + ")";
     }
 
     /**

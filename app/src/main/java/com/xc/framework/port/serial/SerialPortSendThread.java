@@ -19,15 +19,13 @@ public class SerialPortSendThread extends Thread {
     public void run() {
         super.run();
         while (isRun && !isInterrupted()) {
-            synchronized (mSerialPort) {
-                try {
-                    boolean isWrite = write(bytes);
-                    if (isWrite) {
-                        stopThread();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            try {
+                boolean isWrite = write(bytes);
+                if (isWrite) {
+                    stopThread();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

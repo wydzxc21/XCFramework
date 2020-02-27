@@ -1,13 +1,5 @@
 package com.xc.framework.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -27,6 +19,14 @@ import com.xc.framework.bitmap.BitmapDisplayConfig;
 import com.xc.framework.bitmap.BitmapLoader;
 import com.xc.framework.bitmap.callback.BitmapLoadCallBack;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 /**
  * @author ZhangXuanChen
  * @date 2015-9-25
@@ -37,7 +37,7 @@ public class XCBitmapUtil {
 	// --------------------------------------------------------------------显示----------------------------------------------------------------
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -51,7 +51,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -67,7 +67,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -83,7 +83,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -101,7 +101,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -119,7 +119,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 显示view图片
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param container
@@ -139,20 +139,20 @@ public class XCBitmapUtil {
 
 	/**
 	 * 清除缓存
-	 * 
+	 *
 	 * @param context 上下文
-	 *            
+	 *
 	 */
 	public static void clearCache(Context context) {
 		clearCache(context, null);
 	}
-	
+
 	/**
 	 * 清除缓存
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param diskCachePath 本地缓存路径
-	 *            
+	 *
 	 */
 	public static void clearCache(Context context, String diskCachePath) {
 		BitmapLoader.getInstance(context, diskCachePath).clearCache();
@@ -160,9 +160,9 @@ public class XCBitmapUtil {
 
 	 /**
 	 * 根据url地址获取Bitmap
-	 * 
+	 *
 	 * @param  url 地址
-	 * @return bitmap对象           
+	 * @return bitmap对象
 	 */
 	public synchronized Bitmap getBitMap(final String url) {
 		URL fileUrl = null;
@@ -191,7 +191,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 根据本地路径获取Bitmap
-	 * 
+	 *
 	 * @param filePath 本地路径
 	 * @return bitmap对象
 	 */
@@ -212,7 +212,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 根据uri获取Bitmap
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param uri uri对象
 	 * @deprecated 默认缩略图是原图大小的1/4
@@ -224,7 +224,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 根据uri获取Bitmap
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param uri uri对象
 	 * @param inSampleSize 缩略图缩小倍数
@@ -250,7 +250,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 将View转化为Bitmap
-	 * 
+	 *
 	 * @param view view对象
 	 * @return bitmap对象
 	 */
@@ -271,7 +271,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 将Drawable转化为Bitmap
-	 * 
+	 *
 	 * @param drawable drawable对象
 	 * @return bitmap对象
 	 */
@@ -292,7 +292,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 将Bitmap转化为Drawable
-	 * 
+	 *
 	 * @param bitmap bitmap对象
 	 * @return drawable对象
 	 */
@@ -307,7 +307,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 将Bitmap转换为字节数组
-	 * 
+	 *
 	 * @param bitmap bitmap对象
 	 * @return 字节数组
 	 */
@@ -322,7 +322,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 将字节数组转换为Bitmap
-	 * 
+	 *
 	 * @param bytes 字节数组
 	 * @return bitmap对象
 	 */
@@ -336,11 +336,11 @@ public class XCBitmapUtil {
 
 	/**
 	 * 缩放图片
-	 * 
+	 *
 	 * @param bitmap bitmap对象
 	 * @param width 宽
 	 * @param height 高
-	 * @return bitmap对象	
+	 * @return bitmap对象
 	 */
 	public static Bitmap zoomBitmap(Bitmap bitmap, int width, int height) {
 		Bitmap createBitmap = null;
@@ -360,7 +360,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 缩放图片
-	 * 
+	 *
 	 * @param bitmap bitmap对象
 	 * @param multiple 缩放比例
 	 * @return bitmap对象
@@ -377,7 +377,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 旋转图片
-	 * 
+	 *
 	 * @param bitmap bitmap对象
 	 * @param degrees 角度
 	 * @return bitmap对象
@@ -394,7 +394,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 根据图片路径读取图片旋转角度
-	 * 
+	 *
 	 * @param filePath 图片路径
 	 * @return 旋转角度
 	 */
@@ -421,7 +421,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 保存图片到本地
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param bitmap bitmap对象
 	 * @param pictureName 图片名
@@ -431,7 +431,7 @@ public class XCBitmapUtil {
 		String path = "";
 		try {
 			if (context != null && bitmap != null && !XCStringUtil.isEmpty(pictureName)) {
-				path = XCFileUtil.getDiskCacheDir(context) + File.separator + pictureName;
+				path = XCFileUtil.getExternalCacheDir(context) + File.separator + pictureName;
 				File f = new File(path);
 				if (f.exists()) {
 					f.delete();
@@ -448,7 +448,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * 从URI获取本地路径
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param uri uri对象
 	 * @return 本地路径
@@ -476,7 +476,7 @@ public class XCBitmapUtil {
 
 	/**
 	 * Bitmap添加水印
-	 * 
+	 *
 	 * @param src 原图bitmap对象
 	 * @param watermark 水印bitmap对象
 	 * @return 完成bitmap对象
@@ -513,7 +513,7 @@ public class XCBitmapUtil {
 		}
 		return bitmap;
 	}
-	
+
 	/**
 	 * 获取模糊Bitmap
 	 * @param sentBitmap bitmap对象

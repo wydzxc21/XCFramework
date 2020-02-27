@@ -180,6 +180,15 @@ public class XCDBUtil {
     }
 
     /**
+     * @author ZhangXuanChen
+     * @date 2020/2/25
+     * @description 查询主键id
+     */
+    public static <T> String queryKeyId(Context context, T classObject) {
+        return DBManager.getInstance(context).queryKeyId(classObject);
+    }
+
+    /**
      * 是否存在
      *
      * @param context     上下文
