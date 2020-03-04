@@ -76,6 +76,9 @@ public class SocketClientManager {
                 socket.close();
                 socket = null;
             }
+            if (onSocketClientListener != null) {
+                onSocketClientListener = null;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

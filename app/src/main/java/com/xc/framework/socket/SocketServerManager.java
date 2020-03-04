@@ -82,6 +82,9 @@ public class SocketServerManager {
                 serverSocket.close();
                 serverSocket = null;
             }
+            if (onSocketServerListener != null) {
+                onSocketServerListener = null;
+            }
         } catch (Exception e) {
         }
     }
