@@ -122,7 +122,6 @@ public class SocketServerManager {
                 serverSocket = new ServerSocket(port);
                 while (serverThread.isRun() && serverSocket != null) {
                     Socket socket = serverSocket.accept();
-                    //
                     addSocketList(socket, clientList);
                     Message msg = handler.obtainMessage();
                     msg.what = 0x321;

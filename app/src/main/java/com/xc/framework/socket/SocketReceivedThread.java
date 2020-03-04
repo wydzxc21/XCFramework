@@ -32,9 +32,9 @@ public abstract class SocketReceivedThread extends XCThread {
                 InputStream is = socket.getInputStream();
                 int available = is.available();
                 if (available > 0) {
-                    byte[] buffer = new byte[available];
-                    is.read(buffer);
-                    String str = new String(buffer);
+                    byte[] bufferDatas = new byte[available];
+                    is.read(bufferDatas);
+                    String str = getDataStr(bufferDatas);
                     if (!XCStringUtil.isEmpty(str)) {
                         Message msg = handler.obtainMessage();
                         msg.what = 0x123;
@@ -49,13 +49,31 @@ public abstract class SocketReceivedThread extends XCThread {
         return null;
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/4 17:41
+     * Description：getDataStr
+     */
+    private String getDataStr(byte[] bufferDatas) {
+        if (bufferDatas != null && bufferDatas.length > 0) {
+            try {
+                String str = new String(bufferDatas, "utf-8").trim();
+                if (str.contains("�")) {
+                    str = str.replaceAll("�", "");
+                }
+                return str;
+            } catch (Exception e) {
+            }
+        }
+        return "";
+    }
+
     @Override
     protected void onHandler(Message msg) {
         if (msg.what == 0x123) {
             onReceive(socket, (String) msg.obj);
         }
     }
-
 
     public abstract void onReceive(Socket socket, String data);
 

@@ -66,9 +66,6 @@ public class SocketClientManager {
         if (port < 0 || port > 65535) {
             return;
         }
-        if (clientThread != null) {
-            return;
-        }
         clientThread = new ClientThread(ip, port);
         clientThread.startThread();
     }
@@ -116,7 +113,7 @@ public class SocketClientManager {
 
         @Override
         public Object onRun(Handler handler) {
-            return setConnect(ip, port);
+            return setConnect(socket, ip, port);
         }
 
         @Override
@@ -130,6 +127,7 @@ public class SocketClientManager {
                 SocketHeartbeatThread heartbeatThread = new SocketHeartbeatThread(socket) {
                     @Override
                     protected void onDisconnect(Socket socket) {
+                        startClient(ip, port);
                         if (onSocketClientListener != null) {
                             onSocketClientListener.onDisconnect(socket.getInetAddress().getHostAddress());
                         }
@@ -155,7 +153,7 @@ public class SocketClientManager {
      * @date 2020/3/3
      * @description setConnect
      */
-    private Socket setConnect(String ip, int port) {
+    private Socket setConnect(Socket socket, String ip, int port) {
         try {
             if (socket != null) {
                 socket.close();
@@ -167,10 +165,8 @@ public class SocketClientManager {
         while (clientThread.isRun() && socket == null) {
             try {
                 socket = new Socket(ip, port);
-                socket.setSoTimeout(5 * 1000);
-                socket.setKeepAlive(true);
                 socket.setTcpNoDelay(true);
-                socket.setReuseAddress(true);
+                socket.setKeepAlive(true);
                 Log.i(TAG, "onRun: 已连接");
             } catch (Exception e) {
                 Log.i(TAG, "onRun: 未连接");

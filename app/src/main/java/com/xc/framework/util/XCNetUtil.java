@@ -168,4 +168,19 @@ public class XCNetUtil {
                 ((ip >> 16) & 0xFF) + "." +
                 (ip >> 24 & 0xFF);
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/1/3 13:16
+     * Description：isPing
+     */
+    public static boolean isPing(String ipAddress) {
+        try {
+            String shell = "ping -c 1 " + ipAddress;
+            int result = Runtime.getRuntime().exec(shell).waitFor();
+            return result == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

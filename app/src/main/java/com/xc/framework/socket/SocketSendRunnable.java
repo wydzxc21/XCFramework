@@ -31,7 +31,7 @@ public class SocketSendRunnable extends XCRunnable {
         try {
             if (socket != null && !XCStringUtil.isEmpty(content)) {
                 OutputStream os = socket.getOutputStream();
-                os.write((content).getBytes());
+                os.write((content).getBytes("utf-8"));
                 os.flush();
             }
         } catch (Exception e) {
