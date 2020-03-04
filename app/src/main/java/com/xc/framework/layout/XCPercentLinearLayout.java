@@ -15,8 +15,9 @@ import android.widget.ScrollView;
  * Time：2019/12/6 14:18
  * Description：XCPercentLinearLayout
  * Param：xmlns:app="http://schemas.android.com/apk/res-auto"
- * Param：app:layout_widthPercentXC="50%h"
- * Param：app:layout_heightPercentXC="50%w"
+ * Param：app:layout_widthPercentXC="50%sh"
+ * Param：app:layout_heightPercentXC="50%sw"
+ * Param：sw:屏幕宽,w：父容器宽
  */
 public class XCPercentLinearLayout extends LinearLayout {
 

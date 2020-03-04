@@ -121,7 +121,7 @@ public class XCNetUtil {
      * @return
      */
     public static String getLocalIpAddress(Context context) {
-        NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+        @SuppressLint("MissingPermission") NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
         if (info != null && info.isConnected()) {
             if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//当前使用2G/3G/4G网络
                 try {
@@ -139,7 +139,7 @@ public class XCNetUtil {
                 }
             } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
                 WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                @SuppressLint("MissingPermission") WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 String ipAddress = intIPToStringIP(wifiInfo.getIpAddress());//得到IPV4地址
                 return ipAddress;
             } else if (info.getType() == ConnectivityManager.TYPE_ETHERNET) {//当前使用以太网

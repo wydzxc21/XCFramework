@@ -8,15 +8,14 @@ import android.hardware.usb.UsbDevice;
  * Author：ZhangXuanChen
  * Description：串口助手
  */
-public class UsbPortHelper {
+public class UsbPortManager {
     private Context mContext;
     private UsbPort mUsbPort;
     private UsbPortParam mUsbPortParam;
     private UsbPortReceivedThread mUsbPortReceivedThread;
-    private UsbPortSendThread mUsbPortSendThread;
     private boolean isOpen = false;
 
-    public UsbPortHelper(Context context) {
+    public UsbPortManager(Context context) {
         this.mContext = context;
     }
 
@@ -118,8 +117,7 @@ public class UsbPortHelper {
                 isClose = mUsbPort.closeUsbPort();
                 if (isClose) {
                     stopReceivedThread();
-                    stopSendThread();
-                    onUsbPortReceiveListener = null;
+                    onUsbPortListener = null;
                 }
             }
         } catch (Exception e) {
@@ -150,8 +148,8 @@ public class UsbPortHelper {
         mUsbPortReceivedThread = new UsbPortReceivedThread(mUsbPort) {
             @Override
             public void onReceive(byte[] bytes) {
-                if (onUsbPortReceiveListener != null) {
-                    onUsbPortReceiveListener.onReceive(bytes);
+                if (onUsbPortListener != null) {
+                    onUsbPortListener.onReceive(bytes);
                 }
             }
         };
@@ -175,19 +173,7 @@ public class UsbPortHelper {
      * Description：startSendThread
      */
     private void startSendThread(byte[] bytes) {
-        mUsbPortSendThread = new UsbPortSendThread(mUsbPort, bytes);
-        mUsbPortSendThread.startThread();
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:22
-     * Description：stopSendThread
-     */
-    private void stopSendThread() {
-        if (mUsbPortSendThread != null) {
-            mUsbPortSendThread.stopThread();
-        }
+       new UsbPortSendThread(mUsbPort, bytes).start();
     }
 
 
@@ -196,8 +182,8 @@ public class UsbPortHelper {
      * Time：2019/11/26 14:07
      * Description：设置接收监听
      */
-    public void setOnUsbPortReceiveListener(OnUsbPortReceiveListener onUsbPortReceiveListener) {
-        this.onUsbPortReceiveListener = onUsbPortReceiveListener;
+    public void setOnUsbPortListener(OnUsbPortListener onUsbPortListener) {
+        this.onUsbPortListener = onUsbPortListener;
     }
 
     /**
@@ -205,14 +191,14 @@ public class UsbPortHelper {
      * Time：2019/11/26 14:07
      * Description：接口引用
      */
-    OnUsbPortReceiveListener onUsbPortReceiveListener;
+    OnUsbPortListener onUsbPortListener;
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/26 14:06
-     * Description：OnSerialPortReceiveListener
+     * Description：OnSerialPortListener
      */
-    public interface OnUsbPortReceiveListener {
+    public interface OnUsbPortListener {
         void onReceive(byte[] buffer);
     }
 }

@@ -170,6 +170,7 @@ public final class SerialPort {
         try {
             if (mFileOutputStream != null && buffer != null && buffer.length > 0) {
                 mFileOutputStream.write(buffer);
+                mFileOutputStream.flush();
             } else {
                 return false;
             }

@@ -1,5 +1,9 @@
 package com.xc.framework.port.serial;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+
 import java.util.Arrays;
 
 /**
@@ -20,6 +24,17 @@ public abstract class SerialPortReceivedThread extends Thread {
         this.bufferDatas = new byte[1024];
         this.completeDatas = new byte[16 * 1024];
     }
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description handler
+     */
+    Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            onReceive((byte[]) msg.obj);
+        }
+    };
 
     @Override
     public void run() {
@@ -32,8 +47,11 @@ public abstract class SerialPortReceivedThread extends Thread {
                     System.arraycopy(readDatas, 0, completeDatas, completePosition, readDatas.length);
                     completePosition = completePosition + readDatas.length;
                 } else if (completePosition > 0) {//读取结束
-                    onReceive(Arrays.copyOf(completeDatas, completePosition));
                     completePosition = 0;
+                    Message msg = handler.obtainMessage();
+                    msg.what = 0x123;
+                    msg.obj = Arrays.copyOf(completeDatas, completePosition);
+                    handler.sendMessage(msg);
                 }
                 Thread.sleep(100);
             } catch (Exception e) {
@@ -64,7 +82,7 @@ public abstract class SerialPortReceivedThread extends Thread {
      * Description：write
      * Return：boolean
      */
-    public synchronized int read(byte[] buffer) {
+    public  int read(byte[] buffer) {
         if (mSerialPort == null) {
             return -1;
         }

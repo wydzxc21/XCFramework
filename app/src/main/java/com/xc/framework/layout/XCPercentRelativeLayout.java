@@ -29,6 +29,7 @@ import android.widget.RelativeLayout;
  * Param：xmlns:app="http://schemas.android.com/apk/res-auto"
  * Param：app:layout_widthPercentXC="50%h"
  * Param：app:layout_heightPercentXC="50%w"
+ * Param：sw:屏幕宽,w：父容器宽
  */
 public class XCPercentRelativeLayout extends RelativeLayout {
     private final XCPercentLayoutHelper mHelper = new XCPercentLayoutHelper(this);

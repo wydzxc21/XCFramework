@@ -1,24 +1,20 @@
 package com.xc.framework.port.serial;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+
 /**
  * Date：2019/11/25
  * Author：ZhangXuanChen
  * Description：串口助手
  */
-public class SerialPortHelper {
+public class SerialPortManager {
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
     private SerialPortReceivedThread mSerialPortReceivedThread;
     private SerialPortSendThread mSerialPortSendThread;
     private boolean isOpen = false;
-
-//    public static SerialPortHelper getInstance() {
-//        if (mSerialPortHelper == null) {
-//            mSerialPortHelper = new SerialPortHelper();
-//        }
-//        return mSerialPortHelper;
-//    }
-
 
     /**
      * Author：ZhangXuanChen
@@ -105,8 +101,7 @@ public class SerialPortHelper {
                 isClose = mSerialPort.closeSerialPort();
                 if (isClose) {
                     stopReceivedThread();
-                    stopSendThread();
-                    onSerialPortReceiveListener = null;
+                    onSerialPortListener = null;
                 }
             }
         } catch (Exception e) {
@@ -137,8 +132,8 @@ public class SerialPortHelper {
         mSerialPortReceivedThread = new SerialPortReceivedThread(mSerialPort) {
             @Override
             public void onReceive(byte[] bytes) {
-                if (onSerialPortReceiveListener != null) {
-                    onSerialPortReceiveListener.onReceive(bytes);
+                if (onSerialPortListener != null) {
+                    onSerialPortListener.onReceive(bytes);
                 }
             }
         };
@@ -162,19 +157,7 @@ public class SerialPortHelper {
      * Description：startSendThread
      */
     private void startSendThread(byte[] bytes) {
-        mSerialPortSendThread = new SerialPortSendThread(mSerialPort, bytes);
-        mSerialPortSendThread.startThread();
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:22
-     * Description：stopSendThread
-     */
-    private void stopSendThread() {
-        if (mSerialPortSendThread != null) {
-            mSerialPortSendThread.stopThread();
-        }
+        new SerialPortSendThread(mSerialPort, bytes).start();
     }
 
 
@@ -183,8 +166,8 @@ public class SerialPortHelper {
      * Time：2019/11/26 14:07
      * Description：设置接收监听
      */
-    public void setOnSerialPortReceiveListener(OnSerialPortReceiveListener onSerialPortReceiveListener) {
-        this.onSerialPortReceiveListener = onSerialPortReceiveListener;
+    public void setOnSerialPortListener(OnSerialPortListener onSerialPortListener) {
+        this.onSerialPortListener = onSerialPortListener;
     }
 
     /**
@@ -192,14 +175,14 @@ public class SerialPortHelper {
      * Time：2019/11/26 14:07
      * Description：接口引用
      */
-    OnSerialPortReceiveListener onSerialPortReceiveListener;
+    OnSerialPortListener onSerialPortListener;
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/26 14:06
-     * Description：OnSerialPortReceiveListener
+     * Description：OnSerialPortListener
      */
-    public interface OnSerialPortReceiveListener {
+    public interface OnSerialPortListener {
         void onReceive(byte[] buffer);
     }
 }

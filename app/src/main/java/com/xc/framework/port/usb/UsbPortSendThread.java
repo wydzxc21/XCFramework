@@ -8,7 +8,6 @@ package com.xc.framework.port.usb;
 public class UsbPortSendThread extends Thread {
     private UsbPort mUsbPort;
     private byte[] bytes;
-    private boolean isRun = false;
 
     public UsbPortSendThread(UsbPort usbPort, byte[] bytes) {
         this.mUsbPort = usbPort;
@@ -18,36 +17,13 @@ public class UsbPortSendThread extends Thread {
     @Override
     public void run() {
         super.run();
-        while (isRun && !isInterrupted()) {
-            synchronized (mUsbPort) {
-                try {
-                    int write = write(bytes);
-                    if (write > 0) {
-                        stopThread();
-                    }
-                    Thread.sleep(1);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        try {
+            int write = write(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:16
-     * Description：startThread
-     */
-    public void startThread() {
-        isRun = true;
-        setDaemon(true);
-        start();
-    }
-
-    public void stopThread() {
-        isRun = false;
-        interrupt();
-    }
 
     /**
      * Author：ZhangXuanChen
@@ -55,7 +31,7 @@ public class UsbPortSendThread extends Thread {
      * Description：write
      * Return：boolean
      */
-    public synchronized int write(byte[] buffer) {
+    public  int write(byte[] buffer) {
         if (mUsbPort == null) {
             return -1;
         }

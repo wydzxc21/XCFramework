@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author ZhangXuanChen
@@ -32,7 +33,7 @@ import java.util.List;
 public class XCAppUtil {
 	/**
 	 * 显示输入法
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 */
@@ -51,7 +52,7 @@ public class XCAppUtil {
 
 	/**
 	 * 隐藏输入法
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 */
@@ -69,7 +70,7 @@ public class XCAppUtil {
 
 	/**
 	 * 获取应用名称
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @return 应用名称
@@ -87,7 +88,7 @@ public class XCAppUtil {
 
 	/**
 	 * 获取应用版本号
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @return 版本号
@@ -105,7 +106,7 @@ public class XCAppUtil {
 
 	/**
 	 * 判断指定软件是否安装
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param packageName
@@ -136,7 +137,7 @@ public class XCAppUtil {
 
 	/**
 	 * 判断指定应用是否启动
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param packageName
@@ -163,7 +164,7 @@ public class XCAppUtil {
 
 	/**
 	 * 判断指定服务是否启动
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param serviceName
@@ -190,7 +191,7 @@ public class XCAppUtil {
 
 	/**
 	 * 打开其他APP
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param packageName
@@ -213,7 +214,7 @@ public class XCAppUtil {
 
 	/**
 	 * 获取所有APP信息
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @return APP信息集合
@@ -232,7 +233,7 @@ public class XCAppUtil {
 
 	/**
 	 * 获取指定app信息
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param appName
@@ -263,7 +264,7 @@ public class XCAppUtil {
 
 	/**
 	 * 获取AndroidManifest.xml中,Application下的<meta-data>元素值
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param metaDataName
@@ -283,7 +284,7 @@ public class XCAppUtil {
 
 	/**
 	 * 安装APP
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param uri
@@ -304,7 +305,7 @@ public class XCAppUtil {
 
 	/**
 	 * 安装APP
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 * @param downloadId
@@ -328,7 +329,7 @@ public class XCAppUtil {
 
 	/**
 	 * 隐藏底部虚拟按键，并且全屏
-	 * 
+	 *
 	 * @param context
 	 *            上下文
 	 */
@@ -341,5 +342,14 @@ public class XCAppUtil {
 			int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
 			decorView.setSystemUiVisibility(uiOptions);
 		}
+	}
+
+	/**
+	 * @author ZhangXuanChen
+	 * @date 2020/2/16
+	 * @description 获取唯一识别uuid
+	 */
+	public static String getUUId() {
+		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
 }
