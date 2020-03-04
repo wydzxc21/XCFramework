@@ -1,10 +1,13 @@
-package com.xc.framework.socket;
+package com.xc.framework.socket.client;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.xc.framework.socket.SocketHeartbeatThread;
+import com.xc.framework.socket.SocketReceivedThread;
+import com.xc.framework.socket.SocketSendRunnable;
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCStringUtil;
 import com.xc.framework.util.XCThreadUtil;
@@ -25,6 +28,7 @@ public class SocketClientManager {
     private ClientThread clientThread;
     private String ip;
     private int port;
+    private OnSocketClientListener onSocketClientListener;
 
     /**
      * @author ZhangXuanChen
@@ -37,6 +41,16 @@ public class SocketClientManager {
             mSocketClientManager = new SocketClientManager();
         }
         return mSocketClientManager;
+    }
+
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/26 14:07
+     * Description：设置接收监听
+     */
+    public void setOnSocketClientListener(OnSocketClientListener onSocketClientListener) {
+        this.onSocketClientListener = onSocketClientListener;
     }
 
     /**
@@ -177,33 +191,4 @@ public class SocketClientManager {
         }
     }
 
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：设置接收监听
-     */
-    public void setOnSocketClientListener(OnSocketClientListener onSocketClientListener) {
-        this.onSocketClientListener = onSocketClientListener;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：接口引用
-     */
-    OnSocketClientListener onSocketClientListener;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:06
-     * Description：OnSocketServerListener
-     */
-    public interface OnSocketClientListener {
-        void onReceive(String ip, String data);
-
-        void onConnect(String ip);
-
-        void onDisconnect(String ip);
-    }
 }

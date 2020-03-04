@@ -1,9 +1,12 @@
-package com.xc.framework.socket;
+package com.xc.framework.socket.server;
 
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.xc.framework.socket.SocketHeartbeatThread;
+import com.xc.framework.socket.SocketReceivedThread;
+import com.xc.framework.socket.SocketSendRunnable;
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCStringUtil;
 import com.xc.framework.util.XCThreadUtil;
@@ -24,6 +27,7 @@ public class SocketServerManager {
     private ServerSocket serverSocket;
     private XCThread serverThread;
     private LinkedList<Socket> clientList;
+    private OnSocketServerListener onSocketServerListener;
 
     /**
      * @author ZhangXuanChen
@@ -52,6 +56,15 @@ public class SocketServerManager {
         return clientList;
     }
 
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/26 14:07
+     * Description：设置接收监听
+     */
+    public void setOnSocketServerListener(OnSocketServerListener onSocketServerListener) {
+        this.onSocketServerListener = onSocketServerListener;
+    }
 
     /**
      * @param port 0 - 65535
@@ -203,34 +216,5 @@ public class SocketServerManager {
             }
         }
         clientList.add(socket);
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：设置接收监听
-     */
-    public void setOnSocketServerListener(OnSocketServerListener onSocketServerListener) {
-        this.onSocketServerListener = onSocketServerListener;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：接口引用
-     */
-    OnSocketServerListener onSocketServerListener;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:06
-     * Description：OnSocketServerListener
-     */
-    public interface OnSocketServerListener {
-        void onReceive(String ip, String data);
-
-        void onConnect(String ip);
-
-        void onDisconnect(String ip);
     }
 }
