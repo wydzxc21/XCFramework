@@ -113,12 +113,12 @@ public class SocketClientManager {
 
         @Override
         public Object onRun(Handler handler) {
-            return setConnect(ip, port);
+            return setConnect(socket, ip, port);
         }
 
         @Override
         public void onHandler(Message msg) {
-            Socket socket = (Socket) msg.obj;
+            socket = (Socket) msg.obj;
             if (socket != null) {
                 if (onSocketClientListener != null) {
                     onSocketClientListener.onConnect(socket.getInetAddress().getHostAddress());
@@ -153,7 +153,7 @@ public class SocketClientManager {
      * @date 2020/3/3
      * @description setConnect
      */
-    private Socket setConnect(String ip, int port) {
+    private Socket setConnect(Socket socket, String ip, int port) {
         try {
             if (socket != null) {
                 socket.close();
