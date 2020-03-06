@@ -113,7 +113,7 @@ public class SocketClientManager {
 
         @Override
         public Object onRun(Handler handler) {
-            return setConnect(socket, ip, port);
+            return setConnect(ip, port);
         }
 
         @Override
@@ -153,7 +153,7 @@ public class SocketClientManager {
      * @date 2020/3/3
      * @description setConnect
      */
-    private Socket setConnect(Socket socket, String ip, int port) {
+    private Socket setConnect(String ip, int port) {
         try {
             if (socket != null) {
                 socket.close();
