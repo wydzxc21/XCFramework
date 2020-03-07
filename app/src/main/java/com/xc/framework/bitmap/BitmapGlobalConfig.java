@@ -1,9 +1,6 @@
 
 package com.xc.framework.bitmap;
 
-import java.io.File;
-import java.util.HashMap;
-
 import android.app.ActivityManager;
 import android.content.Context;
 import android.text.TextUtils;
@@ -17,6 +14,9 @@ import com.xc.framework.bitmap.task.Priority;
 import com.xc.framework.bitmap.task.PriorityAsyncTask;
 import com.xc.framework.bitmap.task.PriorityExecutor;
 import com.xc.framework.util.XCFileUtil;
+
+import java.io.File;
+import java.util.HashMap;
 
 /**
  * @author ZhangXuanChen
@@ -69,7 +69,7 @@ public class BitmapGlobalConfig {
     public synchronized static BitmapGlobalConfig getInstance(Context context, String diskCachePath) {
 
         if (TextUtils.isEmpty(diskCachePath)) {
-            diskCachePath = XCFileUtil.getDiskCacheDir(context) + File.separator + DIR_NAME;
+            diskCachePath = XCFileUtil.getCacheDir(context) + File.separator + DIR_NAME;
         }
 
         if (configMap.containsKey(diskCachePath)) {

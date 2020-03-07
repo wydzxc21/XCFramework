@@ -1,16 +1,5 @@
 package com.xc.framework.http.client;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.charset.Charset;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.message.BasicNameValuePair;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -25,6 +14,17 @@ import com.xc.framework.util.XCFileUtil;
 import com.xc.framework.util.XCIOUtil;
 import com.xc.framework.util.XCStringUtil;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.Charset;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author ZhangXuanChen
  * @date 2015-10-14
@@ -34,7 +34,7 @@ import com.xc.framework.util.XCStringUtil;
 public class HttpHandler {
 	/**
 	 * 获取HttpEntity
-	 * 
+	 *
 	 * @param param
 	 * @param config
 	 * @return
@@ -70,8 +70,7 @@ public class HttpHandler {
 
 	/**
 	 * 下载文件
-	 * 
-	 * @param inputStream
+	 *
 	 * @param savePath
 	 */
 	public static void downloadFile(Context context, HttpEntity entity, String savePath, String downloadUrl, DownloadCallBack downloadCallBack) {
@@ -81,7 +80,7 @@ public class HttpHandler {
 		try {
 			if (entity != null) {
 				if (XCStringUtil.isEmpty(savePath)) {
-					savePath = XCFileUtil.getDiskCacheDir(context) + File.separator + XCFileUtil.getDownloadFileName(downloadUrl);
+					savePath = XCFileUtil.getCacheDir(context) + File.separator + XCFileUtil.getDownloadFileName(downloadUrl);
 				}
 				//
 				targetFile = new File(savePath);
