@@ -1,5 +1,6 @@
 package com.xc.framework.port.serial;
 
+import com.xc.framework.util.XCByteUtil;
 import com.xc.framework.util.XCStringUtil;
 
 import java.io.File;
@@ -23,7 +24,7 @@ public class SerialPortParam {
      */
     private int baudrate;
     /**
-     * 数据位，默认8,可选值为5~8
+     * 数据位，默认8，可选值为5~8
      */
     private int dataBits = 8;
     /**
@@ -38,6 +39,19 @@ public class SerialPortParam {
      * 流控，0:不使用流控(默认)；1:硬件流控(RTS/CTS)；2:软件流控(XON/XOFF)
      */
     private int flowCon = 0;
+    /**
+     * 重发次数，默认0，不重发
+     */
+    int retryCount = 0;
+    /**
+     * 超时(毫秒)，默认2000
+     */
+    int timeout = 2000;
+    /**
+     * 帧头,处理粘包分包，默认null，不处理
+     */
+    byte[] frameHeaders;
+
 
     public SerialPortParam(File serialDevice, int baudrate) {
         this.serialDevice = serialDevice;
@@ -49,14 +63,17 @@ public class SerialPortParam {
         this.baudrate = baudrate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int retryCount, int timeout, byte[] frameHeaders) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
         this.baudrate = baudrate;
-        this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
-        this.stopBits = stopBits >= 0 ? stopBits : this.stopBits;
-        this.parity = parity >= 0 ? parity : this.parity;
-        this.flowCon = flowCon >= 0 ? flowCon : this.flowCon;
+        this.dataBits = dataBits > 0 ? dataBits : this.dataBits;
+        this.stopBits = stopBits > 0 ? stopBits : this.stopBits;
+        this.parity = parity > 0 ? parity : this.parity;
+        this.flowCon = flowCon > 0 ? flowCon : this.flowCon;
+        this.retryCount = retryCount > 0 ? retryCount : this.retryCount;
+        this.timeout = timeout > 0 ? timeout : this.timeout;
+        this.frameHeaders = frameHeaders;
     }
 
 
@@ -75,9 +92,11 @@ public class SerialPortParam {
     public void setSerialDevice(File serialDevice) {
         this.serialDevice = serialDevice;
     }
-    public void setSerialDevice(String  serialDevicePath) {
+
+    public void setSerialDevice(String serialDevicePath) {
         this.serialDevice = new File(serialDevicePath);
     }
+
     public int getBaudrate() {
         return baudrate;
     }
@@ -118,6 +137,43 @@ public class SerialPortParam {
         this.flowCon = flowCon;
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public byte[] getFrameHeaders() {
+        return frameHeaders;
+    }
+
+    public void setFrameHeaders(byte[] frameHeaders) {
+        this.frameHeaders = frameHeaders;
+    }
+
+//    @Override
+//    public String toString() {
+//        return "SerialPortParam{" +
+//                "suPath='" + suPath + '\'' +
+//                ", serialDevice=" + serialDevice.getAbsolutePath() +
+//                ", baudrate=" + baudrate +
+//                ", dataBits=" + dataBits +
+//                ", stopBits=" + stopBits +
+//                ", parity=" + parity +
+//                ", flowCon=" + flowCon +
+//                '}';
+//    }
+
     @Override
     public String toString() {
         return "SerialPortParam{" +
@@ -128,6 +184,9 @@ public class SerialPortParam {
                 ", stopBits=" + stopBits +
                 ", parity=" + parity +
                 ", flowCon=" + flowCon +
+                ", retryCount=" + retryCount +
+                ", timeout=" + timeout +
+                ", frameHeaders=" + XCByteUtil.byteToHexStr(frameHeaders) +
                 '}';
     }
 }

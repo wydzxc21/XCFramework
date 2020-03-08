@@ -170,8 +170,9 @@ public class SocketClientManager {
                 Log.i(TAG, "onRun: 已连接");
             } catch (Exception e) {
                 Log.i(TAG, "onRun: 未连接");
+            } finally {
+                XCThreadUtil.sleep(1000);
             }
-            XCThreadUtil.sleep(1000);
         }
         return socket;
     }

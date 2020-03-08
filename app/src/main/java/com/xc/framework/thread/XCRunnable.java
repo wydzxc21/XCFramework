@@ -27,11 +27,31 @@ public abstract class XCRunnable implements Runnable {
     public void run() {
         Object obj = onRun(handler);
         if (obj != null) {
-            Message msg = handler.obtainMessage();
-            msg.what = 0x789;
-            msg.obj = obj;
-            handler.sendMessage(msg);
+            sendMessage(0x789, obj);
         }
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/3/8
+     * @description sendMessage
+     */
+    protected void sendMessage(int what) {
+        sendMessage(what, null);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/3/8
+     * @description sendMessage
+     */
+    protected void sendMessage(int what, Object obj) {
+        Message msg = handler.obtainMessage();
+        msg.what = what;
+        if (obj != null) {
+            msg.obj = obj;
+        }
+        handler.sendMessage(msg);
     }
 
     /**

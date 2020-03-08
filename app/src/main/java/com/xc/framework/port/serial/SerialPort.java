@@ -102,17 +102,13 @@ public final class SerialPort {
         if (!isPermission(suPath, device)) {
             return false;
         }
-        try {
-            mFd = open(device.getAbsolutePath(), baudrate, dataBits, stopBits, parity, flowCon);
-            if (mFd == null) {
-                return false;
-            }
-            mFileInputStream = new FileInputStream(mFd);
-            mFileOutputStream = new FileOutputStream(mFd);
-            if (mFileInputStream == null || mFileOutputStream == null) {
-                return false;
-            }
-        } catch (Exception e) {
+        mFd = open(device.getAbsolutePath(), baudrate, dataBits, stopBits, parity, flowCon);
+        if (mFd == null) {
+            return false;
+        }
+        mFileInputStream = new FileInputStream(mFd);
+        mFileOutputStream = new FileOutputStream(mFd);
+        if (mFileInputStream == null || mFileOutputStream == null) {
             return false;
         }
         return true;
@@ -125,10 +121,6 @@ public final class SerialPort {
      */
     public boolean closeSerialPort() {
         try {
-            if (mFd != null) {
-                close();
-                mFd = null;
-            }
             if (mFileInputStream != null) {
                 mFileInputStream.close();
                 mFileInputStream = null;
@@ -137,10 +129,15 @@ public final class SerialPort {
                 mFileOutputStream.close();
                 mFileOutputStream = null;
             }
+            if (mFd != null) {
+                close();
+                mFd = null;
+            }
+            return true;
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
@@ -149,15 +146,23 @@ public final class SerialPort {
      * Description：readSerialPort
      * Return：int
      */
-    public int readSerialPort(byte[] buffer) {
-        int read = -1;
+    public synchronized byte[] readSerialPort() {
+        byte[] bytes = null;
         try {
             if (mFileInputStream != null) {
-                read = mFileInputStream.read(buffer);
+                int totalCount = mFileInputStream.available();
+                if (totalCount > 0) {
+                    bytes = new byte[totalCount];
+                    int readCount = 0; // 已经成功读取的字节的个数
+                    while (readCount < totalCount) {
+                        readCount += mFileInputStream.read(bytes, readCount, totalCount - readCount);
+                    }
+                }
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
-        return read;
+        return bytes;
     }
 
     /**
@@ -166,18 +171,17 @@ public final class SerialPort {
      * Description：writeSerialPort
      * Return：boolean
      */
-    public boolean writeSerialPort(byte[] buffer) {
+    public synchronized boolean writeSerialPort(byte[] bytes) {
         try {
-            if (mFileOutputStream != null && buffer != null && buffer.length > 0) {
-                mFileOutputStream.write(buffer);
+            if (mFileOutputStream != null && bytes != null && bytes.length > 0) {
+                mFileOutputStream.write(bytes);
                 mFileOutputStream.flush();
-            } else {
-                return false;
+                return true;
             }
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
@@ -200,6 +204,7 @@ public final class SerialPort {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
         return true;
     }

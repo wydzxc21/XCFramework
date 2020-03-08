@@ -1,8 +1,7 @@
 package com.xc.framework.port.serial;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Date：2019/11/25
@@ -12,9 +11,9 @@ import android.os.Message;
 public class SerialPortManager {
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
-    private SerialPortReceivedThread mSerialPortReceivedThread;
-    private SerialPortSendThread mSerialPortSendThread;
+    private ExecutorService mExecutorService;
     private boolean isOpen = false;
+    private OnSerialPortListener onSerialPortListener;
 
     /**
      * Author：ZhangXuanChen
@@ -39,23 +38,6 @@ public class SerialPortManager {
         initData();
     }
 
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/25 13:17
-     * Description：打开串口
-     *
-     * @param suPath     su路径，默认：/system/bin/su
-     * @param devicePath 串口地址
-     * @param baudrate   波特率
-     * @param dataBits   数据位，默认8
-     * @param stopBits   停止位，默认1
-     * @param parity     奇偶校验位，默认0（无校验）
-     * @param flowCon    流控，默认0（不使用）
-     */
-    public void init(String suPath, String devicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
-        this.mSerialPortParam = new SerialPortParam(suPath, devicePath, baudrate, dataBits, stopBits, parity, flowCon);
-        initData();
-    }
 
     /**
      * Author：ZhangXuanChen
@@ -65,6 +47,7 @@ public class SerialPortManager {
     private void initData() {
         if (mSerialPort == null) {
             mSerialPort = new SerialPort();
+            mExecutorService = Executors.newSingleThreadExecutor();
         }
     }
 
@@ -75,15 +58,8 @@ public class SerialPortManager {
      * Return：boolean
      */
     public boolean open() {
-        try {
-            if (mSerialPort != null && mSerialPortParam != null) {
-                isOpen = mSerialPort.openSerialPort(mSerialPortParam);
-                if (isOpen) {
-                    startReceivedThread();
-                }
-            }
-        } catch (Exception e) {
-            isOpen = false;
+        if (mSerialPort != null && mSerialPortParam != null) {
+            isOpen = mSerialPort.openSerialPort(mSerialPortParam);
         }
         return isOpen;
     }
@@ -96,16 +72,14 @@ public class SerialPortManager {
      */
     public boolean close() {
         boolean isClose = false;
-        try {
-            if (mSerialPort != null) {
-                isClose = mSerialPort.closeSerialPort();
-                if (isClose) {
-                    stopReceivedThread();
-                    onSerialPortListener = null;
-                }
-            }
-        } catch (Exception e) {
-            isClose = false;
+        if (mSerialPort != null) {
+            isClose = mSerialPort.closeSerialPort();
+        }
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+        }
+        if (onSerialPortListener != null) {
+            onSerialPortListener = null;
         }
         isOpen = !isClose;
         return isClose;
@@ -116,48 +90,21 @@ public class SerialPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes) {
-        if (bytes != null && bytes.length > 0) {
-            startSendThread(bytes);
-        }
-    }
-
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:21
-     * Description：startReceivedThread
-     */
-    private void startReceivedThread() {
-        mSerialPortReceivedThread = new SerialPortReceivedThread(mSerialPort) {
-            @Override
-            public void onReceive(byte[] bytes) {
-                if (onSerialPortListener != null) {
-                    onSerialPortListener.onReceive(bytes);
-                }
-            }
-        };
-        mSerialPortReceivedThread.startThread();
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:22
-     * Description：stopReceivedThread
-     */
-    private void stopReceivedThread() {
-        if (mSerialPortReceivedThread != null) {
-            mSerialPortReceivedThread.stopThread();
+    public void send(byte[] bytes, int what) {
+        if (mSerialPortParam != null) {
+            send(bytes, what, mSerialPortParam.getRetryCount(), mSerialPortParam.getTimeout(), mSerialPortParam.getFrameHeaders());
         }
     }
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/27 15:21
-     * Description：startSendThread
+     * Time：2019/11/27 16:15
+     * Description：串口发送
      */
-    private void startSendThread(byte[] bytes) {
-        new SerialPortSendThread(mSerialPort, bytes).start();
+    public void send(byte[] bytes, int what, int retryCount, int timeout, byte[] frameHeaders) {
+        if (mExecutorService != null && mSerialPort != null && bytes != null && bytes.length > 0) {
+            mExecutorService.execute(new SerialPortRunnable(bytes, what, retryCount, timeout, frameHeaders, mSerialPort, onSerialPortListener));
+        }
     }
 
 
@@ -170,19 +117,4 @@ public class SerialPortManager {
         this.onSerialPortListener = onSerialPortListener;
     }
 
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：接口引用
-     */
-    OnSerialPortListener onSerialPortListener;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:06
-     * Description：OnSerialPortListener
-     */
-    public interface OnSerialPortListener {
-        void onReceive(byte[] buffer);
-    }
 }
