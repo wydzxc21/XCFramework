@@ -11,7 +11,7 @@ public interface OnSerialPortListener {
      * @return 0或-1：继续读取
      * @author ZhangXuanChen
      * @date 2020/3/7
-     * @description 设置数据有效长度(十进制)
+     * @description 设置数据有效长度(10进制)
      */
     int setLength(int what, byte[] receiveDatas);
 
