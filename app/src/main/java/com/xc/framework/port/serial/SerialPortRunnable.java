@@ -108,7 +108,7 @@ public class SerialPortRunnable extends XCRunnable {
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
             if (frameHeaders != null && frameHeaders.length > 0) { //根据最后一组帧头分割数据
-                cutDatas = splitDataByLastFrameHeader(cutDatas, frameHeaders);
+                cutDatas = splitDataByLastFrameHeader(frameHeaders, cutDatas);
             }
             int length = cutDatas.length;
             if (onSerialPortListener != null) {
