@@ -42,15 +42,15 @@ public class SerialPortParam {
     /**
      * 重发次数，默认0，不重发
      */
-    int retryCount = 0;
+    int resendCount = 0;
     /**
-     * 超时(毫秒)，默认2000
+     * 发送超时(毫秒)，默认2000
      */
-    int timeout = 2000;
+    int sendTimeout = 2000;
     /**
-     * 帧头,处理粘包分包，默认null，不处理
+     * 接收帧头，默认null，处理丢包粘包
      */
-    byte[] frameHeaders;
+    byte[] receiveFrameHeads;
 
 
     public SerialPortParam(File serialDevice, int baudrate) {
@@ -63,7 +63,7 @@ public class SerialPortParam {
         this.baudrate = baudrate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int retryCount, int timeout, byte[] frameHeaders) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
         this.baudrate = baudrate;
@@ -71,9 +71,9 @@ public class SerialPortParam {
         this.stopBits = stopBits > 0 ? stopBits : this.stopBits;
         this.parity = parity > 0 ? parity : this.parity;
         this.flowCon = flowCon > 0 ? flowCon : this.flowCon;
-        this.retryCount = retryCount > 0 ? retryCount : this.retryCount;
-        this.timeout = timeout > 0 ? timeout : this.timeout;
-        this.frameHeaders = frameHeaders;
+        this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
+        this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
+        this.receiveFrameHeads = receiveFrameHeads;
     }
 
 
@@ -137,42 +137,29 @@ public class SerialPortParam {
         this.flowCon = flowCon;
     }
 
-    public int getRetryCount() {
-        return retryCount;
+    public int getResendCount() {
+        return resendCount;
     }
 
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
+    public void setResendCount(int resendCount) {
+        this.resendCount = resendCount;
     }
 
-    public int getTimeout() {
-        return timeout;
+    public int getSendTimeout() {
+        return sendTimeout;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setSendTimeout(int sendTimeout) {
+        this.sendTimeout = sendTimeout;
     }
 
-    public byte[] getFrameHeaders() {
-        return frameHeaders;
+    public byte[] getReceiveFrameHeads() {
+        return receiveFrameHeads;
     }
 
-    public void setFrameHeaders(byte[] frameHeaders) {
-        this.frameHeaders = frameHeaders;
+    public void setReceiveFrameHeads(byte[] receiveFrameHeads) {
+        this.receiveFrameHeads = receiveFrameHeads;
     }
-
-//    @Override
-//    public String toString() {
-//        return "SerialPortParam{" +
-//                "suPath='" + suPath + '\'' +
-//                ", serialDevice=" + serialDevice.getAbsolutePath() +
-//                ", baudrate=" + baudrate +
-//                ", dataBits=" + dataBits +
-//                ", stopBits=" + stopBits +
-//                ", parity=" + parity +
-//                ", flowCon=" + flowCon +
-//                '}';
-//    }
 
     @Override
     public String toString() {
@@ -184,9 +171,9 @@ public class SerialPortParam {
                 ", stopBits=" + stopBits +
                 ", parity=" + parity +
                 ", flowCon=" + flowCon +
-                ", retryCount=" + retryCount +
-                ", timeout=" + timeout +
-                ", frameHeaders=" + XCByteUtil.byteToHexStr(frameHeaders) +
+                ", resendCount=" + resendCount +
+                ", sendTimeout=" + sendTimeout +
+                ", receiveFrameHeads=" + XCByteUtil.byteToHexStr(receiveFrameHeads) +
                 '}';
     }
 }

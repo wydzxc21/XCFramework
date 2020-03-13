@@ -1,19 +1,22 @@
 package com.xc.framework.port.serial;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Date：2019/11/25
  * Author：ZhangXuanChen
- * Description：串口助手
+ * Description：串口管理类
  */
 public class SerialPortManager {
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
-    private ExecutorService mExecutorService;
-    private boolean isOpen = false;
     private OnSerialPortListener onSerialPortListener;
+    private boolean isOpen = false;
+    private SerialPortReceiveThread mSerialPortReceiveThread;//接收线程
+    private ThreadPoolExecutor mThreadPoolExecutor;//发送线程池
+    //
 
     /**
      * Author：ZhangXuanChen
@@ -38,6 +41,23 @@ public class SerialPortManager {
         initData();
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/25 15:30
+     * Description：初始化串口
+     * Param：devicePath 串口地址
+     * Param：baudrate 波特率
+     * Param：resendCount 重发次数，默认0
+     * Param：sendTimeout 发送超时(毫秒)，默认2000
+     * Param：receiveFrameHeads 接收帧头，默认null
+     */
+    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
+        this.mSerialPortParam = new SerialPortParam(devicePath, baudrate);
+        this.mSerialPortParam.setResendCount(resendCount);
+        this.mSerialPortParam.setSendTimeout(sendTimeout);
+        this.mSerialPortParam.setReceiveFrameHeads(receiveFrameHeads);
+        initData();
+    }
 
     /**
      * Author：ZhangXuanChen
@@ -47,8 +67,8 @@ public class SerialPortManager {
     private void initData() {
         if (mSerialPort == null) {
             mSerialPort = new SerialPort();
-            mExecutorService = Executors.newSingleThreadExecutor();
         }
+        mThreadPoolExecutor = new ThreadPoolExecutor(1, 1, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1));
     }
 
     /**
@@ -60,10 +80,13 @@ public class SerialPortManager {
     public boolean open() {
         if (mSerialPort != null && mSerialPortParam != null) {
             isOpen = mSerialPort.openSerialPort(mSerialPortParam);
+            if (isOpen) {
+                initData();
+                startReceivedThread();
+            }
         }
         return isOpen;
     }
-
 
     /**
      * Author：ZhangXuanChen
@@ -71,42 +94,83 @@ public class SerialPortManager {
      * Description：串口关闭
      */
     public boolean close() {
-        boolean isClose = false;
         if (mSerialPort != null) {
-            isClose = mSerialPort.closeSerialPort();
+            mSerialPort.closeSerialPort();
+            mSerialPort = null;
         }
-        if (mExecutorService != null) {
-            mExecutorService.shutdown();
+        if (mThreadPoolExecutor != null) {
+            mThreadPoolExecutor.shutdownNow();
+            mThreadPoolExecutor = null;
+        }
+        if (mSerialPortReceiveThread != null) {
+            mSerialPortReceiveThread.stopThread();
+            mSerialPortReceiveThread = null;
         }
         if (onSerialPortListener != null) {
             onSerialPortListener = null;
         }
-        isOpen = !isClose;
-        return isClose;
+        isOpen = false;
+        return true;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/10 9:25
+     * Description：startReceivedTask
+     */
+    private void startReceivedThread() {
+        mSerialPortReceiveThread = new SerialPortReceiveThread(mSerialPortParam, mSerialPort) {
+            @Override
+            public int setLength(byte[] receiveDatas) {
+                if (onSerialPortListener != null) {
+                    return onSerialPortListener.setLength(receiveDatas);
+                }
+                return 0;
+            }
+
+            @Override
+            public void onReceive(byte[] receiveDatas) {
+                if (onSerialPortListener != null) {
+                    int what = 0;
+                    SerialPortSendRunnable mSerialPortSendRunnable = (SerialPortSendRunnable) mThreadPoolExecutor.getQueue().poll();
+                    if (mSerialPortSendRunnable != null) {
+                        what = mSerialPortSendRunnable.getWhat();
+                        mSerialPortSendRunnable.receive();
+                    }
+                    onSerialPortListener.onReceive(what, receiveDatas);
+                }
+            }
+        };
+        mSerialPortReceiveThread.setDaemon(true);
+        mSerialPortReceiveThread.startThread();
+    }
+
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
+
     public void send(byte[] bytes, int what) {
-        if (mSerialPortParam != null) {
-            send(bytes, what, mSerialPortParam.getRetryCount(), mSerialPortParam.getTimeout(), mSerialPortParam.getFrameHeaders());
-        }
+        startSendThread(bytes, what);
     }
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/27 16:15
-     * Description：串口发送
+     * Time：2020/3/10 13:12
+     * Description：startSendTask
      */
-    public void send(byte[] bytes, int what, int retryCount, int timeout, byte[] frameHeaders) {
-        if (mExecutorService != null && mSerialPort != null && bytes != null && bytes.length > 0) {
-            mExecutorService.execute(new SerialPortRunnable(bytes, what, retryCount, timeout, frameHeaders, mSerialPort, onSerialPortListener));
-        }
+    private void startSendThread(byte[] bytes, int what) {
+        mThreadPoolExecutor.execute(new SerialPortSendRunnable(bytes, what, mSerialPortParam, mSerialPort) {
+            @Override
+            public void onTimeout(int what, byte[] sendDatas) {
+                if (onSerialPortListener != null) {
+                    onSerialPortListener.onTimeout(what, sendDatas);
+                }
+            }
+        });
     }
-
 
     /**
      * Author：ZhangXuanChen

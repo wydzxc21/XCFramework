@@ -14,12 +14,11 @@ import com.xc.framework.util.XCThreadUtil;
  * @description 自定义线程
  */
 public abstract class XCThread extends Thread {
-    protected boolean isRun = false;
+    private boolean isRun = false;
 
     public XCThread() {
         init();
     }
-
 
     /**
      * @author ZhangXuanChen
@@ -58,7 +57,7 @@ public abstract class XCThread extends Thread {
      * @date 2020/3/8
      * @description sendMessage
      */
-    protected void sendMessage(int what) {
+    public void sendMessage(int what) {
         sendMessage(what, null);
     }
 
@@ -67,7 +66,7 @@ public abstract class XCThread extends Thread {
      * @date 2020/3/8
      * @description sendMessage
      */
-    protected void sendMessage(int what, Object obj) {
+    public void sendMessage(int what, Object obj) {
         Message msg = handler.obtainMessage();
         msg.what = what;
         if (obj != null) {

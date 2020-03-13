@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.xc.framework.util.XCAppUtil;
+
 /**
  * @author ZhangXuanChen
  * @date 2020/3/1
@@ -11,6 +13,21 @@ import android.os.Message;
  * @description 自定义Runnable
  */
 public abstract class XCRunnable implements Runnable {
+    private String name;
+
+    public XCRunnable() {
+        init();
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/13 8:44
+     * Description：init
+     */
+    private void init() {
+        setName(XCAppUtil.getUUId());
+    }
+
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
@@ -36,7 +53,7 @@ public abstract class XCRunnable implements Runnable {
      * @date 2020/3/8
      * @description sendMessage
      */
-    protected void sendMessage(int what) {
+    public void sendMessage(int what) {
         sendMessage(what, null);
     }
 
@@ -45,13 +62,31 @@ public abstract class XCRunnable implements Runnable {
      * @date 2020/3/8
      * @description sendMessage
      */
-    protected void sendMessage(int what, Object obj) {
+    public void sendMessage(int what, Object obj) {
         Message msg = handler.obtainMessage();
         msg.what = what;
         if (obj != null) {
             msg.obj = obj;
         }
         handler.sendMessage(msg);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/13 8:50
+     * Description：getName
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/13 8:50
+     * Description：setName
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
