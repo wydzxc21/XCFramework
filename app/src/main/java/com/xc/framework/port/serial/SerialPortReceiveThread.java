@@ -2,10 +2,8 @@ package com.xc.framework.port.serial;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.xc.framework.thread.XCThread;
-import com.xc.framework.util.XCByteUtil;
 
 import java.util.Arrays;
 
@@ -89,7 +87,7 @@ public abstract class SerialPortReceiveThread extends XCThread {
             if (length > 0 && length <= cutDatas.length) {
                 bufferPosition = 0;
                 byte[] receiveDatas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
-                Log.i(TAG, "指令-接收:[ " + XCByteUtil.byteToHexStr(receiveDatas) + "]");
+//                Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(receiveDatas) + "]");
                 sendMessage(0x123, receiveDatas);
             } else {//长度不足继续读取
                 readDatas();

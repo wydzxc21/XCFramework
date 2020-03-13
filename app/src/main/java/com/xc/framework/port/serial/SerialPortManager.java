@@ -1,8 +1,8 @@
 package com.xc.framework.port.serial;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Date：2019/11/25
@@ -15,8 +15,8 @@ public class SerialPortManager {
     private OnSerialPortListener onSerialPortListener;
     private boolean isOpen = false;
     private SerialPortReceiveThread mSerialPortReceiveThread;//接收线程
-    private ThreadPoolExecutor mThreadPoolExecutor;//发送线程池
-    //
+    private ExecutorService mExecutorService;//发送线程池
+    private LinkedBlockingQueue<SerialPortSendRunnable> mLinkedBlockingQueue;//正在执行的发送线程
 
     /**
      * Author：ZhangXuanChen
@@ -68,7 +68,8 @@ public class SerialPortManager {
         if (mSerialPort == null) {
             mSerialPort = new SerialPort();
         }
-        mThreadPoolExecutor = new ThreadPoolExecutor(1, 1, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1));
+        mLinkedBlockingQueue = new LinkedBlockingQueue<SerialPortSendRunnable>(1);
+        mExecutorService = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -98,9 +99,13 @@ public class SerialPortManager {
             mSerialPort.closeSerialPort();
             mSerialPort = null;
         }
-        if (mThreadPoolExecutor != null) {
-            mThreadPoolExecutor.shutdownNow();
-            mThreadPoolExecutor = null;
+        if (mExecutorService != null) {
+            mExecutorService.shutdownNow();
+            mExecutorService = null;
+        }
+        if (mLinkedBlockingQueue != null) {
+            mLinkedBlockingQueue.clear();
+            mLinkedBlockingQueue = null;
         }
         if (mSerialPortReceiveThread != null) {
             mSerialPortReceiveThread.stopThread();
@@ -132,10 +137,10 @@ public class SerialPortManager {
             public void onReceive(byte[] receiveDatas) {
                 if (onSerialPortListener != null) {
                     int what = 0;
-                    SerialPortSendRunnable mSerialPortSendRunnable = (SerialPortSendRunnable) mThreadPoolExecutor.getQueue().poll();
-                    if (mSerialPortSendRunnable != null) {
-                        what = mSerialPortSendRunnable.getWhat();
-                        mSerialPortSendRunnable.receive();
+                    SerialPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
+                    if (sendRunnable != null) {
+                        what = sendRunnable.getWhat();
+                        sendRunnable.receive();
                     }
                     onSerialPortListener.onReceive(what, receiveDatas);
                 }
@@ -151,18 +156,8 @@ public class SerialPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-
     public void send(byte[] bytes, int what) {
-        startSendThread(bytes, what);
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/3/10 13:12
-     * Description：startSendTask
-     */
-    private void startSendThread(byte[] bytes, int what) {
-        mThreadPoolExecutor.execute(new SerialPortSendRunnable(bytes, what, mSerialPortParam, mSerialPort) {
+        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, mSerialPortParam, mSerialPort, mLinkedBlockingQueue) {
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
                 if (onSerialPortListener != null) {

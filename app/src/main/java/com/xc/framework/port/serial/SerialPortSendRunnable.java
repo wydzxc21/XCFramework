@@ -3,10 +3,10 @@ package com.xc.framework.port.serial;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.xc.framework.thread.XCRunnable;
-import com.xc.framework.util.XCByteUtil;
+
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 /**
@@ -20,44 +20,34 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
     private int what;
     private int resendCount;//重发次数
     private int sendTimeout;//发送超时(毫秒)
-    private SerialPort mSerialPort;
+    private SerialPort serialPort;
+    private LinkedBlockingQueue linkedBlockingQueue;
     //
     boolean isReceive;//是否接收
     int sendCount;//发送次数
 
     /**
-     * @param sendDatas            发送数据
-     * @param what                 区分消息
-     * @param resendCount          重发次数
-     * @param sendTimeout          发送超时(毫秒)
-     * @param mSerialPort          串口工具
+     * @param sendDatas           发送数据
+     * @param what                区分消息
+     * @param serialPortParam     串口参数
+     * @param serialPort          串口工具
+     * @param linkedBlockingQueue 任务队列
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public SerialPortSendRunnable(byte[] sendDatas, int what, int resendCount, int sendTimeout, SerialPort mSerialPort) {
-        init(sendDatas, what, resendCount, sendTimeout, mSerialPort);
-    }
-
-    public SerialPortSendRunnable(byte[] sendDatas, int what, SerialPortParam mSerialPortParam, SerialPort mSerialPort) {
-        init(sendDatas, what, mSerialPortParam.getResendCount(), mSerialPortParam.getSendTimeout(), mSerialPort);
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/3/10 10:50
-     * Description：init
-     */
-    private void init(byte[] sendDatas, int what, int resendCount, int sendTimeout, SerialPort mSerialPort) {
+    public SerialPortSendRunnable(byte[] sendDatas, int what, SerialPortParam serialPortParam, SerialPort serialPort, LinkedBlockingQueue linkedBlockingQueue) {
         this.sendDatas = sendDatas;
         this.what = what;
-        this.resendCount = resendCount;
-        this.sendTimeout = sendTimeout;
-        this.mSerialPort = mSerialPort;
+        this.resendCount = serialPortParam.getResendCount();
+        this.sendTimeout = serialPortParam.getSendTimeout();
+        this.serialPort = serialPort;
+        this.linkedBlockingQueue = linkedBlockingQueue;
     }
 
     @Override
     protected Object onRun(Handler handler) {
         try {
+            linkedBlockingQueue.put(this);
             writeDatas();
             if (!isReceive) {//超时
                 if ((sendCount - 1) <= resendCount) {
@@ -83,9 +73,9 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
      * @description writeDatas
      */
     private void writeDatas() throws InterruptedException {
-        if (mSerialPort.writeSerialPort(sendDatas)) {
+        if (serialPort.writeSerialPort(sendDatas)) {
             sendCount++;
-            Log.i(TAG, "指令-发送:[ " + XCByteUtil.byteToHexStr(sendDatas) + "],第" + sendCount + "次");
+//            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas) + "],第" + sendCount + "次");
             waitReceive();
         }
     }
