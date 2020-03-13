@@ -84,6 +84,14 @@ public abstract class XCThread extends Thread {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/13 9:48
+     * Description：setRun
+     */
+    public void setRun(boolean run) {
+        isRun = run;
+    }
+    /**
      * @author ZhangXuanChen
      * @date 2020/3/1
      * @description startThread

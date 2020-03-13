@@ -27,7 +27,7 @@ public abstract class SocketReceivedThread extends XCThread {
 
     @Override
     protected Object onRun(Handler handler) {
-        while (isRun) {
+        while (isRun()) {
             try {
                 InputStream is = socket.getInputStream();
                 int available = is.available();

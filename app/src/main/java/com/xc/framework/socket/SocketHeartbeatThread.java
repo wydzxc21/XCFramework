@@ -27,7 +27,7 @@ public abstract class SocketHeartbeatThread extends XCThread {
     protected Object onRun(Handler handler) {
         while (isRun()) {
             if (!isSocketHeart() || !isPing()) {
-                isRun = false;
+                setRun(false);
                 handler.sendEmptyMessage(0x123);
             }
             XCThreadUtil.sleep(1000);
