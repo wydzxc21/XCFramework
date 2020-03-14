@@ -55,6 +55,7 @@ public class XCStringUtil {
             int n = str.indexOf(hexChar[2 * i]) * 16;
             n += str.indexOf(hexChar[2 * i + 1]);
             sb.append(n & 0xff);
+            sb.append(" ");
         }
         return sb.toString();
     }

@@ -18,7 +18,7 @@ public class XCByteUtil {
         char[] hexChar = "0123456789ABCDEF".toCharArray();
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
-            sb.append(hexChar[b >>> 4 & 0xFF]);
+            sb.append(hexChar[(b & 0xFF) >> 4]);
             sb.append(hexChar[b & 0x0F]);
             sb.append(" ");
         }

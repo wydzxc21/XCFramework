@@ -3,8 +3,10 @@ package com.xc.framework.port.serial;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.xc.framework.thread.XCRunnable;
+import com.xc.framework.util.XCByteUtil;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -75,7 +77,7 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
     private void writeDatas() throws InterruptedException {
         if (serialPort.writeSerialPort(sendDatas)) {
             sendCount++;
-//            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas) + "],第" + sendCount + "次");
+            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas) + "],第" + sendCount + "次");
             waitReceive();
         }
     }
