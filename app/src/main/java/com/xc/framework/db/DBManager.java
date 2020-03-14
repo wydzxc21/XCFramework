@@ -269,7 +269,7 @@ public class DBManager {
         if (db != null && classObject != null) {
             Cursor cursor = null;
             try {
-                cursor = db.rawQuery(getQuerySql(classObject), null);
+                cursor = db.rawQuery(getQuerySql(classObject, -1, -1, null, null), null);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         do {
@@ -291,15 +291,54 @@ public class DBManager {
         return keyId;
     }
 
+
+    /**
+     * 条件查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     * @return 结果集                 new空对象查询该表所有数据 )
+     */
+    public synchronized <T> List<T> query(T classObject) {
+        return query(classObject, -1, -1, null, null);
+    }
+
+    /**
+     * 模糊查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, String field, String like) {
+        return query(classObject, -1, -1, field, like);
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-其实索引(从0开始)
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, int limit, int offset) {
+        return query(classObject, limit, offset, null, null);
+    }
+
     /**
      * 查询
      *
      * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
      *                    new空对象查询该表所有数据 )
-     * @return
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-其实索引(从0开始)
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
      */
-    @SuppressWarnings("unchecked")
-    public synchronized <T> List<T> query(T classObject) {
+    private synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like) {
         if (!isTableExist(classObject.getClass())) {
             createTable(classObject.getClass());
         }
@@ -308,7 +347,7 @@ public class DBManager {
         if (db != null && classObject != null) {
             Cursor cursor = null;
             try {
-                cursor = db.rawQuery(getQuerySql(classObject), null);
+                cursor = db.rawQuery(getQuerySql(classObject, limit, offset, field, like), null);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         do {
@@ -448,14 +487,24 @@ public class DBManager {
      * 根据类对象生成-查询sql语句
      *
      * @param classObject 类对象
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-其实索引(从0开始)
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
      * @return
      */
-    private String getQuerySql(Object classObject) {
-        String condition = getKeyEqualValueSql(classObject, "and");
-        if (XCStringUtil.isEmpty(condition)) {
-            return "select * from " + classObject.getClass().getSimpleName();
-        } else {
-            return "select * from " + classObject.getClass().getSimpleName() + " where " + condition;
+    private String getQuerySql(Object classObject, int limit, int offset, String field, String like) {
+        if (limit >= 0 && offset >= 0) {//分页查询
+            return "select * from " + classObject.getClass().getSimpleName() + " limit " + limit + " offset " + offset;
+        } else if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(like)) {//模糊查询
+            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + " like '%" + like + "%'";
+        } else {//条件查询
+            String condition = getKeyEqualValueSql(classObject, "and");
+            if (XCStringUtil.isEmpty(condition)) {
+                return "select * from " + classObject.getClass().getSimpleName();
+            } else {
+                return "select * from " + classObject.getClass().getSimpleName() + " where " + condition;
+            }
         }
     }
 
@@ -480,7 +529,7 @@ public class DBManager {
                 // value
                 String value = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
                 if (!XCStringUtil.isEmpty(value)) {
-                    condition += key + " = " + "'" + value + "' " + connectFlag + " ";
+                    condition += key + " = '" + value + "' " + connectFlag + " ";
                 }
             }
             if (!XCStringUtil.isEmpty(condition)) {
