@@ -3,27 +3,34 @@ package com.xc.framework.port.usb;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+
 /**
  * Date：2019/11/25
  * Author：ZhangXuanChen
- * Description：串口助手
+ * Description：usb管理类
  */
 public class UsbPortManager {
     private Context mContext;
     private UsbPort mUsbPort;
     private UsbPortParam mUsbPortParam;
-    private UsbPortReceivedThread mUsbPortReceivedThread;
+    private OnUsbPortListener onUsbPortListener;
+    private UsbPortReceiveThread mUsbPortReceiveThread;//接收线程
+    private ExecutorService mExecutorService;//发送线程池
+    private LinkedBlockingQueue<UsbPortSendRunnable> mLinkedBlockingQueue;//正在执行的发送线程
     private boolean isOpen = false;
 
     public UsbPortManager(Context context) {
-        this.mContext = context;
+        mContext = context;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/25 15:30
      * Description：初始化串口
-     * Param：UsbPortParam usb参数
+     * Param：SerialPortParam usb参数
      */
     public void init(UsbPortParam usbPortParam) {
         this.mUsbPortParam = usbPortParam;
@@ -58,23 +65,6 @@ public class UsbPortManager {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/25 13:17
-     * Description：打开串口
-     *
-     * @param vid      厂商id
-     * @param pid      设备id
-     * @param baudrate 波特率
-     * @param dataBits 数据位，默认8
-     * @param stopBits 停止位，默认1
-     * @param parity   奇偶校验位，默认0（无校验）
-     */
-    public void init(int vid, int pid, int baudrate, int dataBits, int stopBits, int parity) {
-        this.mUsbPortParam = new UsbPortParam(mContext, vid, pid, baudrate, dataBits, stopBits, parity);
-        initData();
-    }
-
-    /**
-     * Author：ZhangXuanChen
      * Time：2019/11/26 11:01
      * Description：initData
      */
@@ -82,6 +72,8 @@ public class UsbPortManager {
         if (mUsbPort == null) {
             mUsbPort = new UsbPort(mContext);
         }
+        mLinkedBlockingQueue = new LinkedBlockingQueue<UsbPortSendRunnable>(1);
+        mExecutorService = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -91,19 +83,15 @@ public class UsbPortManager {
      * Return：boolean
      */
     public boolean open() {
-        try {
-            if (mUsbPort != null && mUsbPortParam != null) {
-                isOpen = mUsbPort.openUsbPort(mUsbPortParam);
-                if (isOpen) {
-                    startReceivedThread();
-                }
+        if (mUsbPort != null && mUsbPortParam != null) {
+            isOpen = mUsbPort.openUsbPort(mUsbPortParam);
+            if (isOpen) {
+                initData();
+                startReceivedThread();
             }
-        } catch (Exception e) {
-            isOpen = false;
         }
         return isOpen;
     }
-
 
     /**
      * Author：ZhangXuanChen
@@ -111,71 +99,77 @@ public class UsbPortManager {
      * Description：串口关闭
      */
     public boolean close() {
-        boolean isClose = false;
-        try {
-            if (mUsbPort != null) {
-                isClose = mUsbPort.closeUsbPort();
-                if (isClose) {
-                    stopReceivedThread();
-                    onUsbPortListener = null;
+        if (mUsbPort != null) {
+            mUsbPort.closeUsbPort();
+            mUsbPort = null;
+        }
+        if (mExecutorService != null) {
+            mExecutorService.shutdownNow();
+            mExecutorService = null;
+        }
+        if (mLinkedBlockingQueue != null) {
+            mLinkedBlockingQueue.clear();
+            mLinkedBlockingQueue = null;
+        }
+        if (mUsbPortReceiveThread != null) {
+            mUsbPortReceiveThread.stopThread();
+            mUsbPortReceiveThread = null;
+        }
+        if (onUsbPortListener != null) {
+            onUsbPortListener = null;
+        }
+        isOpen = false;
+        return true;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/10 9:25
+     * Description：startReceivedTask
+     */
+    private void startReceivedThread() {
+        mUsbPortReceiveThread = new UsbPortReceiveThread(mUsbPortParam, mUsbPort) {
+            @Override
+            public int setLength(byte[] receiveDatas) {
+                if (onUsbPortListener != null) {
+                    return onUsbPortListener.setLength(receiveDatas);
+                }
+                return 0;
+            }
+
+            @Override
+            public void onReceive(byte[] receiveDatas) {
+                if (onUsbPortListener != null) {
+                    int what = 0;
+                    UsbPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
+                    if (sendRunnable != null) {
+                        what = sendRunnable.getWhat();
+                        sendRunnable.receive();
+                    }
+                    onUsbPortListener.onReceive(what, receiveDatas);
                 }
             }
-        } catch (Exception e) {
-            isClose = false;
-        }
-        isOpen = !isClose;
-        return isClose;
+        };
+        mUsbPortReceiveThread.setDaemon(true);
+        mUsbPortReceiveThread.startThread();
     }
+
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes) {
-        if (bytes != null && bytes.length > 0) {
-            startSendThread(bytes);
-        }
-    }
-
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:21
-     * Description：startReceivedThread
-     */
-    private void startReceivedThread() {
-        mUsbPortReceivedThread = new UsbPortReceivedThread(mUsbPort) {
+    public void send(byte[] bytes, int what) {
+        mExecutorService.execute(new UsbPortSendRunnable(bytes, what, mUsbPortParam, mUsbPort, mLinkedBlockingQueue) {
             @Override
-            public void onReceive(byte[] bytes) {
+            public void onTimeout(int what, byte[] sendDatas) {
                 if (onUsbPortListener != null) {
-                    onUsbPortListener.onReceive(bytes);
+                    onUsbPortListener.onTimeout(what, sendDatas);
                 }
             }
-        };
-        mUsbPortReceivedThread.startThread();
+        });
     }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:22
-     * Description：stopReceivedThread
-     */
-    private void stopReceivedThread() {
-        if (mUsbPortReceivedThread != null) {
-            mUsbPortReceivedThread.stopThread();
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:21
-     * Description：startSendThread
-     */
-    private void startSendThread(byte[] bytes) {
-       new UsbPortSendThread(mUsbPort, bytes).start();
-    }
-
 
     /**
      * Author：ZhangXuanChen
@@ -186,19 +180,4 @@ public class UsbPortManager {
         this.onUsbPortListener = onUsbPortListener;
     }
 
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：接口引用
-     */
-    OnUsbPortListener onUsbPortListener;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/26 14:06
-     * Description：OnSerialPortListener
-     */
-    public interface OnUsbPortListener {
-        void onReceive(byte[] buffer);
-    }
 }

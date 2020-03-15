@@ -29,7 +29,18 @@ public class UsbPortParam {
      * 校验位，0:无校验位(默认)；1:奇校验位(ODD);2:偶校验位(EVEN)
      */
     private int parity = 0;
-
+    /**
+     * 重发次数，默认0，不重发
+     */
+    int resendCount = 0;
+    /**
+     * 发送超时(毫秒)，默认2000
+     */
+    int sendTimeout = 2000;
+    /**
+     * 接收帧头，默认null，处理丢包粘包
+     */
+    byte[] receiveFrameHeads;
 
     public UsbPortParam(UsbDevice usbDevice, int baudrate) {
         this.usbDevice = usbDevice;
@@ -41,12 +52,15 @@ public class UsbPortParam {
         this.baudrate = baudrate;
     }
 
-    public UsbPortParam(Context context, int vid, int pid, int baudrate, int dataBits, int stopBits, int parity) {
+    public UsbPortParam(Context context, int vid, int pid, int baudrate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
         this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
-        this.baudrate = baudrate >= 0 ? baudrate : 0;
+        this.baudrate = baudrate;
         this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
         this.stopBits = stopBits >= 0 ? stopBits : this.stopBits;
         this.parity = parity >= 0 ? parity : this.parity;
+        this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
+        this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
+        this.receiveFrameHeads = receiveFrameHeads;
     }
 
     public UsbDevice getUsbDevice() {
@@ -56,9 +70,11 @@ public class UsbPortParam {
     public void setUsbDevice(UsbDevice usbDevice) {
         this.usbDevice = usbDevice;
     }
+
     public void setUsbDevice(Context context, int vid, int pid) {
-        this.usbDevice= UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
+        this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
     }
+
     public int getBaudrate() {
         return baudrate;
     }
@@ -91,5 +107,27 @@ public class UsbPortParam {
         this.parity = parity;
     }
 
+    public int getResendCount() {
+        return resendCount;
+    }
 
+    public void setResendCount(int resendCount) {
+        this.resendCount = resendCount;
+    }
+
+    public int getSendTimeout() {
+        return sendTimeout;
+    }
+
+    public void setSendTimeout(int sendTimeout) {
+        this.sendTimeout = sendTimeout;
+    }
+
+    public byte[] getReceiveFrameHeads() {
+        return receiveFrameHeads;
+    }
+
+    public void setReceiveFrameHeads(byte[] receiveFrameHeads) {
+        this.receiveFrameHeads = receiveFrameHeads;
+    }
 }

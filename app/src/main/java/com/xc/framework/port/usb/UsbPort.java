@@ -14,6 +14,7 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Date：2019/12/3
@@ -219,6 +220,12 @@ public class UsbPort {
      */
     public boolean closeUsbPort() {
         try {
+            if (mReadEndpoint != null) {
+                mReadEndpoint = null;
+            }
+            if (mWriteEndpoint != null) {
+                mWriteEndpoint = null;
+            }
             if (mUc != null) {
                 mUc.close();
                 mUc = null;
@@ -226,50 +233,54 @@ public class UsbPort {
             if (mUsbManager != null) {
                 mUsbManager = null;
             }
-            if (mReadEndpoint != null) {
-                mReadEndpoint = null;
-            }
-            if (mWriteEndpoint != null) {
-                mWriteEndpoint = null;
-            }
+            return true;
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 14:40
      * Description：readUsbPort
-     * Param：buffer 待读取
+     * Param：buffer readUsbPort
      * Return：int
      */
-    public int readUsbPort(byte[] buffer) {
-        int read = -1;
+    public synchronized byte[] readUsbPort() {
+        byte[] bytes = null;
         try {
-            int maxSize = Math.min(buffer.length, getMaxPacketSize());
-            read = mUc.bulkTransfer(mReadEndpoint, buffer, maxSize, 1);
+            if (mReadEndpoint != null && mUc != null) {
+                byte[] bufferDatas = new byte[1024];
+                int readSize = mUc.bulkTransfer(mReadEndpoint, bufferDatas, getMaxPacketSize(), 1);
+                if (readSize > 0) {
+                    bytes = Arrays.copyOf(bufferDatas, readSize);
+                }
+            }
+
         } catch (Exception e) {
+            e.printStackTrace();
         }
-        return read;
+        return bytes;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 14:40
      * Description：writeUsbPort
-     * Param：buffer 待写入
-     * Return：int
+     * Param：buffer writeUsbPort
+     * Return：boolean
      */
-    public int writeUsbPort(byte[] buffer) {
-        int write = -1;
+    public synchronized boolean writeUsbPort(byte[] bytes) {
         try {
-            int maxSize = Math.min(buffer.length, getMaxPacketSize());
-            write = mUc.bulkTransfer(mWriteEndpoint, buffer, maxSize, 1);
+            if (mWriteEndpoint != null && mUc != null && bytes != null && bytes.length > 0) {
+                int writeSize = mUc.bulkTransfer(mWriteEndpoint, bytes, getMaxPacketSize(), 1);
+                return writeSize > 0 ? true : false;
+            }
         } catch (Exception e) {
+            e.printStackTrace();
         }
-        return write;
+        return false;
     }
 
     /**

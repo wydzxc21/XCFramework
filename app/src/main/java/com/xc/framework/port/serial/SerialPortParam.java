@@ -161,19 +161,4 @@ public class SerialPortParam {
         this.receiveFrameHeads = receiveFrameHeads;
     }
 
-    @Override
-    public String toString() {
-        return "SerialPortParam{" +
-                "suPath='" + suPath + '\'' +
-                ", serialDevice=" + serialDevice.getAbsolutePath() +
-                ", baudrate=" + baudrate +
-                ", dataBits=" + dataBits +
-                ", stopBits=" + stopBits +
-                ", parity=" + parity +
-                ", flowCon=" + flowCon +
-                ", resendCount=" + resendCount +
-                ", sendTimeout=" + sendTimeout +
-                ", receiveFrameHeads=" + XCByteUtil.byteToHexStr(receiveFrameHeads) +
-                '}';
-    }
 }

@@ -1,4 +1,4 @@
-package com.xc.framework.port.serial;
+package com.xc.framework.port.usb;
 
 import android.os.Handler;
 import android.os.Message;
@@ -10,28 +10,28 @@ import com.xc.framework.util.XCByteUtil;
 import java.util.Arrays;
 
 /**
- * Date：2020/3/10
+ * Date：2019/11/27
  * Author：ZhangXuanChen
- * Description：串口接收
+ * Description：usb接收
  */
-public abstract class SerialPortReceiveThread extends XCThread {
-    private final String TAG = "SerialPortReceiveThread";
+public abstract class UsbPortReceiveThread extends XCThread {
+    private final String TAG = "UsbPortReceiveThread";
     private byte[] receiveFrameHeads;//接收帧头
-    private SerialPort serialPort;
+    private UsbPort usbPort;
     //
     boolean isStop;
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
 
     /**
-     * @param serialPortParam 串口参数
-     * @param serialPort      串口工具
+     * @param usbPortParam usb参数
+     * @param usbPort      usb工具
      * @author ZhangXuanChen
      * @date 2020/3/15
      */
-    public SerialPortReceiveThread(SerialPortParam serialPortParam, SerialPort serialPort) {
-        this.receiveFrameHeads = serialPortParam.getReceiveFrameHeads();
-        this.serialPort = serialPort;
+    public UsbPortReceiveThread(UsbPortParam usbPortParam, UsbPort usbPort) {
+        this.receiveFrameHeads = usbPortParam.getReceiveFrameHeads();
+        this.usbPort = usbPort;
         this.bufferDatas = new byte[16 * 1024];
         this.bufferPosition = 0;
     }
@@ -61,7 +61,7 @@ public abstract class SerialPortReceiveThread extends XCThread {
      * @description readDatas
      */
     private void readDatas() {
-        byte[] readDatas = serialPort.readSerialPort();
+        byte[] readDatas = usbPort.readUsbPort();
         if (readDatas != null && readDatas.length > 0) {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;

@@ -13,10 +13,10 @@ public class SerialPortManager {
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
     private OnSerialPortListener onSerialPortListener;
-    private boolean isOpen = false;
     private SerialPortReceiveThread mSerialPortReceiveThread;//接收线程
     private ExecutorService mExecutorService;//发送线程池
     private LinkedBlockingQueue<SerialPortSendRunnable> mLinkedBlockingQueue;//正在执行的发送线程
+    private boolean isOpen = false;
 
     /**
      * Author：ZhangXuanChen
