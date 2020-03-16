@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * Author：ZhangXuanChen
@@ -150,13 +151,10 @@ public final class SerialPort {
         byte[] bytes = null;
         try {
             if (mFileInputStream != null) {
-                int totalCount = mFileInputStream.available();
-                if (totalCount > 0) {
-                    bytes = new byte[totalCount];
-                    int readCount = 0; // 已经成功读取的字节的个数
-                    while (readCount < totalCount) {
-                        readCount += mFileInputStream.read(bytes, readCount, totalCount - readCount);
-                    }
+                byte[] bufferDatas = new byte[1024];
+                int readSize = mFileInputStream.read(bufferDatas);
+                if (readSize > 0) {
+                    bytes = Arrays.copyOf(bufferDatas, readSize);
                 }
             }
         } catch (Exception e) {
