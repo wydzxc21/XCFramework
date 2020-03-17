@@ -104,7 +104,7 @@ public class UsbPortManager {
             mUsbPort = null;
         }
         if (mExecutorService != null) {
-            mExecutorService.shutdownNow();
+            mExecutorService.shutdown();
             mExecutorService = null;
         }
         if (mLinkedBlockingQueue != null) {
@@ -161,6 +161,9 @@ public class UsbPortManager {
      * Description：串口发送
      */
     public void send(byte[] bytes, int what) {
+        if (mExecutorService == null || mExecutorService.isShutdown()) {
+            return;
+        }
         mExecutorService.execute(new UsbPortSendRunnable(bytes, what, mUsbPortParam, mUsbPort, mLinkedBlockingQueue) {
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
