@@ -88,10 +88,34 @@ public class DBManager {
     }
 
     /**
+     * 清空数据库表
+     *
+     * @param tableClass 以实体类名创建的表
+     */
+    public synchronized boolean clearTable(Class<?> tableClass) {
+        SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
+        if (db != null && tableClass != null) {
+            try {
+                String sql = "delete from " + tableClass.getSimpleName();
+                db.execSQL(sql);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                if (db != null) {
+                    db.close();
+                }
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 删除数据库表
      *
      * @param tableClass 以实体类名创建的表
-     * @return
      */
     public synchronized boolean deleteTable(Class<?> tableClass) {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
