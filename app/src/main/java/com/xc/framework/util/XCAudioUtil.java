@@ -26,12 +26,9 @@ public class XCAudioUtil {
      * Return：void
      */
     public void play(int audioRes) {
-        try {
-            mRingtone = RingtoneManager.getRingtone(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + audioRes));
-            mRingtone.play();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        stop();
+        mRingtone = RingtoneManager.getRingtone(context, Uri.parse("android.resource://" + context.getPackageName() + "/" + audioRes));
+        mRingtone.play();
     }
 
     /**
