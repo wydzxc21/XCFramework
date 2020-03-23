@@ -71,8 +71,6 @@ public class XCViewUtil {
             Field[] fields = fragment.getClass().getDeclaredFields();
             if (fields != null && fields.length > 0) {
                 for (Field field : fields) {
-                    String name = field.getName() != null ? field.getName() : "";
-                    Log.i("getDeclaredFields", "Field: "+name);
                     ViewInit mViewInit = field.getAnnotation(ViewInit.class);
                     if (mViewInit != null) {
                         field.setAccessible(true);
