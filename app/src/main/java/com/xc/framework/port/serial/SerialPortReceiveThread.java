@@ -70,9 +70,6 @@ public abstract class SerialPortReceiveThread extends XCThread {
                 cutDatas = splitDataByLastFrameHead(receiveFrameHeads, cutDatas);
             }
             int length = setLength(cutDatas);//判断指令长度
-            if (length <= 0) {
-                length = cutDatas.length;
-            }
             if (length > 0 && length <= cutDatas.length) {
                 bufferPosition = 0;
                 byte[] receiveDatas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
