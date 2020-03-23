@@ -181,22 +181,25 @@ public class XCAppUtil {
     }
 
     /**
-     * 打开其他APP
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 8:55
+     * Description：跳转app
      *
-     * @param context      上下文
-     * @param packageName  目标APP包名
-     * @param activityName 目标APP的目标Activity名
+     * @param context
+     * @param packageName       包名
+     * @param classAbsolutePath 要跳转的activity绝对路径
      */
-    public static void setAppIntent(Context context, String packageName, String activityName) {
-        try {
-            if (packageName != null && !"".equals(packageName) && activityName != null && !"".equals(activityName)) {
-                ComponentName componetName = new ComponentName(packageName, activityName);// 这个是另外一个应用程序的包名,要启动的Activity
-                Intent intent = new Intent();
-                intent.setComponent(componetName);
+    public static void skipApp(Context context, String packageName, String classAbsolutePath) {
+        if (context != null && !"".equals(packageName) && !"".equals(classAbsolutePath)) {
+            try {
+                ComponentName cn = new ComponentName(packageName, classAbsolutePath);
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setComponent(cn);
                 context.startActivity(intent);
+            } catch (Exception e) {
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
