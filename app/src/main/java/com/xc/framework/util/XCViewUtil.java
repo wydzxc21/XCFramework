@@ -1,8 +1,7 @@
 package com.xc.framework.util;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.Fragment;
 import android.view.View;
 import android.view.View.MeasureSpec;
 
@@ -66,7 +65,7 @@ public class XCViewUtil {
      * @date 2020/2/3
      * @description View注册（配合ViewInit注释用）
      */
-    public static void initView(Fragment fragment,View view) {
+    public static void initView(Fragment fragment, View view) {
         try {
             Field[] fields = fragment.getClass().getDeclaredFields();
             if (fields != null && fields.length > 0) {
