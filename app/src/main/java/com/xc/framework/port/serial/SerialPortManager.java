@@ -65,9 +65,16 @@ public class SerialPortManager {
      * Description：initData
      */
     private void initData() {
-        if (mSerialPort == null) {
-            mSerialPort = new SerialPort();
-        }
+        mSerialPort = new SerialPort();
+        initPool();
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/27 13:25
+     * Description：initPool
+     */
+    private void initPool() {
         mLinkedBlockingQueue = new LinkedBlockingQueue<SerialPortSendRunnable>(1);
         mExecutorService = Executors.newSingleThreadExecutor();
     }
@@ -82,7 +89,7 @@ public class SerialPortManager {
         if (mSerialPort != null && mSerialPortParam != null) {
             isOpen = mSerialPort.openSerialPort(mSerialPortParam);
             if (isOpen) {
-                initData();
+                initPool();
                 startReceivedThread();
             }
         }
