@@ -74,7 +74,6 @@ public class DBManager {
                     return false;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (db != null) {
@@ -93,13 +92,15 @@ public class DBManager {
      * @param tableClass 以实体类名创建的表
      */
     public synchronized boolean clearTable(Class<?> tableClass) {
+        if (!isTableExist(tableClass.getClass())) {
+            createTable(tableClass.getClass());
+        }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db != null && tableClass != null) {
             try {
                 String sql = "delete from " + tableClass.getSimpleName();
                 db.execSQL(sql);
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (db != null) {
@@ -118,13 +119,15 @@ public class DBManager {
      * @param tableClass 以实体类名创建的表
      */
     public synchronized boolean deleteTable(Class<?> tableClass) {
+        if (!isTableExist(tableClass.getClass())) {
+            return true;
+        }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db != null && tableClass != null) {
             try {
                 String sql = "drop table " + tableClass.getSimpleName();
                 db.execSQL(sql);
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (db != null) {
@@ -172,7 +175,6 @@ public class DBManager {
                     return dbHelper.deleteDB(context);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             }
         } else {
@@ -195,7 +197,6 @@ public class DBManager {
             try {
                 db.execSQL(getInsertSql(classObject));
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             } finally {
                 if (db != null) {
@@ -225,7 +226,6 @@ public class DBManager {
                 try {
                     db.execSQL(getDeleteSql(conditionObject));
                 } catch (Exception e) {
-                    e.printStackTrace();
                     return false;
                 } finally {
                     if (db != null) {
@@ -260,7 +260,6 @@ public class DBManager {
                     try {
                         db.execSQL(getUpdateSql(updateObject, conditionObject));
                     } catch (Exception e) {
-                        e.printStackTrace();
                         return false;
                     } finally {
                         if (db != null) {
