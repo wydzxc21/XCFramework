@@ -68,10 +68,15 @@ public class DBManager {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db != null && tableClass != null) {
             try {
-                String sql = "select * from " + tableClass.getSimpleName();
+                String sql = "select count(*) as c from sqlite_master where type = 'table' and name = '" + tableClass.getSimpleName() + "'";
                 Cursor rawQuery = db.rawQuery(sql, null);
-                if (rawQuery == null) {
-                    return false;
+                if (rawQuery != null) {
+                    if (rawQuery.moveToNext()) {
+                        int count = rawQuery.getInt(0);
+                        if (count > 0) {
+                            return true;
+                        }
+                    }
                 }
             } catch (Exception e) {
                 return false;
@@ -80,10 +85,8 @@ public class DBManager {
                     db.close();
                 }
             }
-        } else {
-            return false;
         }
-        return true;
+        return false;
     }
 
     /**
