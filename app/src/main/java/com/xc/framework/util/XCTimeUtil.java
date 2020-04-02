@@ -86,6 +86,27 @@ public class XCTimeUtil {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/2 13:58
+     * Description：获取日期
+     */
+    public static Date getDate(String dateStr, String dateFormat) {
+        try {
+            if (XCStringUtil.isEmpty(dateFormat)) {
+                dateFormat = FORMAT_DATE_TIME;
+            }
+            if (XCStringUtil.isEmpty(dateFormat)) {
+                dateStr = getCurrentTime(dateFormat);
+            }
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
+            return simpleDateFormat.parse(dateStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * 获取当前星期
      *
      * @return 例:星期一
