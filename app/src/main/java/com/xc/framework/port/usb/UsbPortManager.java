@@ -71,9 +71,16 @@ public class UsbPortManager {
      * Description：initData
      */
     private void initData() {
-        if (mUsbPort == null) {
-            mUsbPort = new UsbPort(mContext);
-        }
+        mUsbPort = new UsbPort(mContext);
+        initPool();
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/27 13:25
+     * Description：initPool
+     */
+    private void initPool() {
         mLinkedBlockingQueue = new LinkedBlockingQueue<UsbPortSendRunnable>(1);
         mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
     }
@@ -88,7 +95,7 @@ public class UsbPortManager {
         if (mUsbPort != null && mUsbPortParam != null) {
             isOpen = mUsbPort.openUsbPort(mUsbPortParam);
             if (isOpen) {
-                initData();
+                initPool();
                 startReceivedThread();
             }
         }
