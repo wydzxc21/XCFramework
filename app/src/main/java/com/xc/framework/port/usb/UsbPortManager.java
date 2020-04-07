@@ -6,6 +6,8 @@ import android.hardware.usb.UsbDevice;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Date：2019/11/25
@@ -73,7 +75,7 @@ public class UsbPortManager {
             mUsbPort = new UsbPort(mContext);
         }
         mLinkedBlockingQueue = new LinkedBlockingQueue<UsbPortSendRunnable>(1);
-        mExecutorService = Executors.newSingleThreadExecutor();
+        mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
     }
 
     /**
