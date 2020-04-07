@@ -37,6 +37,21 @@ public class XCStringUtil {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/7 13:34
+     * Description：字符串转int
+     */
+    public static int strToInt(String intStr) {
+        int number = 0;
+        if (!XCStringUtil.isEmpty(intStr)) {
+            if (XCStringUtil.isInteger(intStr)) {
+                number = Integer.parseInt(intStr);
+            }
+        }
+        return number;
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/8
      * @description 16进制字符串转10进制字符串
