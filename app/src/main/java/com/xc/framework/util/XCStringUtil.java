@@ -72,7 +72,7 @@ public class XCStringUtil {
             sb.append(n & 0xff);
             sb.append(" ");
         }
-        return sb.toString();
+        return sb.substring(0, sb.length() - 1);
     }
 
 }

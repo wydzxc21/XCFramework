@@ -22,7 +22,7 @@ public class XCByteUtil {
             sb.append(hexChar[b & 0x0F]);
             sb.append(" ");
         }
-        return sb.toString();
+        return sb.substring(0, sb.length() - 1);
     }
 
     /**
