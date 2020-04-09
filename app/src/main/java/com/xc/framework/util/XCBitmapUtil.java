@@ -8,7 +8,6 @@ import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
@@ -249,55 +248,13 @@ public class XCBitmapUtil {
 	}
 
 	/**
-	 * 将View转化为Bitmap
-	 *
-	 * @param view view对象
-	 * @return bitmap对象
-	 */
-	public static Bitmap getViewToBitmap(View view) {
-		Bitmap bitmap = null;
-		try {
-			int width = view.getWidth();
-			int height = view.getHeight();
-			if (width != 0 && height != 0) {
-				bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
-				Canvas canvas = new Canvas(bitmap);
-				view.draw(canvas);
-			}
-		} catch (Exception e) {
-		}
-		return bitmap;
-	}
-
-	/**
-	 * 将Drawable转化为Bitmap
-	 *
-	 * @param drawable drawable对象
-	 * @return bitmap对象
-	 */
-	public static Bitmap getDrawableToBitmap(Drawable drawable) {
-		Bitmap bitmap = null;
-		if (drawable != null) {
-			int width = drawable.getIntrinsicWidth();
-			int height = drawable.getIntrinsicHeight();
-			//
-			bitmap = Bitmap.createBitmap(width, height, drawable.getOpacity() != PixelFormat.OPAQUE ? Config.ARGB_8888 : Config.RGB_565);
-			//
-			Canvas canvas = new Canvas(bitmap);
-			drawable.setBounds(0, 0, width, height);
-			drawable.draw(canvas);// 重点
-		}
-		return bitmap;
-	}
-
-	/**
 	 * 将Bitmap转化为Drawable
 	 *
 	 * @param bitmap bitmap对象
 	 * @return drawable对象
 	 */
 	@SuppressWarnings("deprecation")
-	public static Drawable getBitmapToDrawable(Bitmap bitmap) {
+	public static Drawable bitmapToDrawable(Bitmap bitmap) {
 		BitmapDrawable bitmapDrawable = null;
 		if (bitmap != null) {
 			bitmapDrawable = new BitmapDrawable(bitmap);
@@ -311,7 +268,7 @@ public class XCBitmapUtil {
 	 * @param bitmap bitmap对象
 	 * @return 字节数组
 	 */
-	public static byte[] getBitmapToBytes(Bitmap bitmap) {
+	public static byte[] bitmapToByte(Bitmap bitmap) {
 		if (bitmap != null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
@@ -320,19 +277,6 @@ public class XCBitmapUtil {
 		return null;
 	}
 
-	/**
-	 * 将字节数组转换为Bitmap
-	 *
-	 * @param bytes 字节数组
-	 * @return bitmap对象
-	 */
-	public static Bitmap getBytesToBitmap(byte[] bytes) {
-		Bitmap bitmap = null;
-		if (bytes != null && bytes.length > 0) {
-			bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-		}
-		return bitmap;
-	}
 
 	/**
 	 * 缩放图片

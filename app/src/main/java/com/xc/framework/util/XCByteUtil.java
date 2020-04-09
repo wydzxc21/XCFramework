@@ -1,5 +1,10 @@
 package com.xc.framework.util;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import org.apache.commons.codec.binary.Base64;
+
 /**
  * @author ZhangXuanChen
  * @date 2020/2/8
@@ -24,6 +29,9 @@ public class XCByteUtil {
      * @description 字节数组转16进制字符串
      */
     public static String byteToHexStr(byte[] bytes, boolean isSpace) {
+        if (bytes == null || bytes.length <= 0) {
+            return "";
+        }
         char[] hexChar = "0123456789ABCDEF".toCharArray();
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -88,6 +96,34 @@ public class XCByteUtil {
      */
     public static int byteToInt(byte b) {
         return (int) byteToLong(b);
+    }
+
+    /**
+     * 将字节数组转换为Bitmap
+     *
+     * @param bytes 字节数组
+     * @return bitmap对象
+     */
+    public static Bitmap byteToBitmap(byte[] bytes) {
+        Bitmap bitmap = null;
+        if (bytes != null && bytes.length > 0) {
+            bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        }
+        return bitmap;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/9 9:49
+     * Description：字节数组转Base64
+     */
+    public static String byteToBase64(byte[] bytes) {
+        if (bytes == null || bytes.length <= 0) {
+            return "";
+        }
+        String base64Str = new String(Base64.encodeBase64(bytes));
+        base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
+        return base64Str;
     }
 
 }

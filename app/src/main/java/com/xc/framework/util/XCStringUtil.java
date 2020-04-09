@@ -1,5 +1,7 @@
 package com.xc.framework.util;
 
+import org.apache.commons.codec.binary.Base64;
+
 import java.util.regex.Pattern;
 
 /**
@@ -67,6 +69,9 @@ public class XCStringUtil {
      * @description 16进制字符串转10进制字符串
      */
     public static String hexStrToDecStr(String hexStr, boolean isSpace) {
+        if (XCStringUtil.isEmpty(hexStr)) {
+            return "";
+        }
         if (hexStr.contains(" ")) {
             hexStr = hexStr.replaceAll(" ", "").toUpperCase();
         }

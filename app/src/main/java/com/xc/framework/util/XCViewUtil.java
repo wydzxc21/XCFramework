@@ -2,6 +2,8 @@ package com.xc.framework.util;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.view.View;
 import android.view.View.MeasureSpec;
 
@@ -82,4 +84,24 @@ public class XCViewUtil {
         }
     }
 
+    /**
+     * 将View转化为Bitmap
+     *
+     * @param view view对象
+     * @return bitmap对象
+     */
+    public static Bitmap viewToBitmap(View view) {
+        Bitmap bitmap = null;
+        try {
+            int width = view.getWidth();
+            int height = view.getHeight();
+            if (width != 0 && height != 0) {
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                view.draw(canvas);
+            }
+        } catch (Exception e) {
+        }
+        return bitmap;
+    }
 }
