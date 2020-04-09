@@ -77,7 +77,7 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
     private void writeDatas() throws InterruptedException {
         if (serialPort.writeSerialPort(sendDatas)) {
             sendCount++;
-            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas) + "],第" + sendCount + "次");
+            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
             waitReceive();
         }
     }

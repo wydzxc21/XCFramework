@@ -57,6 +57,16 @@ public class XCStringUtil {
      * @description 16进制字符串转10进制字符串
      */
     public static String hexStrToDecStr(String hexStr) {
+        return hexStrToDecStr(hexStr, false);
+    }
+
+    /**
+     * @param isSpace 是否加空格
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 16进制字符串转10进制字符串
+     */
+    public static String hexStrToDecStr(String hexStr, boolean isSpace) {
         if (hexStr.contains(" ")) {
             hexStr = hexStr.replaceAll(" ", "").toUpperCase();
         }
@@ -70,9 +80,15 @@ public class XCStringUtil {
             int n = str.indexOf(hexChar[2 * i]) * 16;
             n += str.indexOf(hexChar[2 * i + 1]);
             sb.append(n & 0xff);
-            sb.append(" ");
+            if (isSpace) {
+                sb.append(" ");
+            }
         }
-        return sb.substring(0, sb.length() - 1);
+        if (isSpace) {
+            return sb.substring(0, sb.length() - 1);
+        } else {
+            return sb.toString();
+        }
     }
 
 }

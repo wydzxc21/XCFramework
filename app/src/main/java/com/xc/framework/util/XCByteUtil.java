@@ -8,21 +8,36 @@ package com.xc.framework.util;
  */
 public class XCByteUtil {
 
-
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
      * @description 字节数组转16进制字符串
      */
     public static String byteToHexStr(byte[] bytes) {
+        return byteToHexStr(bytes, false);
+    }
+
+    /**
+     * @param isSpace 是否加空格
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 字节数组转16进制字符串
+     */
+    public static String byteToHexStr(byte[] bytes, boolean isSpace) {
         char[] hexChar = "0123456789ABCDEF".toCharArray();
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(hexChar[(b & 0xFF) >> 4]);
             sb.append(hexChar[b & 0x0F]);
-            sb.append(" ");
+            if (isSpace) {
+                sb.append(" ");
+            }
         }
-        return sb.substring(0, sb.length() - 1);
+        if (isSpace) {
+            return sb.substring(0, sb.length() - 1);
+        } else {
+            return sb.toString();
+        }
     }
 
     /**
@@ -31,7 +46,7 @@ public class XCByteUtil {
      * @description 字节数组转10进制字符串
      */
     public static String byteToDecStr(byte[] bytes) {
-        return XCStringUtil.hexStrToDecStr(byteToHexStr(bytes));
+        return XCStringUtil.hexStrToDecStr(byteToHexStr(bytes), false);
     }
 
     /**
@@ -51,7 +66,6 @@ public class XCByteUtil {
     public static String byteToDecStr(byte b) {
         return byteToDecStr(new byte[]{b});
     }
-
 
 
     /**
