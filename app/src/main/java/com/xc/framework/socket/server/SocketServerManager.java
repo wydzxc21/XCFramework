@@ -1,221 +1,295 @@
 package com.xc.framework.socket.server;
 
+
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
-import com.xc.framework.socket.SocketHeartbeatThread;
-import com.xc.framework.socket.SocketReceivedThread;
-import com.xc.framework.socket.SocketSendRunnable;
-import com.xc.framework.thread.XCThread;
-import com.xc.framework.util.XCStringUtil;
-import com.xc.framework.util.XCThreadUtil;
+import com.xc.framework.socket.bean.HandShakeBean;
+import com.xc.framework.socket.bean.MsgDataBean;
+import com.xc.framework.socket.bean.PulseBean;
+import com.xc.framework.socket.client.sdk.OkSocket;
+import com.xc.framework.socket.common.interfaces.server.IClient;
+import com.xc.framework.socket.common.interfaces.server.IClientIOCallback;
+import com.xc.framework.socket.common.interfaces.server.IClientPool;
+import com.xc.framework.socket.common.interfaces.server.IServerManager;
+import com.xc.framework.socket.common.interfaces.server.IServerShutdown;
+import com.xc.framework.socket.common.utils.TextUtils;
+import com.xc.framework.socket.constant.MsgConstant;
+import com.xc.framework.socket.core.iocore.interfaces.ISendable;
+import com.xc.framework.socket.core.pojo.OriginalData;
+import com.xc.framework.socket.server.action.ServerActionAdapter;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.LinkedList;
+import org.json.JSONObject;
+
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * @author ZhangXuanChen
- * @date 2020/2/29
- * @package com.zxc.threaddemo.socket
- * @description socket服务端
+ * Date：2020/3/11
+ * Author：ZhangXuanChen
+ * Description：socket服务端
  */
 public class SocketServerManager {
-    public final String TAG = "SocketServerManager";
-    public static SocketServerManager mSocketServerManager;
-    private ServerSocket serverSocket;
-    private XCThread serverThread;
-    private LinkedList<Socket> clientList;
-    private OnSocketServerListener onSocketServerListener;
+    private static final String TAG = "SocketServerManager";
+    IServerManager serverManager;
+    OnSocketServerListener onSocketServerListener;
+    LinkedHashMap<String, OnlineClient> onlineMap;
+    SocketPulseThread mSocketPulseThread;
+    long pulseFrequency;//心跳频率（毫秒）
 
     /**
-     * @author ZhangXuanChen
-     * @date 2020/3/2
-     * @package com.xc.framework.socket
-     * @description getInstance
+     * Author：ZhangXuanChen
+     * Time：2020/4/14 8:26
+     * Description：SocketServerManager
+     * Param：port 端口号（0 - 65535）
      */
-    public static SocketServerManager getInstance() {
-        if (mSocketServerManager == null) {
-            mSocketServerManager = new SocketServerManager();
+    public SocketServerManager(int port) {
+        this(port, 10 * 1000);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/14 8:26
+     * Description：SocketServerManager
+     * Param：port 端口号（0 - 65535）
+     * Param：pulseFrequency 心跳频率（毫秒）
+     */
+    public SocketServerManager(int port, long pulseFrequency) {
+        init(port, pulseFrequency > 2000 ? pulseFrequency : 2000);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 8:42
+     * Description：handler
+     */
+    Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0x123:
+                    Bundle b = (Bundle) msg.obj;
+                    String ip = b.getString("ip");
+                    String data = b.getString("data");
+                    if (onSocketServerListener != null) {
+                        onSocketServerListener.onReceive(ip, data);
+                    }
+                    break;
+                case 0x234:
+                    if (onSocketServerListener != null) {
+                        onSocketServerListener.onConnect((String) msg.obj);
+                    }
+                    break;
+                case 0x345:
+                    if (onSocketServerListener != null) {
+                        onSocketServerListener.onDisconnect((String) msg.obj);
+                    }
+                    break;
+            }
         }
-        return mSocketServerManager;
-    }
+    };
 
-
-    public SocketServerManager() {
-        clientList = new LinkedList<Socket>();
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 15:57
+     * Description：init
+     */
+    private void init(int port, long pulseFrequency) {
+        this.pulseFrequency = pulseFrequency;
+        onlineMap = new LinkedHashMap<String, OnlineClient>();
+        serverManager = OkSocket.server(port).registerReceiver(new MyServerActionAdapter());
     }
 
     /**
-     * @author ZhangXuanChen
-     * @date 2020/3/2
-     * @description getClientList
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 15:58
+     * Description：start
      */
-    public LinkedList<Socket> getClientList() {
-        return clientList;
+    public void start() {
+        if (serverManager != null) {
+            serverManager.listen();
+            startPulseThread(pulseFrequency);
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 8:11
+     * Description：startPulseThread
+     */
+    private void startPulseThread(long pulseFrequency) {
+        mSocketPulseThread = new SocketPulseThread(pulseFrequency) {
+            @Override
+            protected void onPulse() {
+                judgePulseTime();
+            }
+        };
+        mSocketPulseThread.startThread();
     }
 
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：设置接收监听
+     * Time：2020/3/11 15:58
+     * Description：stop
+     */
+    public void stop() {
+        if (serverManager != null) {
+            serverManager.shutdown();
+        }
+        if (onlineMap != null) {
+            onlineMap.clear();
+        }
+        if (mSocketPulseThread != null) {
+            mSocketPulseThread.stopThread();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 16:12
+     * Description：send
+     */
+    public void send(String ip, String data) {
+        if (onlineMap != null && !onlineMap.isEmpty() && !TextUtils.isEmpty(ip) && !TextUtils.isEmpty(data)) {
+            OnlineClient onlineClient = onlineMap.get(ip);
+            if (onlineClient != null) {
+                IClient iClient = onlineClient.getiClient();
+                if (iClient != null) {
+                    iClient.send(new MsgDataBean(data));
+                }
+            }
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 16:00
+     * Description：setOnSocketServerListener
      */
     public void setOnSocketServerListener(OnSocketServerListener onSocketServerListener) {
         this.onSocketServerListener = onSocketServerListener;
     }
 
     /**
-     * @param port 0 - 65535
-     * @author ZhangXuanChen
-     * @date 2020/2/29
-     * @description startServer
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 13:32
+     * Description：MyServerActionAdapter
      */
-    public void startServer(int port) {
-        if (port < 0 || port > 65535) {
-            return;
-        }
-        serverThread = new ServerThread(port);
-        serverThread.startThread();
-    }
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/2
-     * @description 断开连接
-     */
-    public void stopServer() {
-        try {
-            XCThreadUtil.getInstance().stopAll();
-            if (serverThread != null) {
-                serverThread.stopThread();
-            }
-            if (serverSocket != null) {
-                serverSocket.close();
-                serverSocket = null;
-            }
-            if (onSocketServerListener != null) {
-                onSocketServerListener = null;
-            }
-        } catch (Exception e) {
-        }
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/1
-     * @package com.xc.framework.socket.server
-     * @description ServerThread
-     */
-    class ServerThread extends XCThread {
-        int port;
-
-        public ServerThread(int port) {
-            this.port = port;
+    class MyServerActionAdapter extends ServerActionAdapter implements IClientIOCallback {
+        @Override
+        public void onServerListening(int serverPort) {
         }
 
         @Override
-        public Object onRun(Handler handler) {
+        public void onClientConnected(IClient client, int serverPort, IClientPool clientPool) {
+            onlineMap.put(client.getHostIp(), new OnlineClient(client.getHostIp(), client, System.currentTimeMillis()));
+            Message msg = handler.obtainMessage();
+            msg.what = 0x234;
+            msg.obj = client.getHostIp();
+            handler.sendMessage(msg);
+            client.addIOCallback(this);
+        }
+
+        @Override
+        public void onClientDisconnected(IClient client, int serverPort, IClientPool clientPool) {
+            onlineMap.remove(client.getHostIp());
+            Message msg = handler.obtainMessage();
+            msg.what = 0x345;
+            msg.obj = client.getHostIp();
+            handler.sendMessage(msg);
+            client.removeIOCallback(this);
+        }
+
+        @Override
+        public void onServerWillBeShutdown(int serverPort, IServerShutdown shutdown, IClientPool clientPool, Throwable throwable) {
+            shutdown.shutdown();
+        }
+
+        @Override
+        public void onServerAlreadyShutdown(int serverPort) {
+            serverManager.shutdown();
+        }
+
+        @Override
+        public void onClientRead(OriginalData data, IClient iClient, IClientPool<IClient, String> iClientPool) {
             try {
-                serverSocket = new ServerSocket(port);
-                while (serverThread.isRun() && serverSocket != null) {
-                    Socket socket = serverSocket.accept();
-                    socket.setTcpNoDelay(true);
-                    socket.setKeepAlive(true);
-                    addSocketList(socket, clientList);
-                    Message msg = handler.obtainMessage();
-                    msg.what = 0x321;
-                    msg.obj = socket;
-                    handler.sendMessage(msg);
-                    XCThreadUtil.sleep(1000);
+                updatePulseTime(iClient.getHostIp());
+                String str = new String(data.getBodyBytes(), Charset.forName("utf-8"));
+                JSONObject jsonObject = new JSONObject(str);
+                int cmd = jsonObject.optInt("cmd");
+                switch (cmd) {
+                    case MsgConstant.HANDSHAKE:
+                        iClient.send(new HandShakeBean());
+                        break;
+                    case MsgConstant.PULSE:
+                        iClient.send(new PulseBean());
+                        break;
+                    case MsgConstant.MESSAGE:
+                        String dataStr = jsonObject.optString("data");
+                        Bundle b = new Bundle();
+                        b.putString("ip", iClient.getHostIp());
+                        b.putString("data", dataStr);
+                        Message msg = handler.obtainMessage();
+                        msg.what = 0x123;
+                        msg.obj = b;
+                        handler.sendMessage(msg);
+                        break;
                 }
             } catch (Exception e) {
-                Log.i(TAG, "onRun: " + e.getMessage());
+                e.printStackTrace();
             }
-            return null;
         }
 
         @Override
-        public void onHandler(Message msg) {
-            Socket socket = (Socket) msg.obj;
-            if (socket != null) {
-                if (onSocketServerListener != null) {
-                    onSocketServerListener.onConnect(socket.getInetAddress().getHostAddress());
-                }
-                //心跳
-                SocketHeartbeatThread heartbeatThread = new SocketHeartbeatThread(socket) {
-                    @Override
-                    protected void onDisconnect(Socket socket) {
-                        if (onSocketServerListener != null) {
-                            onSocketServerListener.onDisconnect(socket.getInetAddress().getHostAddress());
+        public void onClientWrite(ISendable iSendable, IClient iClient, IClientPool<IClient, String> iClientPool) {
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 8:19
+     * Description：judgePulseTime
+     */
+    private synchronized void judgePulseTime() {
+        if (onlineMap != null && !onlineMap.isEmpty()) {
+            for (Iterator<Map.Entry<String, OnlineClient>> it = onlineMap.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, OnlineClient> item = it.next();
+                if (item != null) {
+                    String key = item.getKey();
+                    OnlineClient value = item.getValue();
+                    if (!TextUtils.isEmpty(key) && value != null) {
+                        long time = System.currentTimeMillis() - value.getLastPulseTime();
+                        if (time > pulseFrequency) {
+                            it.remove();
+                            Message msg = handler.obtainMessage();
+                            msg.what = 0x345;
+                            msg.obj = key;
+                            handler.sendMessage(msg);
                         }
                     }
-                };
-                heartbeatThread.startThread();
-                //接收
-                SocketReceivedThread receivedThread = new SocketReceivedThread(socket) {
-                    @Override
-                    public void onReceive(Socket socket, String data) {
-                        if (onSocketServerListener != null) {
-                            onSocketServerListener.onReceive(socket.getInetAddress().getHostAddress(), data);
-                        }
-                    }
-                };
-                receivedThread.startThread();
-            }
-        }
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/2/29
-     * @description send
-     */
-    public void send(String ip, String content) {
-        if (!XCStringUtil.isEmpty(ip) && !XCStringUtil.isEmpty(content)) {
-            Socket socket = getSocketById(ip);
-            if (socket != null) {
-                new Thread(new SocketSendRunnable(socket, content)).start();
-            }
-        }
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/2/29
-     * @description getSocketById
-     */
-    private Socket getSocketById(String ip) {
-        if (!XCStringUtil.isEmpty(ip) && clientList != null && !clientList.isEmpty()) {
-            for (int i = clientList.size() - 1; i >= 0; i--) {
-                Socket socket = clientList.get(i);
-                if (ip.equals(socket.getInetAddress().getHostAddress())) {
-                    return socket;
                 }
             }
         }
-        return null;
     }
 
     /**
-     * @author ZhangXuanChen
-     * @date 2020/3/3
-     * @description addSocketList
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 8:16
+     * Description：updatePulseTime
      */
-    private void addSocketList(Socket socket, LinkedList<Socket> clientList) {
-        if (socket == null) return;
-        if (clientList != null && !clientList.isEmpty()) {
-            for (int i = clientList.size() - 1; i >= 0; i--) {
-                Socket info = clientList.get(i);
-                if (socket.getInetAddress().getHostAddress().equals(info.getInetAddress().getHostAddress())) {
-                    clientList.remove(info);
+    private synchronized void updatePulseTime(String ip) {
+        if (!TextUtils.isEmpty(ip)) {
+            if (onlineMap != null && !onlineMap.isEmpty()) {
+                OnlineClient onlineClient = onlineMap.get(ip);
+                if (onlineClient != null) {
+                    onlineClient.setLastPulseTime(System.currentTimeMillis());
                 }
             }
         }
-        clientList.add(socket);
     }
 }

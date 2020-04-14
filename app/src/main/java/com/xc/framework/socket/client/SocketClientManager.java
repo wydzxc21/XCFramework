@@ -1,191 +1,218 @@
 package com.xc.framework.socket.client;
 
-import android.annotation.SuppressLint;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.xc.framework.socket.SocketHeartbeatThread;
-import com.xc.framework.socket.SocketReceivedThread;
-import com.xc.framework.socket.SocketSendRunnable;
-import com.xc.framework.thread.XCThread;
-import com.xc.framework.util.XCStringUtil;
-import com.xc.framework.util.XCThreadUtil;
+import com.xc.framework.socket.bean.HandShakeBean;
+import com.xc.framework.socket.bean.MsgDataBean;
+import com.xc.framework.socket.bean.PulseBean;
+import com.xc.framework.socket.client.sdk.OkSocket;
+import com.xc.framework.socket.client.sdk.client.ConnectionInfo;
+import com.xc.framework.socket.client.sdk.client.OkSocketOptions;
+import com.xc.framework.socket.client.sdk.client.action.SocketActionAdapter;
+import com.xc.framework.socket.client.sdk.client.connection.IConnectionManager;
+import com.xc.framework.socket.constant.MsgConstant;
+import com.xc.framework.socket.core.iocore.interfaces.IPulseSendable;
+import com.xc.framework.socket.core.iocore.interfaces.ISendable;
+import com.xc.framework.socket.core.pojo.OriginalData;
 
-import java.net.Socket;
+import org.json.JSONObject;
+
+import java.nio.charset.Charset;
 
 /**
- * @author ZhangXuanChen
- * @date 2020/2/29
- * @package com.zxc.threaddemo.socket
- * @description socket客户端
+ * Date：2020/3/12
+ * Author：ZhangXuanChen
+ * Description：socket客户端
  */
-@SuppressLint("LongLogTag")
 public class SocketClientManager {
-    public final String TAG = "SocketClientManager";
-    public static SocketClientManager mSocketClientManager;
-    private Socket socket;
-    private ClientThread clientThread;
-    private String ip;
-    private int port;
-    private OnSocketClientListener onSocketClientListener;
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/2
-     * @package com.xc.framework.socket
-     * @description getInstance
-     */
-    public static SocketClientManager getInstance() {
-        if (mSocketClientManager == null) {
-            mSocketClientManager = new SocketClientManager();
-        }
-        return mSocketClientManager;
-    }
-
+    private static final String TAG = "SocketClientManager";
+    OnSocketClientListener onSocketClientListener;
+    IConnectionManager clientManager;
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/26 14:07
-     * Description：设置接收监听
+     * Time：2020/4/14 8:25
+     * Description：SocketClientManager
+     * Param：serverIp 服务器ip
+     * Param：port 端口号（0 - 65535）
+     */
+    public SocketClientManager(String serverIp, int port) {
+        this(serverIp, port, null);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/14 8:26
+     * Description：SocketClientManager
+     * Param：serverIp 服务器IP
+     * Param：port 端口号（0 - 65535）
+     * Param：okSocketOptions 配置选项
+     */
+    public SocketClientManager(String serverIp, int port, OkSocketOptions okSocketOptions) {
+        init(serverIp, port, okSocketOptions);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 8:42
+     * Description：handler
+     */
+    Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0x123:
+                    Bundle b = (Bundle) msg.obj;
+                    String ip = b.getString("ip");
+                    String data = b.getString("data");
+                    if (onSocketClientListener != null) {
+                        onSocketClientListener.onReceive(ip, data);
+                    }
+                    break;
+                case 0x234:
+                    if (onSocketClientListener != null) {
+                        onSocketClientListener.onConnect((String) msg.obj);
+                    }
+                    break;
+                case 0x345:
+                    if (onSocketClientListener != null) {
+                        onSocketClientListener.onDisconnect((String) msg.obj);
+                    }
+                    break;
+            }
+        }
+    };
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/12 9:01
+     * Description：init
+     */
+    private void init(String serverIp, int port, OkSocketOptions okSocketOptions) {
+        if (!TextUtils.isEmpty(serverIp)) {
+            clientManager = OkSocket.open(new ConnectionInfo(serverIp, port));
+            if (okSocketOptions != null) {
+                okSocketOptions.setPulseFrequency(okSocketOptions.getPulseFrequency() > 1000 ? okSocketOptions.getPulseFrequency() : 1000);
+                clientManager.option(okSocketOptions);
+            } else {
+                clientManager.option(new OkSocketOptions.Builder().build());
+            }
+            clientManager.registerReceiver(new MyClientActionAdapter());
+            clientManager.connect();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 15:58
+     * Description：start
+     */
+    public void start() {
+        if (clientManager != null) {
+            clientManager.connect();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 15:58
+     * Description：stop
+     */
+    public void stop() {
+        if (clientManager != null) {
+            clientManager.disconnect();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 16:12
+     * Description：send
+     */
+    public void send(String data) {
+        if (clientManager != null && !TextUtils.isEmpty(data)) {
+            clientManager.send(new MsgDataBean(data));
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 16:00
+     * Description：setOnSocketServerListener
      */
     public void setOnSocketClientListener(OnSocketClientListener onSocketClientListener) {
         this.onSocketClientListener = onSocketClientListener;
     }
 
     /**
-     * @param ip   服务端ip地址
-     * @param port 0 - 65535
-     * @author ZhangXuanChen
-     * @date 2020/3/1
-     * @description 启动客户端
+     * Author：ZhangXuanChen
+     * Time：2020/3/11 13:40
+     * Description：MyClientActionAdapter
      */
-    public void startClient(String ip, int port) {
-        this.ip = ip;
-        this.port = port;
-        if (port < 0 || port > 65535) {
-            return;
-        }
-        clientThread = new ClientThread(ip, port);
-        clientThread.startThread();
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/2/29
-     * @description stopClient
-     */
-    public void stopClient() {
-        try {
-            XCThreadUtil.getInstance().stopAll();
-            if (clientThread != null) {
-                clientThread.stopThread();
-                clientThread = null;
-            }
-            if (socket != null) {
-                socket.close();
-                socket = null;
-            }
-            if (onSocketClientListener != null) {
-                onSocketClientListener = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/1
-     * @package com.xc.framework.socket.client
-     * @description ClientThread
-     */
-    class ClientThread extends XCThread {
-        String ip;
-        int port;
-
-        public ClientThread(String ip, int port) {
-            this.ip = ip;
-            this.port = port;
+    class MyClientActionAdapter extends SocketActionAdapter {
+        @Override
+        public void onSocketConnectionSuccess(ConnectionInfo info, String action) {
+            clientManager.send(new HandShakeBean());
+            clientManager.getPulseManager().setPulseSendable(new PulseBean());
+            Log.i(TAG, "onSocketConnectionSuccess: 连接成功");
+            Message msg = handler.obtainMessage();
+            msg.what = 0x234;
+            msg.obj = info.getIp();
+            handler.sendMessage(msg);
         }
 
         @Override
-        public Object onRun(Handler handler) {
-            return setConnect(socket, ip, port);
+        public void onSocketDisconnection(ConnectionInfo info, String action, Exception e) {
+            Message msg = handler.obtainMessage();
+            msg.what = 0x345;
+            msg.obj = info.getIp();
+            handler.sendMessage(msg);
         }
 
         @Override
-        public void onHandler(Message msg) {
-            socket = (Socket) msg.obj;
-            if (socket != null) {
-                if (onSocketClientListener != null) {
-                    onSocketClientListener.onConnect(socket.getInetAddress().getHostAddress());
-                }
-                //心跳
-                SocketHeartbeatThread heartbeatThread = new SocketHeartbeatThread(socket) {
-                    @Override
-                    protected void onDisconnect(Socket socket) {
-                        startClient(ip, port);
-                        if (onSocketClientListener != null) {
-                            onSocketClientListener.onDisconnect(socket.getInetAddress().getHostAddress());
-                        }
-                    }
-                };
-                heartbeatThread.startThread();
-                //接收
-                SocketReceivedThread receivedThread = new SocketReceivedThread(socket) {
-                    @Override
-                    public void onReceive(Socket socket, String data) {
-                        if (onSocketClientListener != null) {
-                            onSocketClientListener.onReceive(socket.getInetAddress().getHostAddress(), data);
-                        }
-                    }
-                };
-                receivedThread.startThread();
-            }
+        public void onSocketConnectionFailed(ConnectionInfo info, String action, Exception e) {
         }
-    }
 
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/3
-     * @description setConnect
-     */
-    private Socket setConnect(Socket socket, String ip, int port) {
-        try {
-            if (socket != null) {
-                socket.close();
-                socket = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        while (clientThread.isRun() && socket == null) {
+        @Override
+        public void onSocketReadResponse(ConnectionInfo info, String action, OriginalData data) {
             try {
-                socket = new Socket(ip, port);
-                socket.setTcpNoDelay(true);
-                socket.setKeepAlive(true);
-                Log.i(TAG, "onRun: 已连接");
+                String str = new String(data.getBodyBytes(), Charset.forName("utf-8"));
+                JSONObject jsonObject = new JSONObject(str);
+                int cmd = jsonObject.optInt("cmd");
+                switch (cmd) {
+                    case MsgConstant.HANDSHAKE:
+                        clientManager.getPulseManager().pulse();
+                        break;
+                    case MsgConstant.PULSE:
+                        clientManager.getPulseManager().feed();
+                        break;
+                    case MsgConstant.MESSAGE:
+                        String dataStr = jsonObject.optString("data");
+                        Bundle b = new Bundle();
+                        b.putString("ip", info.getIp());
+                        b.putString("data", dataStr);
+                        Message msg = handler.obtainMessage();
+                        msg.what = 0x123;
+                        msg.obj = b;
+                        handler.sendMessage(msg);
+                        break;
+                }
             } catch (Exception e) {
-                Log.i(TAG, "onRun: 未连接");
-            } finally {
-                XCThreadUtil.sleep(1000);
+                e.printStackTrace();
             }
         }
-        return socket;
-    }
 
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/2/29
-     * @description send
-     */
-    public void send(String content) {
-        if (socket != null && !XCStringUtil.isEmpty(content)) {
-            new Thread(new SocketSendRunnable(socket, content)).start();
+        @Override
+        public void onSocketWriteResponse(ConnectionInfo info, String action, ISendable data) {
+        }
+
+        @Override
+        public void onPulseSend(ConnectionInfo info, IPulseSendable data) {
         }
     }
-
 }
