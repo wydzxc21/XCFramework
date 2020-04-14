@@ -1,7 +1,6 @@
 package com.xc.framework.util;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.ActivityManager.RunningTaskInfo;
@@ -16,10 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.Settings;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,40 +28,6 @@ import java.util.UUID;
  * @description 应用相关工具类
  */
 public class XCAppUtil {
-    /**
-     * 显示输入法
-     *
-     * @param context 上下文
-     */
-    public static void showInputKeyboard(Context context) {
-        try {
-            View view = ((Activity) context).getWindow().peekDecorView();
-            if (view != null && view.getWindowToken() != null) {
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
-                imm.showSoftInput(view, 0);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 隐藏输入法
-     *
-     * @param context 上下文
-     */
-    public static void hideInputKeyboard(Context context) {
-        try {
-            View view = ((Activity) context).getWindow().peekDecorView();
-            if (view != null && view.getWindowToken() != null) {
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * 获取应用名称
@@ -309,21 +271,6 @@ public class XCAppUtil {
         }
     }
 
-    /**
-     * 隐藏底部虚拟按键，并且全屏
-     *
-     * @param context 上下文
-     */
-    public static void hideBottomUIMenu(Context context) {
-        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) {
-            View v = ((Activity) context).getWindow().getDecorView();
-            v.setSystemUiVisibility(View.GONE);
-        } else if (Build.VERSION.SDK_INT >= 19) {
-            View decorView = ((Activity) context).getWindow().getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
-            decorView.setSystemUiVisibility(uiOptions);
-        }
-    }
 
     /**
      * @author ZhangXuanChen
