@@ -56,7 +56,7 @@ public class XCScreenUtil {
      */
     public static void fullScreen(Activity activity) {
         hideStatusBar(activity);
-        hideVirtualButton(activity);
+        hideNavigationBar(activity);
     }
 
     /**
@@ -73,7 +73,7 @@ public class XCScreenUtil {
      * Time：2020/4/14 16:02
      * Description：隐藏虚拟按键
      */
-    public static void hideVirtualButton(Activity activity) {
+    public static void hideNavigationBar(Activity activity) {
         Window window = activity.getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         params.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE;
