@@ -95,7 +95,7 @@ public class XCTimeUtil {
             if (XCStringUtil.isEmpty(dateFormat)) {
                 dateFormat = FORMAT_DATE_TIME;
             }
-            if (XCStringUtil.isEmpty(dateFormat)) {
+            if (XCStringUtil.isEmpty(dateStr)) {
                 dateStr = getCurrentTime(dateFormat);
             }
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
