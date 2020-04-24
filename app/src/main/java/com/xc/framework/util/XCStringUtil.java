@@ -52,6 +52,20 @@ public class XCStringUtil {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/3 8:22
+     * Description：获取截取字符串
+     */
+    public static String[] getSplitStr(String str, String split) {
+        if (!XCStringUtil.isEmpty(str) && !XCStringUtil.isEmpty(split)) {
+            if (str.contains(split)) {
+                return str.split(split);
+            }
+        }
+        return null;
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/8
      * @description 16进制字符串转10进制字符串

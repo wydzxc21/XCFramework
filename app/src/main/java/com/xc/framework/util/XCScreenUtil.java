@@ -1,6 +1,7 @@
 package com.xc.framework.util;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.view.View;
 import android.view.Window;
@@ -51,10 +52,30 @@ public class XCScreenUtil {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2020/4/15 15:28
+     * Description：全屏
+     */
+    public static void fullScreen(Dialog dialog) {
+        if (dialog == null) {
+            return;
+        }
+        Window window = dialog.getWindow();
+        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        WindowManager.LayoutParams layoutParams = window.getAttributes();
+        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+        window.setAttributes(layoutParams);
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2020/4/14 16:30
      * Description：全屏
      */
     public static void fullScreen(Activity activity) {
+        if (activity == null) {
+            return;
+        }
         hideStatusBar(activity);
         hideNavigationBar(activity);
     }
@@ -75,6 +96,21 @@ public class XCScreenUtil {
      */
     public static void hideNavigationBar(Activity activity) {
         Window window = activity.getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
+        params.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE;
+        window.setAttributes(params);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/14 16:02
+     * Description：隐藏虚拟按键
+     */
+    public static void hideNavigationBar(Dialog dialog) {
+        if (dialog == null) {
+            return;
+        }
+        Window window = dialog.getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         params.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE;
         window.setAttributes(params);
