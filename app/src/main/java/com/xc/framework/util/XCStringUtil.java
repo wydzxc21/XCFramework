@@ -59,7 +59,11 @@ public class XCStringUtil {
     public static String[] getSplitStr(String str, String split) {
         if (!XCStringUtil.isEmpty(str) && !XCStringUtil.isEmpty(split)) {
             if (str.contains(split)) {
-                return str.split(split);
+                if (split.equals(".")) {
+                    return str.split("\\.");
+                } else {
+                    return str.split(split);
+                }
             }
         }
         return null;
