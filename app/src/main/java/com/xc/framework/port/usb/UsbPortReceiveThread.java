@@ -17,9 +17,11 @@ import java.util.Arrays;
 public abstract class UsbPortReceiveThread extends XCThread {
     private final String TAG = "UsbPortReceiveThread";
     private byte[] receiveFrameHeads;//接收帧头
+    private byte[] interruptFrameHeads;//中断帧头
     private UsbPort usbPort;
     //
-    boolean isStop;
+    private boolean isStop;
+    private boolean isInterrupt;//是否为中断数据
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
 
@@ -31,10 +33,12 @@ public abstract class UsbPortReceiveThread extends XCThread {
      */
     public UsbPortReceiveThread(UsbPortParam usbPortParam, UsbPort usbPort) {
         this.receiveFrameHeads = usbPortParam.getReceiveFrameHeads();
+        this.interruptFrameHeads = usbPortParam.getInterruptFrameHeads();
         this.usbPort = usbPort;
         this.bufferDatas = new byte[16 * 1024];
         this.bufferPosition = 0;
     }
+
 
 
     @Override
@@ -52,7 +56,14 @@ public abstract class UsbPortReceiveThread extends XCThread {
 
     @Override
     protected void onHandler(Message msg) {
-        onReceive((byte[]) msg.obj);
+        switch (msg.what) {
+            case 0x123://接收
+                onReceive((byte[]) msg.obj);
+                break;
+            case 0x234://中断
+                onInterrupt((byte[]) msg.obj);
+                break;
+        }
     }
 
     /**
@@ -66,15 +77,26 @@ public abstract class UsbPortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-            if (receiveFrameHeads != null && receiveFrameHeads.length > 0) { //根据最后一组帧头分割数据
-                cutDatas = splitDataByLastFrameHead(receiveFrameHeads, cutDatas);
+            int lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
+            isInterrupt = false;
+            if (lastFrameHeadPosition < 0) {
+                lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
+                isInterrupt = true;
+            }
+            if (lastFrameHeadPosition >= 0) {
+                cutDatas = splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
             }
             int length = setLength(cutDatas);//判断指令长度
             if (length > 0 && length <= cutDatas.length) {
                 bufferPosition = 0;
-                byte[] receiveDatas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
-                Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(receiveDatas, true) + "]");
-                sendMessage(0x123, receiveDatas);
+                byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
+                if (!isInterrupt) {
+                    Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                    sendMessage(0x123, datas);
+                } else {
+                    Log.i(TAG, "指令-中断:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                    sendMessage(0x234, datas);
+                }
             } else {//长度不足继续读取
                 readDatas();
             }
@@ -87,16 +109,12 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * @date 2020/3/8
      * @description 根据最后一组帧头索引分割数据
      */
-    private byte[] splitDataByLastFrameHead(byte[] frameHeaders, byte[] cutDatas) {
-        if (frameHeaders == null || frameHeaders.length <= 0 || cutDatas == null || cutDatas.length <= 0) {
+    public static byte[] splitDataByLastFrameHead(int lastFrameHeadPosition, byte[] cutDatas) {
+        if (lastFrameHeadPosition < 0 || cutDatas == null || cutDatas.length <= 0) {
             return null;
         }
-        if (frameHeaders.length > cutDatas.length) {
-            return null;
-        }
-        int frameHeaderPosition = getLastFrameHeadPosition(frameHeaders, cutDatas);
-        byte[] splitData = new byte[cutDatas.length - frameHeaderPosition];
-        System.arraycopy(cutDatas, frameHeaderPosition, splitData, 0, splitData.length);
+        byte[] splitData = new byte[cutDatas.length - lastFrameHeadPosition];
+        System.arraycopy(cutDatas, lastFrameHeadPosition, splitData, 0, splitData.length);
         return splitData;
     }
 
@@ -105,25 +123,25 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * @date 2020/3/8
      * @description 获取最后一组帧头索引
      */
-    private int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
+    public static int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
         if (frameHeaders == null || frameHeaders.length <= 0 || cutDatas == null || cutDatas.length <= 0) {
-            return 0;
+            return -1;
         }
         if (frameHeaders.length > cutDatas.length) {
-            return 0;
+            return -1;
         }
-        int headerPosition = 0;
+        int headerPosition = -1;
         for (int i = cutDatas.length - 1; i >= 0; i--) {
             if (cutDatas[i] == frameHeaders[0]) {
                 headerPosition = i;//第一位帧头索引
                 for (int k = 0; k < frameHeaders.length; k++) {
                     int l = k + i;//从第一位帧头索引按顺序匹配帧头数组
                     if (l >= cutDatas.length || frameHeaders[k] != cutDatas[l]) {
-                        headerPosition = 0;
+                        headerPosition = -1;
                         break;
                     }
                 }
-                if (headerPosition > 0) {
+                if (headerPosition >= 0) {
                     break;
                 }
             }
@@ -136,7 +154,7 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * Time：2020/3/10 15:07
      * Description：
      */
-    public abstract int setLength(byte[] receiveDatas);
+    public abstract int setLength(byte[] receiveOrInterruptDatas);
 
     /**
      * Author：ZhangXuanChen
@@ -144,4 +162,10 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * Description：onReceive
      */
     public abstract void onReceive(byte[] receiveDatas);
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 15:14
+     * Description：onInterrupt
+     */
+    public abstract void onInterrupt(byte[] interruptDatas);
 }

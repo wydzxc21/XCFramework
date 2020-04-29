@@ -1,6 +1,5 @@
 package com.xc.framework.port.serial;
 
-import com.xc.framework.util.XCByteUtil;
 import com.xc.framework.util.XCStringUtil;
 
 import java.io.File;
@@ -51,7 +50,10 @@ public class SerialPortParam {
      * 接收帧头，默认null，处理丢包粘包
      */
     byte[] receiveFrameHeads;
-
+    /**
+     * 中断帧头，默认null，处理丢包粘包
+     */
+    byte[] interruptFrameHeads;
 
     public SerialPortParam(File serialDevice, int baudrate) {
         this.serialDevice = serialDevice;
@@ -63,7 +65,7 @@ public class SerialPortParam {
         this.baudrate = baudrate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
         this.baudrate = baudrate;
@@ -74,6 +76,7 @@ public class SerialPortParam {
         this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
         this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
         this.receiveFrameHeads = receiveFrameHeads;
+        this.interruptFrameHeads = interruptFrameHeads;
     }
 
 
@@ -161,4 +164,11 @@ public class SerialPortParam {
         this.receiveFrameHeads = receiveFrameHeads;
     }
 
+    public byte[] getInterruptFrameHeads() {
+        return interruptFrameHeads;
+    }
+
+    public void setInterruptFrameHeads(byte[] interruptFrameHeads) {
+        this.interruptFrameHeads = interruptFrameHeads;
+    }
 }

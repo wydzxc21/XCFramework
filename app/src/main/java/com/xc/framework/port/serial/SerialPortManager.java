@@ -52,13 +52,14 @@ public class SerialPortManager {
      * Param：resendCount 重发次数，默认0
      * Param：sendTimeout 发送超时(毫秒)，默认2000
      * Param：receiveFrameHeads 接收帧头，默认null
+     * Param：interruptFrameHeads 中断帧头，默认null
      */
-    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
+    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads) {
         this.mSerialPortParam = new SerialPortParam(devicePath, baudrate);
         this.mSerialPortParam.setResendCount(resendCount);
         this.mSerialPortParam.setSendTimeout(sendTimeout);
         this.mSerialPortParam.setReceiveFrameHeads(receiveFrameHeads);
-        initData();
+        this.mSerialPortParam.setInterruptFrameHeads(interruptFrameHeads);
     }
 
     /**
@@ -135,9 +136,9 @@ public class SerialPortManager {
     private void startReceivedThread() {
         mSerialPortReceiveThread = new SerialPortReceiveThread(mSerialPortParam, mSerialPort) {
             @Override
-            public int setLength(byte[] receiveDatas) {
+            public int setLength(byte[] receiveOrInterruptDatas) {
                 if (onSerialPortListener != null) {
-                    return onSerialPortListener.setLength(receiveDatas);
+                    return onSerialPortListener.setLength(receiveOrInterruptDatas);
                 }
                 return 0;
             }
@@ -145,20 +146,36 @@ public class SerialPortManager {
             @Override
             public void onReceive(byte[] receiveDatas) {
                 if (onSerialPortListener != null) {
-                    int what = 0;
-                    SerialPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
-                    if (sendRunnable != null) {
-                        what = sendRunnable.getWhat();
-                        sendRunnable.receive();
-                    }
-                    onSerialPortListener.onReceive(what, receiveDatas);
+                    onSerialPortListener.onReceive(receiveSendRunnable(), receiveDatas);
                 }
             }
+
+            @Override
+            public void onInterrupt(byte[] interruptDatas) {
+                if (onSerialPortListener != null) {
+                    onSerialPortListener.onInterrupt(receiveSendRunnable(), interruptDatas);
+                }
+            }
+
         };
         mSerialPortReceiveThread.setDaemon(true);
         mSerialPortReceiveThread.startThread();
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/29 11:44
+     * Description：释放发送任务
+     */
+    private int receiveSendRunnable() {
+        int what = 0;
+        SerialPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
+        if (sendRunnable != null) {
+            what = sendRunnable.getWhat();
+            sendRunnable.receive();
+        }
+        return what;
+    }
 
     /**
      * Author：ZhangXuanChen

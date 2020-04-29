@@ -41,6 +41,10 @@ public class UsbPortParam {
      * 接收帧头，默认null，处理丢包粘包
      */
     byte[] receiveFrameHeads;
+    /**
+     * 中断帧头，默认null，处理丢包粘包
+     */
+    byte[] interruptFrameHeads;
 
     public UsbPortParam(UsbDevice usbDevice, int baudrate) {
         this.usbDevice = usbDevice;
@@ -52,7 +56,7 @@ public class UsbPortParam {
         this.baudrate = baudrate;
     }
 
-    public UsbPortParam(Context context, int vid, int pid, int baudrate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, byte[] receiveFrameHeads) {
+    public UsbPortParam(Context context, int vid, int pid, int baudrate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads) {
         this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
         this.baudrate = baudrate;
         this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
@@ -61,6 +65,7 @@ public class UsbPortParam {
         this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
         this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
         this.receiveFrameHeads = receiveFrameHeads;
+        this.interruptFrameHeads = interruptFrameHeads;
     }
 
     public UsbDevice getUsbDevice() {
@@ -129,5 +134,13 @@ public class UsbPortParam {
 
     public void setReceiveFrameHeads(byte[] receiveFrameHeads) {
         this.receiveFrameHeads = receiveFrameHeads;
+    }
+
+    public byte[] getInterruptFrameHeads() {
+        return interruptFrameHeads;
+    }
+
+    public void setInterruptFrameHeads(byte[] interruptFrameHeads) {
+        this.interruptFrameHeads = interruptFrameHeads;
     }
 }

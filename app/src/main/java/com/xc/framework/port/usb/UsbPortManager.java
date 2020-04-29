@@ -67,6 +67,27 @@ public class UsbPortManager {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2019/11/25 15:30
+     * Description：初始化usb
+     * Param：context 上下文
+     * Param：vid 厂商id
+     * Param：pid 设备id
+     * Param：baudrate 波特率
+     * Param：resendCount 重发次数，默认0
+     * Param：sendTimeout 发送超时(毫秒)，默认2000
+     * Param：receiveFrameHeads 接收帧头，默认null
+     * Param：interruptFrameHeads 中断帧头，默认null
+     */
+    public void init(int vid, int pid, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads) {
+        this.mUsbPortParam = new UsbPortParam(mContext, vid, pid, baudrate);
+        this.mUsbPortParam.setResendCount(resendCount);
+        this.mUsbPortParam.setSendTimeout(sendTimeout);
+        this.mUsbPortParam.setReceiveFrameHeads(receiveFrameHeads);
+        this.mUsbPortParam.setInterruptFrameHeads(interruptFrameHeads);
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2019/11/26 11:01
      * Description：initData
      */
@@ -139,9 +160,9 @@ public class UsbPortManager {
     private void startReceivedThread() {
         mUsbPortReceiveThread = new UsbPortReceiveThread(mUsbPortParam, mUsbPort) {
             @Override
-            public int setLength(byte[] receiveDatas) {
+            public int setLength(byte[] receiveOrInterruptDatas) {
                 if (onUsbPortListener != null) {
-                    return onUsbPortListener.setLength(receiveDatas);
+                    return onUsbPortListener.setLength(receiveOrInterruptDatas);
                 }
                 return 0;
             }
@@ -149,13 +170,14 @@ public class UsbPortManager {
             @Override
             public void onReceive(byte[] receiveDatas) {
                 if (onUsbPortListener != null) {
-                    int what = 0;
-                    UsbPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
-                    if (sendRunnable != null) {
-                        what = sendRunnable.getWhat();
-                        sendRunnable.receive();
-                    }
-                    onUsbPortListener.onReceive(what, receiveDatas);
+                    onUsbPortListener.onReceive(receiveSendRunnable(), receiveDatas);
+                }
+            }
+
+            @Override
+            public void onInterrupt(byte[] interruptDatas) {
+                if (onUsbPortListener != null) {
+                    onUsbPortListener.onInterrupt(receiveSendRunnable(), interruptDatas);
                 }
             }
         };
@@ -163,6 +185,20 @@ public class UsbPortManager {
         mUsbPortReceiveThread.startThread();
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/29 11:44
+     * Description：释放发送任务
+     */
+    private int receiveSendRunnable() {
+        int what = 0;
+        UsbPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
+        if (sendRunnable != null) {
+            what = sendRunnable.getWhat();
+            sendRunnable.receive();
+        }
+        return what;
+    }
 
     /**
      * Author：ZhangXuanChen
