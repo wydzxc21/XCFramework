@@ -60,6 +60,7 @@ public class SerialPortManager {
         this.mSerialPortParam.setSendTimeout(sendTimeout);
         this.mSerialPortParam.setReceiveFrameHeads(receiveFrameHeads);
         this.mSerialPortParam.setInterruptFrameHeads(interruptFrameHeads);
+        initData();
     }
 
     /**

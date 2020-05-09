@@ -84,6 +84,7 @@ public class UsbPortManager {
         this.mUsbPortParam.setSendTimeout(sendTimeout);
         this.mUsbPortParam.setReceiveFrameHeads(receiveFrameHeads);
         this.mUsbPortParam.setInterruptFrameHeads(interruptFrameHeads);
+        initData();
     }
 
     /**

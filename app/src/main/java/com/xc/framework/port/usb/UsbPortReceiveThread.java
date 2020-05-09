@@ -77,11 +77,11 @@ public abstract class UsbPortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-            int lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
-            isInterrupt = false;
+            int lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
+            isInterrupt = true;
             if (lastFrameHeadPosition < 0) {
-                lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
-                isInterrupt = true;
+                lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
+                isInterrupt = false;
             }
             if (lastFrameHeadPosition >= 0) {
                 cutDatas = splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
