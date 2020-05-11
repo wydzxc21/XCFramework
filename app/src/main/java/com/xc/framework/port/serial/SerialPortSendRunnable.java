@@ -66,6 +66,7 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
 
     @Override
     protected void onHandler(Message msg) {
+        Log.i(TAG, "指令-超时:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "]");
         onTimeout(what, sendDatas);
     }
 
@@ -78,6 +79,7 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
         if (serialPort.writeSerialPort(sendDatas)) {
             sendCount++;
             Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            onSend(what, sendDatas, sendCount);
             waitReceive();
         }
     }
@@ -111,6 +113,13 @@ public abstract class SerialPortSendRunnable extends XCRunnable {
     public int getWhat() {
         return what;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/5/11 8:38
+     * Description：onSend
+     */
+    public abstract void onSend(int what, byte[] sendDatas, int sendCount);
 
     /**
      * Author：ZhangXuanChen

@@ -116,6 +116,16 @@ public class XCLogUtil {
     }
 
     /**
+     * @param
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取log
+     */
+    public synchronized static String readLog(File file) {
+        return XCFileUtil.readFile(file);
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/19
      * @description 获取文件list
@@ -148,8 +158,16 @@ public class XCLogUtil {
     }
 
     /**
+     * @author ZhangXuanChen
+     * @date 2020/2/20
+     * @description 删除log
+     */
+    public synchronized static boolean deleteLog(File file) {
+        return XCFileUtil.deleteFile(file);
+    }
+
+    /**
      * @param compareDay 多少天前
-     * @return
      * @author ZhangXuanChen
      * @date 2020/2/20
      * @description 删除log
@@ -160,7 +178,6 @@ public class XCLogUtil {
 
     /**
      * @param compareDay 多少天前
-     * @return
      * @author ZhangXuanChen
      * @date 2020/2/20
      * @description 删除log

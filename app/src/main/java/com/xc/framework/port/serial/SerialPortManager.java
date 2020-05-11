@@ -188,6 +188,14 @@ public class SerialPortManager {
             return;
         }
         mExecutorService.execute(new SerialPortSendRunnable(bytes, what, mSerialPortParam, mSerialPort, mLinkedBlockingQueue) {
+
+            @Override
+            public void onSend(int what, byte[] sendDatas, int sendCount) {
+                if (onSerialPortListener != null) {
+                    onSerialPortListener.onSend(what, sendDatas, sendCount);
+                }
+            }
+
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
                 if (onSerialPortListener != null) {

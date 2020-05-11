@@ -211,6 +211,14 @@ public class UsbPortManager {
             return;
         }
         mExecutorService.execute(new UsbPortSendRunnable(bytes, what, mUsbPortParam, mUsbPort, mLinkedBlockingQueue) {
+
+            @Override
+            public void onSend(int what, byte[] sendDatas, int sendCount) {
+                if (onUsbPortListener != null) {
+                    onUsbPortListener.onSend(what, sendDatas, sendCount);
+                }
+            }
+
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
                 if (onUsbPortListener != null) {

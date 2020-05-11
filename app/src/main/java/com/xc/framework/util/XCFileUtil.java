@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,7 +84,7 @@ public class XCFileUtil {
      * @param downloadUrl 下载地址
      * @return 文件名
      */
-    public synchronized static String getDownloadFileName(String downloadUrl) {
+    public static String getDownloadFileName(String downloadUrl) {
         try {
             if (!XCStringUtil.isEmpty(downloadUrl)) {
                 if (downloadUrl.contains("/")) {
@@ -108,7 +109,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 创建文件夹
      */
-    public synchronized static boolean createFolder(String folderPath) {
+    public static boolean createFolder(String folderPath) {
         try {
             if (!XCStringUtil.isEmpty(folderPath)) {
                 File dirFile = new File(folderPath);
@@ -128,7 +129,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 删除文件夹(含其根目录文件)
      */
-    public synchronized static boolean deleteFolder(String folderPath) {
+    public static boolean deleteFolder(String folderPath) {
         try {
             if (!XCStringUtil.isEmpty(folderPath)) {
                 File dirFile = new File(folderPath);
@@ -138,7 +139,7 @@ public class XCFileUtil {
                         for (int i = files.length - 1; i >= 0; i--) {
                             File file = files[i];
                             if (file != null) {
-                                deleteFile(file.getAbsolutePath());
+                                deleteFile(file);
                             }
                         }
                     }
@@ -157,7 +158,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 文件是否存在
      */
-    public synchronized static boolean isFileExist(String filePath) {
+    public static boolean isFileExist(String filePath) {
         try {
             if (!XCStringUtil.isEmpty(filePath)) {
                 return new File(filePath).exists();
@@ -174,7 +175,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 创建文件（含后缀名）
      */
-    public synchronized static boolean createFile(String filePath) {
+    public static boolean createFile(String filePath) {
         try {
             if (!XCStringUtil.isEmpty(filePath)) {
                 File file = new File(filePath);
@@ -194,10 +195,19 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 删除文件（含后缀名）
      */
-    public synchronized static boolean deleteFile(String filePath) {
+    public static boolean deleteFile(String filePath) {
+        return deleteFile(new File(filePath));
+    }
+
+    /**
+     * @param file 文件
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 删除文件
+     */
+    public static boolean deleteFile(File file) {
         try {
-            if (!XCStringUtil.isEmpty(filePath)) {
-                File file = new File(filePath);
+            if (file != null) {
                 if (file.exists() && file.isFile()) {
                     return file.delete();
                 }
@@ -217,7 +227,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 写入文件
      */
-    public synchronized static boolean writeFile(String content, String filePath) {
+    public static boolean writeFile(String content, String filePath) {
         try {
             if (!XCStringUtil.isEmpty(content) && !XCStringUtil.isEmpty(filePath)) {
                 File file = new File(filePath);
@@ -244,10 +254,20 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 读取文件
      */
-    public synchronized static String readFile(String filePath) {
+    public static String readFile(String filePath) {
+        return readFile(new File(filePath));
+    }
+
+    /**
+     * @param file 文件
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取文件
+     */
+    public static String readFile(File file) {
         try {
-            if (!XCStringUtil.isEmpty(filePath)) {
-                File file = new File(filePath);
+            if (file != null) {
                 if (file.exists() && file.isFile()) {
                     FileInputStream is = new FileInputStream(file);
                     BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -274,7 +294,7 @@ public class XCFileUtil {
      * @date 2020/2/20
      * @description 获取文件list
      */
-    public synchronized  static List<File> getFileList(String folderPath) {
+    public static List<File> getFileList(String folderPath) {
         List<File> fileList = new ArrayList<File>();
         if (!XCStringUtil.isEmpty(folderPath)) {
             File dirFile = new File(folderPath);
@@ -286,5 +306,28 @@ public class XCFileUtil {
             }
         }
         return fileList;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/5/11 9:02
+     * Description：获取文件大小字符串
+     */
+    public static String getFileSizeStr(long fileSize) {
+        DecimalFormat df = new DecimalFormat("#.00");
+        String fileSizeStr;
+        if (fileSize == 0) {
+            return "0B";
+        }
+        if (fileSize < 1024) {
+            fileSizeStr = df.format((double) fileSize) + "B";
+        } else if (fileSize < 1048576) {
+            fileSizeStr = df.format((double) fileSize / 1024) + "KB";
+        } else if (fileSize < 1073741824) {
+            fileSizeStr = df.format((double) fileSize / 1048576) + "MB";
+        } else {
+            fileSizeStr = df.format((double) fileSize / 1073741824) + "GB";
+        }
+        return fileSizeStr;
     }
 }
