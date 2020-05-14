@@ -214,6 +214,9 @@ public class UsbPortManager {
 
             @Override
             public void onSend(int what, byte[] sendDatas, int sendCount) {
+                if (mUsbPortReceiveThread != null) {
+                    mUsbPortReceiveThread.receive();
+                }
                 if (onUsbPortListener != null) {
                     onUsbPortListener.onSend(what, sendDatas, sendCount);
                 }

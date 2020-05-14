@@ -191,6 +191,9 @@ public class SerialPortManager {
 
             @Override
             public void onSend(int what, byte[] sendDatas, int sendCount) {
+                if (mSerialPortReceiveThread != null) {
+                    mSerialPortReceiveThread.receive();
+                }
                 if (onSerialPortListener != null) {
                     onSerialPortListener.onSend(what, sendDatas, sendCount);
                 }

@@ -150,6 +150,15 @@ public abstract class SerialPortReceiveThread extends XCThread {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2020/3/10 14:51
+     * Description：receive
+     */
+    public void receive() {
+        bufferPosition = 0;
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2020/3/10 15:07
      * Description：
      */
