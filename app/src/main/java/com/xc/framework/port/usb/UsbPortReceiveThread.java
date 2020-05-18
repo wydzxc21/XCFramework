@@ -21,7 +21,7 @@ public abstract class UsbPortReceiveThread extends XCThread {
     private UsbPort usbPort;
     //
     private boolean isStop;
-    private boolean isInterrupt;//是否为中断数据
+    private boolean isReceive;//是否为接收数据
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
 
@@ -77,39 +77,54 @@ public abstract class UsbPortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-            int lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
-            isInterrupt = true;
-            if (lastFrameHeadPosition < 0) {
-                lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
-                isInterrupt = false;
-            }
-            if (lastFrameHeadPosition >= 0) {
-                cutDatas = splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
-            }
-            int length = setLength(cutDatas);//判断指令长度
-            if (length > 0 && length <= cutDatas.length) {
-                bufferPosition = 0;
-                byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
-                if (!isInterrupt) {
-                    Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
-                    sendMessage(0x123, datas);
-                } else {
-                    Log.i(TAG, "指令-中断:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
-                    sendMessage(0x234, datas);
+            isReceive = true;
+            if (receiveFrameHeads != null && receiveFrameHeads.length > 0 || interruptFrameHeads != null && interruptFrameHeads.length > 0) {//设置了帧头
+                int lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
+                if (lastFrameHeadPosition < 0) {
+                    isReceive = false;
+                    lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
                 }
-            } else {//长度不足继续读取
-                readDatas();
+                if (lastFrameHeadPosition < 0) {
+                    receive();
+                } else {
+                    cutDatas = splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
+                    result(cutDatas);
+                }
+            } else {//未设置帧头
+                result(cutDatas);
             }
         }
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/5/18 17:38
+     * Description：结果
+     */
+    private void result(byte[] cutDatas) {
+        if (cutDatas == null || cutDatas.length <= 0) {
+            return;
+        }
+        int length = setLength(cutDatas);//判断指令长度
+        if (length > 0 && length <= cutDatas.length) {
+            receive();
+            byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
+            if (isReceive) {
+                Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                sendMessage(0x123, datas);
+            } else {
+                Log.i(TAG, "指令-中断:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                sendMessage(0x234, datas);
+            }
+        }
+    }
 
     /**
      * @author ZhangXuanChen
      * @date 2020/3/8
      * @description 根据最后一组帧头索引分割数据
      */
-    public static byte[] splitDataByLastFrameHead(int lastFrameHeadPosition, byte[] cutDatas) {
+    private byte[] splitDataByLastFrameHead(int lastFrameHeadPosition, byte[] cutDatas) {
         if (lastFrameHeadPosition < 0 || cutDatas == null || cutDatas.length <= 0) {
             return null;
         }
@@ -123,7 +138,7 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * @date 2020/3/8
      * @description 获取最后一组帧头索引
      */
-    public static int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
+    private int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
         if (frameHeaders == null || frameHeaders.length <= 0 || cutDatas == null || cutDatas.length <= 0) {
             return -1;
         }
