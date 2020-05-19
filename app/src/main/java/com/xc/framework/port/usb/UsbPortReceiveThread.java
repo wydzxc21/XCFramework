@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.xc.framework.port.core.FrameHeadUtil;
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCByteUtil;
 
@@ -21,7 +22,7 @@ public abstract class UsbPortReceiveThread extends XCThread {
     private UsbPort usbPort;
     //
     private boolean isStop;
-    private boolean isReceive;//是否为接收数据
+    private boolean isReceiveFrameHeads;//是否为接收帧头
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
 
@@ -38,7 +39,6 @@ public abstract class UsbPortReceiveThread extends XCThread {
         this.bufferDatas = new byte[16 * 1024];
         this.bufferPosition = 0;
     }
-
 
 
     @Override
@@ -77,17 +77,17 @@ public abstract class UsbPortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-            isReceive = true;
+            isReceiveFrameHeads = true;
             if (receiveFrameHeads != null && receiveFrameHeads.length > 0 || interruptFrameHeads != null && interruptFrameHeads.length > 0) {//设置了帧头
-                int lastFrameHeadPosition = getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
+                int lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(receiveFrameHeads, cutDatas);//获取最后一组接收帧头索引
                 if (lastFrameHeadPosition < 0) {
-                    isReceive = false;
-                    lastFrameHeadPosition = getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
+                    isReceiveFrameHeads = false;
+                    lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(interruptFrameHeads, cutDatas);//获取最后一组中断帧头索引
                 }
                 if (lastFrameHeadPosition < 0) {
-                    receive();
+                    reset();
                 } else {
-                    cutDatas = splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
+                    cutDatas = FrameHeadUtil.splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
                     result(cutDatas);
                 }
             } else {//未设置帧头
@@ -107,9 +107,9 @@ public abstract class UsbPortReceiveThread extends XCThread {
         }
         int length = setLength(cutDatas);//判断指令长度
         if (length > 0 && length <= cutDatas.length) {
-            receive();
+            reset();
             byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
-            if (isReceive) {
+            if (isReceiveFrameHeads) {
                 Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
                 sendMessage(0x123, datas);
             } else {
@@ -119,57 +119,13 @@ public abstract class UsbPortReceiveThread extends XCThread {
         }
     }
 
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/8
-     * @description 根据最后一组帧头索引分割数据
-     */
-    private byte[] splitDataByLastFrameHead(int lastFrameHeadPosition, byte[] cutDatas) {
-        if (lastFrameHeadPosition < 0 || cutDatas == null || cutDatas.length <= 0) {
-            return null;
-        }
-        byte[] splitData = new byte[cutDatas.length - lastFrameHeadPosition];
-        System.arraycopy(cutDatas, lastFrameHeadPosition, splitData, 0, splitData.length);
-        return splitData;
-    }
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/8
-     * @description 获取最后一组帧头索引
-     */
-    private int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
-        if (frameHeaders == null || frameHeaders.length <= 0 || cutDatas == null || cutDatas.length <= 0) {
-            return -1;
-        }
-        if (frameHeaders.length > cutDatas.length) {
-            return -1;
-        }
-        int headerPosition = -1;
-        for (int i = cutDatas.length - 1; i >= 0; i--) {
-            if (cutDatas[i] == frameHeaders[0]) {
-                headerPosition = i;//第一位帧头索引
-                for (int k = 0; k < frameHeaders.length; k++) {
-                    int l = k + i;//从第一位帧头索引按顺序匹配帧头数组
-                    if (l >= cutDatas.length || frameHeaders[k] != cutDatas[l]) {
-                        headerPosition = -1;
-                        break;
-                    }
-                }
-                if (headerPosition >= 0) {
-                    break;
-                }
-            }
-        }
-        return headerPosition;
-    }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/3/10 14:51
-     * Description：receive
+     * Description：reset
      */
-    public void receive() {
+    public void reset() {
         bufferPosition = 0;
     }
 
@@ -186,6 +142,7 @@ public abstract class UsbPortReceiveThread extends XCThread {
      * Description：onReceive
      */
     public abstract void onReceive(byte[] receiveDatas);
+
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/27 15:14

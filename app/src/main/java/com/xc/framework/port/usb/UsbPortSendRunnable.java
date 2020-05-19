@@ -25,7 +25,7 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
     private UsbPort usbPort;
     private LinkedBlockingQueue linkedBlockingQueue;
     //
-    boolean isReceive;//是否接收
+    boolean isRelease;//是否释放
     int sendCount;//发送次数
 
     /**
@@ -51,7 +51,7 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
         try {
             linkedBlockingQueue.put(this);
             writeDatas();
-            if (!isReceive) {//超时
+            if (!isRelease) {//超时
                 if ((sendCount - 1) <= resendCount) {
                     writeDatas();
                 } else {
@@ -59,14 +59,13 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
                 }
             }
         } catch (Exception e) {
-            isReceive = true;
+            isRelease = true;
         }
         return null;
     }
 
     @Override
     protected void onHandler(Message msg) {
-        Log.i(TAG, "指令-超时:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "]");
         onTimeout(what, sendDatas);
     }
 
@@ -91,7 +90,7 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
      */
     private void waitReceive() throws InterruptedException {
         long currentTime = System.currentTimeMillis();
-        while (!isReceive && System.currentTimeMillis() - currentTime < sendTimeout) {
+        while (!isRelease && System.currentTimeMillis() - currentTime < sendTimeout) {
             Thread.sleep(1);
         }
     }
@@ -99,10 +98,10 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
     /**
      * Author：ZhangXuanChen
      * Time：2020/3/10 14:51
-     * Description：receive
+     * Description：release
      */
-    public void receive() {
-        isReceive = true;
+    public void release() {
+        isRelease = true;
     }
 
     /**

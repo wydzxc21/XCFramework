@@ -84,7 +84,6 @@ public class UsbPortManager {
         this.mUsbPortParam.setSendTimeout(sendTimeout);
         this.mUsbPortParam.setReceiveFrameHeads(receiveFrameHeads);
         this.mUsbPortParam.setInterruptFrameHeads(interruptFrameHeads);
-        initData();
     }
 
     /**
@@ -196,7 +195,7 @@ public class UsbPortManager {
         UsbPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
         if (sendRunnable != null) {
             what = sendRunnable.getWhat();
-            sendRunnable.receive();
+            sendRunnable.release();
         }
         return what;
     }
@@ -211,11 +210,10 @@ public class UsbPortManager {
             return;
         }
         mExecutorService.execute(new UsbPortSendRunnable(bytes, what, mUsbPortParam, mUsbPort, mLinkedBlockingQueue) {
-
             @Override
             public void onSend(int what, byte[] sendDatas, int sendCount) {
                 if (mUsbPortReceiveThread != null) {
-                    mUsbPortReceiveThread.receive();
+                    mUsbPortReceiveThread.reset();
                 }
                 if (onUsbPortListener != null) {
                     onUsbPortListener.onSend(what, sendDatas, sendCount);

@@ -173,7 +173,7 @@ public class SerialPortManager {
         SerialPortSendRunnable sendRunnable = mLinkedBlockingQueue.poll();
         if (sendRunnable != null) {
             what = sendRunnable.getWhat();
-            sendRunnable.receive();
+            sendRunnable.release();
         }
         return what;
     }
@@ -192,7 +192,7 @@ public class SerialPortManager {
             @Override
             public void onSend(int what, byte[] sendDatas, int sendCount) {
                 if (mSerialPortReceiveThread != null) {
-                    mSerialPortReceiveThread.receive();
+                    mSerialPortReceiveThread.reset();
                 }
                 if (onSerialPortListener != null) {
                     onSerialPortListener.onSend(what, sendDatas, sendCount);
