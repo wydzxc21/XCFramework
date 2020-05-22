@@ -148,6 +148,25 @@ public class XCAppUtil {
      * Description：跳转app
      *
      * @param context
+     * @param packageName 要跳转的包名
+     */
+    public static void skipApp(Context context, String packageName) {
+        if (context != null && !"".equals(packageName)) {
+            try {
+                Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 8:55
+     * Description：跳转app
+     *
+     * @param context
      * @param packageName       包名
      * @param classAbsolutePath 要跳转的activity绝对路径
      */
