@@ -108,13 +108,7 @@ public class XCDBUtil {
      * @return 是否成功
      */
     public static <T> boolean insert(Context context, List<T> classObjectList) {
-        boolean isSucceed = false;
-        if (classObjectList != null && !classObjectList.isEmpty()) {
-            for (T classObject : classObjectList) {
-                isSucceed = DBManager.getInstance(context).insert(classObject);
-            }
-        }
-        return isSucceed;
+        return DBManager.getInstance(context).insert(classObjectList);
     }
 
     /**
@@ -133,18 +127,13 @@ public class XCDBUtil {
      * 删除
      *
      * @param context         上下文
+     * @param field           集合中以此字段名为删除条件
      * @param classObjectList 类对象集合,操作以该对象类名创建的表,反射get方法获取删除条件(条件唯一删除唯一一条数据,条件不唯一删除符合条件的所有数据,
      *                        new空对象删除该表所有数据 )
      * @return 是否成功
      */
-    public static <T> boolean delete(Context context, List<T> classObjectList) {
-        boolean isSucceed = false;
-        if (classObjectList != null && !classObjectList.isEmpty()) {
-            for (T classObject : classObjectList) {
-                isSucceed = DBManager.getInstance(context).delete(classObject);
-            }
-        }
-        return isSucceed;
+    public static <T> boolean delete(Context context, String field, List<T> classObjectList) {
+        return DBManager.getInstance(context).delete(field, classObjectList);
     }
 
     /**
@@ -158,25 +147,6 @@ public class XCDBUtil {
      */
     public static <T> boolean update(Context context, T updateObject, T conditionObject) {
         return DBManager.getInstance(context).update(updateObject, conditionObject);
-    }
-
-    /**
-     * 更新
-     *
-     * @param context          上下文
-     * @param updateObjectList 更新数据类对象集合,反射get方法获取更新数据(要与查询条件类对象为相同类的对象)
-     * @param conditionObject  查询条件类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一更新唯一一条数据,
-     *                         条件不唯一更新符合条件的所有数据, new空对象更新该表所有数据)
-     * @return 是否成功
-     */
-    public static <T> boolean update(Context context, List<T> updateObjectList, T conditionObject) {
-        boolean isSucceed = false;
-        if (updateObjectList != null && !updateObjectList.isEmpty()) {
-            for (T updateObject : updateObjectList) {
-                isSucceed = DBManager.getInstance(context).update(updateObject, conditionObject);
-            }
-        }
-        return isSucceed;
     }
 
     /**
@@ -215,6 +185,15 @@ public class XCDBUtil {
      */
     public static <T> List<T> query(Context context, T classObject, int limit, int offset) {
         return DBManager.getInstance(context).query(classObject, limit, offset);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/25
+     * @description 查询总条数
+     */
+    public static <T> int queryTotalCount(Context context, T classObject) {
+        return DBManager.getInstance(context).queryTotalCount(classObject);
     }
 
     /**
