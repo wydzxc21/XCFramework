@@ -195,11 +195,11 @@ public class XCTimeUtil {
      * Description：比较相差天数
      */
     public static int compareDay(long beforeMillisecond, long afterMillisecond) {
-        int day = 0;
+        long day = 0;
         try {
-            day = (int) ((afterMillisecond - beforeMillisecond) / (1000 * 3600 * 24));
+            day = ((afterMillisecond - beforeMillisecond) / (1000L * 3600L * 24L));
         } catch (Exception e) {
         }
-        return day;
+        return (int) day;
     }
 }
