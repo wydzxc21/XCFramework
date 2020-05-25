@@ -20,7 +20,7 @@ import java.util.Map;
 public class DBManager {
     private Context context;
     public static DBManager mDBManager;
-    public final String KEY_ID = "_id";
+    public static final String KEY_ID = "_id";
 
     public DBManager(Context context) {
         this.context = context;
@@ -565,7 +565,8 @@ public class DBManager {
                         String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
                         // key
                         String key = name;
-                        if (field.equals(key)) {
+                        if (field.equals(primitiveName) || field.equals(aliasName)) {
+                            field = key;
                             String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), primitiveName);
                             if (!XCStringUtil.isEmpty(tempVal)) {
                                 value += tempVal + ",";
