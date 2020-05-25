@@ -200,6 +200,6 @@ public class XCTimeUtil {
             day = ((afterMillisecond - beforeMillisecond) / (1000L * 3600L * 24L));
         } catch (Exception e) {
         }
-        return (int) Math.abs(day);
+        return (int) day;
     }
 }
