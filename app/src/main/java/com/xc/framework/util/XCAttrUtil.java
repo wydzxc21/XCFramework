@@ -40,9 +40,9 @@ public class XCAttrUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/6/15 14:30
-     * Description：getColor
+     * Description：getData（color、value）
      */
-    public static int getColor(Context context, int attr) {
+    public static int getData(Context context, int attr) {
         TypedValue typedValue = getTypedValue(context, attr);
         if (typedValue != null) {
             return typedValue.data;
