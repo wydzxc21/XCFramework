@@ -56,11 +56,26 @@ public class XCScreenUtil {
      * Description：全屏
      */
     public static void fullScreen(Dialog dialog) {
+        fullScreen(dialog, false);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/15 15:28
+     * Description：全屏
+     * Param：isKeyboard 是否需要弹出键盘
+     */
+    public static void fullScreen(Dialog dialog, boolean isShowKeyboard) {
         if (dialog == null) {
             return;
         }
         Window window = dialog.getWindow();
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        if (isShowKeyboard) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        } else {
+            window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        }
+        //
         WindowManager.LayoutParams layoutParams = window.getAttributes();
         layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
         layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
