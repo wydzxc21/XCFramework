@@ -11,8 +11,8 @@ import android.content.Context;
 public class XCUnitUtil {
 	/**
 	 * 将dip转换为px
-	 * 
-	 * @param context 上下文
+	 *
+	 * @param context  上下文
 	 * @param dipValue dip值
 	 * @return px值
 	 */
@@ -28,10 +28,10 @@ public class XCUnitUtil {
 
 	/**
 	 * 将px转换为dip
-	 * 
+	 *
 	 * @param context 上下文
 	 * @param pxValue px值
-	 * @return dip值	
+	 * @return dip值
 	 */
 	public static int getPxToDip(Context context, float pxValue) {
 		try {
@@ -44,10 +44,43 @@ public class XCUnitUtil {
 	}
 
 	/**
+	 * 将百分比宽转换为px
+	 *
+	 * @param context      上下文
+	 * @param percentWidth 百分比宽值
+	 * @return px值
+	 */
+	public static int getPercentWidthToPx(Context context, float percentWidth) {
+		try {
+			final float scale = context.getResources().getDisplayMetrics().widthPixels;
+			return (int) (scale * percentWidth / 100f);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
+	 * 将百分比高转换为px
+	 *
+	 * @param context      上下文
+	 * @param percentHeight 百分比高值
+	 * @return px值
+	 */
+	public static int getPercentHeightToPx(Context context, float percentHeight) {
+		try {
+			final float scale = context.getResources().getDisplayMetrics().heightPixels;
+			return (int) (scale * percentHeight / 100f);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
 	 * php时间戳转java时间戳
-	 * 
-	 * @param phpTimestamp
-	 *            php时间戳(十位)
+	 *
+	 * @param phpTimestamp php时间戳(十位)
 	 * @return java时间戳
 	 */
 	public static String getPhpToJavaTimestamp(String phpTimestamp) {

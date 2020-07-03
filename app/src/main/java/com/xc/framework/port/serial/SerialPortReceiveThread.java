@@ -25,6 +25,7 @@ public abstract class SerialPortReceiveThread extends XCThread {
     private boolean isReceiveFrameHeads;//是否为接收帧头
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
+    private byte[] receiveDatas;//接收数据
 
     /**
      * @param serialPortParam 串口参数
@@ -58,7 +59,7 @@ public abstract class SerialPortReceiveThread extends XCThread {
     protected void onHandler(Message msg) {
         switch (msg.what) {
             case 0x123://接收
-                onReceive((byte[]) msg.obj);
+                receiveDatas = (byte[]) msg.obj;
                 break;
             case 0x234://中断
                 onInterrupt((byte[]) msg.obj);
@@ -128,21 +129,24 @@ public abstract class SerialPortReceiveThread extends XCThread {
      */
     public void reset() {
         bufferPosition = 0;
+        receiveDatas = null;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/3 9:23
+     * Description：getReceive
+     */
+    public byte[] getReceive() {
+        return receiveDatas;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/3/10 15:07
-     * Description：
+     * Description：setLength
      */
     public abstract int setLength(byte[] receiveOrInterruptDatas);
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 15:14
-     * Description：onReceive
-     */
-    public abstract void onReceive(byte[] receiveDatas);
 
     /**
      * Author：ZhangXuanChen

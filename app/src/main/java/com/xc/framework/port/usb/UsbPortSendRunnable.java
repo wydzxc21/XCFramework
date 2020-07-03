@@ -8,8 +8,6 @@ import android.util.Log;
 import com.xc.framework.thread.XCRunnable;
 import com.xc.framework.util.XCByteUtil;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 
 /**
  * Date：2020/3/6
@@ -23,9 +21,9 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
     private int resendCount;//重发次数
     private int sendTimeout;//发送超时(毫秒)
     private UsbPort usbPort;
-    private LinkedBlockingQueue linkedBlockingQueue;
+    private UsbPortReceiveThread usbPortReceiveThread;
     //
-    boolean isRelease;//是否释放
+    boolean isReceive;//是否接收
     int sendCount;//发送次数
 
     /**
@@ -33,25 +31,24 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
      * @param what                区分消息
      * @param usbPortParam        usb参数
      * @param usbPort             usb工具
-     * @param linkedBlockingQueue 任务队列
+     * @param usbPortReceiveThread 接收线程
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public UsbPortSendRunnable(byte[] sendDatas, int what, UsbPortParam usbPortParam, UsbPort usbPort, LinkedBlockingQueue linkedBlockingQueue) {
+    public UsbPortSendRunnable(byte[] sendDatas, int what, UsbPortParam usbPortParam, UsbPort usbPort, UsbPortReceiveThread usbPortReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
         this.resendCount = usbPortParam.getResendCount();
         this.sendTimeout = usbPortParam.getSendTimeout();
         this.usbPort = usbPort;
-        this.linkedBlockingQueue = linkedBlockingQueue;
+        this.usbPortReceiveThread = usbPortReceiveThread;
     }
 
     @Override
     protected Object onRun(Handler handler) {
         try {
-            linkedBlockingQueue.put(this);
             writeDatas();
-            if (!isRelease) {//超时
+            if (!isReceive) {//超时
                 if ((sendCount - 1) <= resendCount) {
                     writeDatas();
                 } else {
@@ -59,14 +56,21 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
                 }
             }
         } catch (Exception e) {
-            isRelease = true;
+            isReceive = true;
         }
         return null;
     }
 
     @Override
     protected void onHandler(Message msg) {
-        onTimeout(what, sendDatas);
+        switch (msg.what) {
+            case 0x123://超时
+                onTimeout(what, sendDatas);
+                break;
+            case 0x234://接收
+                onReceive(what, (byte[]) msg.obj);
+                break;
+        }
     }
 
     /**
@@ -75,10 +79,10 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
      * @description writeDatas
      */
     private void writeDatas() throws InterruptedException {
+        usbPortReceiveThread.reset();
         if (usbPort.writeUsbPort(sendDatas)) {
             sendCount++;
             Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
-            onSend(what, sendDatas, sendCount);
             waitReceive();
         }
     }
@@ -90,18 +94,14 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
      */
     private void waitReceive() throws InterruptedException {
         long currentTime = System.currentTimeMillis();
-        while (!isRelease && System.currentTimeMillis() - currentTime < sendTimeout) {
+        do {
+            byte[] receiveDatas = usbPortReceiveThread.getReceive();
+            if (receiveDatas != null && receiveDatas.length > 0) {
+                isReceive = true;
+                sendMessage(0x234, receiveDatas);
+            }
             Thread.sleep(1);
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/3/10 14:51
-     * Description：release
-     */
-    public void release() {
-        isRelease = true;
+        } while (!isReceive && System.currentTimeMillis() - currentTime < sendTimeout);
     }
 
     /**
@@ -115,10 +115,10 @@ public abstract class UsbPortSendRunnable extends XCRunnable {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/5/11 8:38
-     * Description：onSend
+     * Time：2019/11/27 15:14
+     * Description：onReceive
      */
-    public abstract void onSend(int what, byte[] sendDatas, int sendCount);
+    public abstract void onReceive(int what, byte[] receiveDatas);
 
     /**
      * Author：ZhangXuanChen
