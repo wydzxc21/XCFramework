@@ -3,9 +3,9 @@ package com.xc.framework.port.usb;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
-import com.xc.framework.port.core.LengthCallback;
 import com.xc.framework.port.core.OnPortInterruptListener;
 import com.xc.framework.port.core.ReceiveCallback;
+import com.xc.framework.port.core.LengthCallback;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -181,11 +181,11 @@ public class UsbPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, final ReceiveCallback onPortReceiveListener) {
+    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback onPortReceiveListener) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return;
         }
-        mExecutorService.execute(new UsbPortSendRunnable(bytes, what, mUsbPortParam, mUsbPort, mUsbPortReceiveThread) {
+        mExecutorService.execute(new UsbPortSendRunnable(bytes, what, isWaitReceive, mUsbPortParam, mUsbPort, mUsbPortReceiveThread) {
             @Override
             public void onReceive(int what, byte[] receiveDatas) {
                 if (onPortReceiveListener != null) {

@@ -1,7 +1,5 @@
 package com.xc.framework.port.serial;
 
-import android.util.Log;
-
 import com.xc.framework.port.core.LengthCallback;
 import com.xc.framework.port.core.OnPortInterruptListener;
 import com.xc.framework.port.core.ReceiveCallback;
@@ -160,12 +158,11 @@ public class SerialPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, final ReceiveCallback onPortReceiveListener) {
+    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback onPortReceiveListener) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return;
         }
-        Log.i(TAG, "mExecutorService: ");
-        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
+        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, isWaitReceive, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
             @Override
             public void onReceive(int what, byte[] receiveDatas) {
                 if (onPortReceiveListener != null) {
