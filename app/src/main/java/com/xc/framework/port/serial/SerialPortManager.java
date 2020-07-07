@@ -1,7 +1,7 @@
 package com.xc.framework.port.serial;
 
 import com.xc.framework.port.core.LengthCallback;
-import com.xc.framework.port.core.OnPortInterruptListener;
+import com.xc.framework.port.core.OnInterruptListener;
 import com.xc.framework.port.core.ReceiveCallback;
 
 import java.util.concurrent.ExecutorService;
@@ -19,7 +19,7 @@ public class SerialPortManager {
     private final String TAG = "SerialPortManager";
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
-    private OnPortInterruptListener onPortInterruptListener;//中断监听
+    private OnInterruptListener onInterruptListener;//中断监听
     private SerialPortReceiveThread mSerialPortReceiveThread;//接收线程
     private ExecutorService mExecutorService;//发送线程池
     private boolean isOpen = false;
@@ -144,8 +144,8 @@ public class SerialPortManager {
 
             @Override
             public void onInterrupt(byte[] interruptDatas) {
-                if (onPortInterruptListener != null) {
-                    onPortInterruptListener.onInterrupt(interruptDatas);
+                if (onInterruptListener != null) {
+                    onInterruptListener.onInterrupt(interruptDatas);
                 }
             }
         };
@@ -158,22 +158,22 @@ public class SerialPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback onPortReceiveListener) {
+    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback receiveCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return;
         }
         mExecutorService.execute(new SerialPortSendRunnable(bytes, what, isWaitReceive, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
             @Override
             public void onReceive(int what, byte[] receiveDatas) {
-                if (onPortReceiveListener != null) {
-                    onPortReceiveListener.onReceive(what, receiveDatas);
+                if (receiveCallback != null) {
+                    receiveCallback.onReceive(what, receiveDatas);
                 }
             }
 
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
-                if (onPortReceiveListener != null) {
-                    onPortReceiveListener.onTimeout(what, sendDatas);
+                if (receiveCallback != null) {
+                    receiveCallback.onTimeout(what, sendDatas);
                 }
             }
         });
@@ -184,8 +184,8 @@ public class SerialPortManager {
      * Time：2019/11/26 14:07
      * Description：设置中断监听
      */
-    public void setOnPortInterruptListener(OnPortInterruptListener onPortInterruptListener) {
-        this.onPortInterruptListener = onPortInterruptListener;
+    public void setOnInterruptListener(OnInterruptListener onInterruptListener) {
+        this.onInterruptListener = onInterruptListener;
     }
 
 }

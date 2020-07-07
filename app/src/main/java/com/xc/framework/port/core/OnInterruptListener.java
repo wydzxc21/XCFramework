@@ -6,7 +6,7 @@ package com.xc.framework.port.core;
  * @package com.xc.framework.port.serial
  * @description 串口中断监听
  */
-public interface OnPortInterruptListener {
+public interface OnInterruptListener {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/29 11:35
