@@ -71,7 +71,7 @@ public class XCTimeUtil {
      */
     public static String getTime(long milliseconds, String dateFormat) {
         try {
-            if (milliseconds <= 0) {
+            if (milliseconds < 0) {
                 milliseconds = System.currentTimeMillis();
             }
             if (XCStringUtil.isEmpty(dateFormat)) {
