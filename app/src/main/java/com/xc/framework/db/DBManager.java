@@ -674,10 +674,12 @@ public class DBManager {
                 String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
-                // key
-                key += name + ",";
-                // value
-                value += "'" + XCBeanUtil.invokeGetMethod(classObject, primitiveName) + "',";
+                if (!name.equals(KEY_ID)) {
+                    // key
+                    key += name + ",";
+                    // value
+                    value += "'" + XCBeanUtil.invokeGetMethod(classObject, primitiveName) + "',";
+                }
             }
             key = key.substring(0, key.length() - 1);
             value = value.substring(0, value.length() - 1);
