@@ -1,9 +1,11 @@
 package com.xc.framework.port.serial;
 
 import com.xc.framework.port.core.LengthCallback;
-import com.xc.framework.port.core.OnInterruptListener;
-import com.xc.framework.port.core.ReceiveCallback;
+import com.xc.framework.port.core.OnReceiveRequestListener;
+import com.xc.framework.port.core.ReceiveResponseCallback;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -19,7 +21,7 @@ public class SerialPortManager {
     private final String TAG = "SerialPortManager";
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
-    private OnInterruptListener onInterruptListener;//中断监听
+    private List<OnReceiveRequestListener> receiveRequestListenerList;//接收请求监听集合
     private SerialPortReceiveThread mSerialPortReceiveThread;//接收线程
     private ExecutorService mExecutorService;//发送线程池
     private boolean isOpen = false;
@@ -55,16 +57,16 @@ public class SerialPortManager {
      * Param：baudrate 波特率
      * Param：resendCount 重发次数，默认0
      * Param：sendTimeout 发送超时(毫秒)，默认2000
-     * Param：receiveFrameHeads 接收帧头，默认null
-     * Param：interruptFrameHeads 中断帧头，默认null
+     * Param：receiveResponseFrameHeads 接收响应帧头，默认null
+     * Param：receiveRequestFrameHeads 接收请求帧头，默认null
      * Param：lengthCallback 设置长度回调，默认null
      */
-    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads, LengthCallback lengthCallback) {
+    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, LengthCallback lengthCallback) {
         this.mSerialPortParam = new SerialPortParam(devicePath, baudrate);
         this.mSerialPortParam.setResendCount(resendCount);
         this.mSerialPortParam.setSendTimeout(sendTimeout);
-        this.mSerialPortParam.setReceiveFrameHeads(receiveFrameHeads);
-        this.mSerialPortParam.setInterruptFrameHeads(interruptFrameHeads);
+        this.mSerialPortParam.setReceiveResponseFrameHeads(receiveResponseFrameHeads);
+        this.mSerialPortParam.setReceiveRequestFrameHeads(receiveRequestFrameHeads);
         this.mSerialPortParam.setLengthCallback(lengthCallback);
         initData();
     }
@@ -76,6 +78,7 @@ public class SerialPortManager {
      */
     private void initData() {
         mSerialPort = new SerialPort();
+        receiveRequestListenerList = new ArrayList<OnReceiveRequestListener>();
         initPool();
     }
 
@@ -135,17 +138,21 @@ public class SerialPortManager {
     private void startReceivedThread() {
         mSerialPortReceiveThread = new SerialPortReceiveThread(mSerialPortParam, mSerialPort) {
             @Override
-            public int setLength(byte[] receiveOrInterruptDatas) {
+            public int setLength(byte[] receiveDatas) {
                 if (mSerialPortParam.getLengthCallback() != null) {
-                    return mSerialPortParam.getLengthCallback().onLength(receiveOrInterruptDatas);
+                    return mSerialPortParam.getLengthCallback().onLength(receiveDatas);
                 }
                 return 0;
             }
 
             @Override
-            public void onInterrupt(byte[] interruptDatas) {
-                if (onInterruptListener != null) {
-                    onInterruptListener.onInterrupt(interruptDatas);
+            public void onRequest(byte[] requestDatas) {
+                if (receiveRequestListenerList != null && !receiveRequestListenerList.isEmpty()) {
+                    for (OnReceiveRequestListener listener : receiveRequestListenerList) {
+                        if (listener != null) {
+                            listener.onRequest(requestDatas);
+                        }
+                    }
                 }
             }
         };
@@ -158,22 +165,22 @@ public class SerialPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback receiveCallback) {
+    public void send(byte[] bytes, int what, boolean isWaitResponse, final ReceiveResponseCallback receiveResponseCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return;
         }
-        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, isWaitReceive, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
+        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, isWaitResponse, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
             @Override
-            public void onReceive(int what, byte[] receiveDatas) {
-                if (receiveCallback != null) {
-                    receiveCallback.onReceive(what, receiveDatas);
+            public void onResponse(int what, byte[] responseDatas) {
+                if (receiveResponseCallback != null) {
+                    receiveResponseCallback.onResponse(what, responseDatas);
                 }
             }
 
             @Override
             public void onTimeout(int what, byte[] sendDatas) {
-                if (receiveCallback != null) {
-                    receiveCallback.onTimeout(what, sendDatas);
+                if (receiveResponseCallback != null) {
+                    receiveResponseCallback.onTimeout(what, sendDatas);
                 }
             }
         });
@@ -182,10 +189,12 @@ public class SerialPortManager {
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/26 14:07
-     * Description：设置中断监听
+     * Description：设置接收请求监听
      */
-    public void setOnInterruptListener(OnInterruptListener onInterruptListener) {
-        this.onInterruptListener = onInterruptListener;
+    public void setOnReceiveRequestListener(OnReceiveRequestListener onReceiveRequestListener) {
+        if (receiveRequestListenerList != null) {
+            receiveRequestListenerList.add(onReceiveRequestListener);
+        }
     }
 
 }

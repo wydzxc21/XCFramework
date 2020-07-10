@@ -4,15 +4,15 @@ package com.xc.framework.port.core;
  * @author ZhangXuanChen
  * @date 2020/3/8
  * @package com.xc.framework.port.serial
- * @description 串口接收回调
+ * @description 接收响应回调
  */
-public interface ReceiveCallback {
+public interface ReceiveResponseCallback {
     /**
      * @author ZhangXuanChen
      * @date 2020/3/7
-     * @description 接收
+     * @description 响应
      */
-    void onReceive(int what, byte[] receiveDatas);
+    void onResponse(int what, byte[] responseDatas);
 
     /**
      * @author ZhangXuanChen

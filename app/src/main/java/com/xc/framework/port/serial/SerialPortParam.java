@@ -1,7 +1,7 @@
 package com.xc.framework.port.serial;
 
-import com.xc.framework.port.core.LengthCallback;
 import com.xc.framework.port.core.PortParam;
+import com.xc.framework.port.core.LengthCallback;
 import com.xc.framework.util.XCStringUtil;
 
 import java.io.File;
@@ -35,7 +35,7 @@ public class SerialPortParam extends PortParam {
         this.baudrate = baudrate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads, LengthCallback setLengthCallback) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, LengthCallback setLengthCallback) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
         this.baudrate = baudrate;
@@ -45,8 +45,8 @@ public class SerialPortParam extends PortParam {
         this.flowCon = flowCon > 0 ? flowCon : this.flowCon;
         this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
         this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
-        this.receiveFrameHeads = receiveFrameHeads;
-        this.interruptFrameHeads = interruptFrameHeads;
+        this.receiveResponseFrameHeads = receiveResponseFrameHeads;
+        this.receiveRequestFrameHeads = receiveRequestFrameHeads;
         this.lengthCallback = setLengthCallback;
     }
 

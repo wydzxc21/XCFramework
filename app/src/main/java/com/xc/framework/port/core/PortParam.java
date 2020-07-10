@@ -31,13 +31,13 @@ public class PortParam {
      */
     protected int sendTimeout = 2000;
     /**
-     * 接收帧头，默认null，处理丢包粘包
+     * 接收响应帧头，默认null，处理丢包粘包
      */
-    protected byte[] receiveFrameHeads;
+    protected byte[] receiveResponseFrameHeads;
     /**
-     * 中断帧头，默认null，处理丢包粘包
+     * 接收请求帧头，默认null，处理丢包粘包
      */
-    protected byte[] interruptFrameHeads;
+    protected byte[] receiveRequestFrameHeads;
     /**
      * 设置接收数据长度回调
      */
@@ -91,20 +91,20 @@ public class PortParam {
         this.sendTimeout = sendTimeout;
     }
 
-    public byte[] getReceiveFrameHeads() {
-        return receiveFrameHeads;
+    public byte[] getReceiveResponseFrameHeads() {
+        return receiveResponseFrameHeads;
     }
 
-    public void setReceiveFrameHeads(byte[] receiveFrameHeads) {
-        this.receiveFrameHeads = receiveFrameHeads;
+    public void setReceiveResponseFrameHeads(byte[] receiveResponseFrameHeads) {
+        this.receiveResponseFrameHeads = receiveResponseFrameHeads;
     }
 
-    public byte[] getInterruptFrameHeads() {
-        return interruptFrameHeads;
+    public byte[] getReceiveRequestFrameHeads() {
+        return receiveRequestFrameHeads;
     }
 
-    public void setInterruptFrameHeads(byte[] interruptFrameHeads) {
-        this.interruptFrameHeads = interruptFrameHeads;
+    public void setReceiveRequestFrameHeads(byte[] receiveRequestFrameHeads) {
+        this.receiveRequestFrameHeads = receiveRequestFrameHeads;
     }
 
     public LengthCallback getLengthCallback() {

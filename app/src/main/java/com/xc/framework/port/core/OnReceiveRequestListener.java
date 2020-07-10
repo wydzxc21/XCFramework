@@ -4,14 +4,14 @@ package com.xc.framework.port.core;
  * @author ZhangXuanChen
  * @date 2020/3/8
  * @package com.xc.framework.port.serial
- * @description 串口中断监听
+ * @description 接收请求监听
  */
-public interface OnInterruptListener {
+public interface OnReceiveRequestListener {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/29 11:35
-     * Description：中断
+     * Description：请求
      */
-    void onInterrupt(byte[] interruptDatas);
+    void onRequest(byte[] requestDatas);
 
 }

@@ -13,5 +13,5 @@ public interface LengthCallback {
      * @date 2020/3/7
      * @description 返回数据有效长度(10进制)
      */
-    int onLength(byte[] receiveOrInterruptDatas);
+    int onLength(byte[] receiveDatas);
 }

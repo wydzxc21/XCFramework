@@ -4,9 +4,11 @@ import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
 import com.xc.framework.port.core.LengthCallback;
-import com.xc.framework.port.core.OnInterruptListener;
-import com.xc.framework.port.core.ReceiveCallback;
+import com.xc.framework.port.core.OnReceiveRequestListener;
+import com.xc.framework.port.core.ReceiveResponseCallback;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -22,7 +24,7 @@ public class UsbPortManager {
     private Context mContext;
     private UsbPort mUsbPort;
     private UsbPortParam mUsbPortParam;
-    private OnInterruptListener onInterruptListener;//中断监听
+    private List<OnReceiveRequestListener> receiveRequestListenerList;//接收请求监听集合
     private UsbPortReceiveThread mUsbPortReceiveThread;//接收线程
     private ExecutorService mExecutorService;//发送线程池
     private boolean isOpen = false;
@@ -78,16 +80,16 @@ public class UsbPortManager {
      * Param：baudrate 波特率
      * Param：resendCount 重发次数，默认0
      * Param：sendTimeout 发送超时(毫秒)，默认2000
-     * Param：receiveFrameHeads 接收帧头，默认null
-     * Param：interruptFrameHeads 中断帧头，默认null
+     * Param：receiveResponseFrameHeads 接收响应帧头，默认null
+     * Param：receiveRequestFrameHeads 接收请求帧头，默认null
      * Param：lengthCallback 设置长度回调，默认null
      */
-    public void init(int vid, int pid, int baudrate, int resendCount, int sendTimeout, byte[] receiveFrameHeads, byte[] interruptFrameHeads, LengthCallback lengthCallback) {
+    public void init(int vid, int pid, int baudrate, int resendCount, int sendTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, LengthCallback lengthCallback) {
         this.mUsbPortParam = new UsbPortParam(mContext, vid, pid, baudrate);
         this.mUsbPortParam.setResendCount(resendCount);
         this.mUsbPortParam.setSendTimeout(sendTimeout);
-        this.mUsbPortParam.setReceiveFrameHeads(receiveFrameHeads);
-        this.mUsbPortParam.setInterruptFrameHeads(interruptFrameHeads);
+        this.mUsbPortParam.setReceiveResponseFrameHeads(receiveResponseFrameHeads);
+        this.mUsbPortParam.setReceiveRequestFrameHeads(receiveRequestFrameHeads);
         this.mUsbPortParam.setLengthCallback(lengthCallback);
         initData();
     }
@@ -99,6 +101,7 @@ public class UsbPortManager {
      */
     private void initData() {
         mUsbPort = new UsbPort(mContext);
+        receiveRequestListenerList = new ArrayList<OnReceiveRequestListener>();
         initPool();
     }
 
@@ -166,9 +169,13 @@ public class UsbPortManager {
             }
 
             @Override
-            public void onInterrupt(byte[] interruptDatas) {
-                if (onInterruptListener != null) {
-                    onInterruptListener.onInterrupt(interruptDatas);
+            public void onRequest(byte[] requestDatas) {
+                if (receiveRequestListenerList != null && !receiveRequestListenerList.isEmpty()) {
+                    for (OnReceiveRequestListener listener : receiveRequestListenerList) {
+                        if (listener != null) {
+                            listener.onRequest(requestDatas);
+                        }
+                    }
                 }
             }
         };
@@ -181,15 +188,15 @@ public class UsbPortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, boolean isWaitReceive, final ReceiveCallback receiveCallback) {
+    public void send(byte[] bytes, int what, boolean isWaitResponse, final ReceiveResponseCallback receiveCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return;
         }
-        mExecutorService.execute(new UsbPortSendRunnable(bytes, what, isWaitReceive, mUsbPortParam, mUsbPort, mUsbPortReceiveThread) {
+        mExecutorService.execute(new UsbPortSendRunnable(bytes, what, isWaitResponse, mUsbPortParam, mUsbPort, mUsbPortReceiveThread) {
             @Override
-            public void onReceive(int what, byte[] receiveDatas) {
+            public void onResponse(int what, byte[] responseDatas) {
                 if (receiveCallback != null) {
-                    receiveCallback.onReceive(what, receiveDatas);
+                    receiveCallback.onResponse(what, responseDatas);
                 }
             }
 
@@ -205,10 +212,12 @@ public class UsbPortManager {
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/26 14:07
-     * Description：设置中断监听
+     * Description：设置接收请求监听
      */
-    public void setOnInterruptListener(OnInterruptListener onInterruptListener) {
-        this.onInterruptListener = onInterruptListener;
+    public void setOnReceiveRequestListener(OnReceiveRequestListener onReceiveRequestListener) {
+        if (receiveRequestListenerList != null) {
+            receiveRequestListenerList.add(onReceiveRequestListener);
+        }
     }
 
 }
