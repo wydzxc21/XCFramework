@@ -1,7 +1,6 @@
 package com.xc.framework.util;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
@@ -66,16 +65,17 @@ public class XCViewUtil {
      * @author ZhangXuanChen
      * @date 2020/2/3
      * @description View注册（配合ViewInit注释用）
+     * @Param objectClass 类
      */
-    public static void initView(Fragment fragment, View view) {
+    public static void initView(Object objectClass, View view) {
         try {
-            Field[] fields = fragment.getClass().getDeclaredFields();
+            Field[] fields = objectClass.getClass().getDeclaredFields();
             if (fields != null && fields.length > 0) {
                 for (Field field : fields) {
                     ViewInit mViewInit = field.getAnnotation(ViewInit.class);
                     if (mViewInit != null) {
                         field.setAccessible(true);
-                        field.set(fragment, view.findViewById(mViewInit.value()));
+                        field.set(objectClass, view.findViewById(mViewInit.value()));
                     }
                 }
             }
