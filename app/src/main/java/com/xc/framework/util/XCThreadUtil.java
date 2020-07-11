@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author ZhangXuanChen
@@ -126,5 +127,48 @@ public class XCThreadUtil {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:50
+     * Description：park
+     */
+    public static void park() {
+        park(-1);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:50
+     * Description：park
+     */
+    public static void park(long nanos) {
+        if (nanos > 0) {
+            LockSupport.parkNanos(nanos);
+        } else {
+            LockSupport.park();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:46
+     * Description：unpark
+     */
+    public static void unpark() {
+        unpark(null);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:46
+     * Description：unpark
+     */
+    public static void unpark(Thread thread) {
+        if (thread == null) {
+            thread = Thread.currentThread();
+        }
+        LockSupport.unpark(thread);
     }
 }
