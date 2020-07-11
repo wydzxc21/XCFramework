@@ -1,7 +1,7 @@
 package com.xc.framework.port.usb;
 
 
-import com.xc.framework.port.core.PortSendRunnable;
+import com.xc.framework.port.core.PortSendCallable;
 
 
 /**
@@ -9,7 +9,7 @@ import com.xc.framework.port.core.PortSendRunnable;
  * Author：ZhangXuanChen
  * Description：usb发送
  */
-public abstract class UsbPortSendRunnable extends PortSendRunnable {
+public abstract class UsbPortSendCallable extends PortSendCallable {
     private final String TAG = "UsbPortSendRunnable";
     private UsbPort usbPort;
 
@@ -23,7 +23,7 @@ public abstract class UsbPortSendRunnable extends PortSendRunnable {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public UsbPortSendRunnable(byte[] sendDatas, int what, boolean isWaitResponse, UsbPortParam usbPortParam, UsbPort usbPort, UsbPortReceiveThread usbPortReceiveThread) {
+    public UsbPortSendCallable(byte[] sendDatas, int what, boolean isWaitResponse, UsbPortParam usbPortParam, UsbPort usbPort, UsbPortReceiveThread usbPortReceiveThread) {
         super(sendDatas, what, isWaitResponse, usbPortParam, usbPortReceiveThread);
         this.usbPort = usbPort;
     }

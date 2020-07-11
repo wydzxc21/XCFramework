@@ -19,7 +19,6 @@ public abstract class PortReceiveThread extends XCThread {
     private byte[] responseFrameHeads;//响应帧头
     private byte[] requestFrameHeads;//请求帧头
     //
-    private boolean isStop;
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
     private boolean isResponseFrameHeads;//是否为响应帧头
@@ -41,12 +40,12 @@ public abstract class PortReceiveThread extends XCThread {
     @Override
     protected Object onRun(Handler handler) {
         try {
-            while (!isStop) {
+            while (isRun()) {
                 readDatas();
                 Thread.sleep(1);
             }
         } catch (Exception e) {
-            isStop = true;
+            setRun(false);
         }
         return null;
     }

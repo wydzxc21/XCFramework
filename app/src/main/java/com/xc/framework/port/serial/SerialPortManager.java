@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -162,28 +163,53 @@ public class SerialPortManager {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2020/7/11 16:48
+     * Description：串口发送-阻塞
+     */
+    private byte[] send(byte[] bytes, int what, boolean isWaitResponse) {
+        return send(bytes, what, isWaitResponse, true, null);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 16:15
+     * Description：串口发送-异步
+     */
+    private void send(byte[] bytes, int what, boolean isWaitResponse, ReceiveResponseCallback receiveResponseCallback) {
+        send(bytes, what, isWaitResponse, false, receiveResponseCallback);
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2019/11/27 16:15
      * Description：串口发送
      */
-    public void send(byte[] bytes, int what, boolean isWaitResponse, final ReceiveResponseCallback receiveResponseCallback) {
+    private byte[] send(byte[] bytes, int what, boolean isWaitResponse, boolean isBlockSend, final ReceiveResponseCallback receiveResponseCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
-            return;
+            return null;
         }
-        mExecutorService.execute(new SerialPortSendRunnable(bytes, what, isWaitResponse, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
-            @Override
-            public void onResponse(int what, byte[] responseDatas) {
-                if (receiveResponseCallback != null) {
-                    receiveResponseCallback.onResponse(what, responseDatas);
+        try {
+            Future<byte[]> mFuture = mExecutorService.submit(new SerialPortSendCallable(bytes, what, isWaitResponse, mSerialPortParam, mSerialPort, mSerialPortReceiveThread) {
+                @Override
+                public void onResponse(int what, byte[] responseDatas) {
+                    if (receiveResponseCallback != null) {
+                        receiveResponseCallback.onResponse(what, responseDatas);
+                    }
                 }
-            }
 
-            @Override
-            public void onTimeout(int what, byte[] sendDatas) {
-                if (receiveResponseCallback != null) {
-                    receiveResponseCallback.onTimeout(what, sendDatas);
+                @Override
+                public void onTimeout(int what, byte[] sendDatas) {
+                    if (receiveResponseCallback != null) {
+                        receiveResponseCallback.onTimeout(what, sendDatas);
+                    }
                 }
+            });
+            if (isBlockSend) {
+                return mFuture.get();
             }
-        });
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     /**

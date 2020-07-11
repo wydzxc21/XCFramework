@@ -1,11 +1,10 @@
 package com.xc.framework.port.core;
 
 
-import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.xc.framework.thread.XCRunnable;
+import com.xc.framework.thread.XCCallable;
 import com.xc.framework.util.XCByteUtil;
 
 
@@ -14,7 +13,7 @@ import com.xc.framework.util.XCByteUtil;
  * Author：ZhangXuanChen
  * Description：串口发送基类
  */
-public abstract class PortSendRunnable extends XCRunnable {
+public abstract class PortSendCallable extends XCCallable<byte[]> {
     private final String TAG = "PortSendRunnable";
     private byte[] sendDatas;//发送数据
     private int what;
@@ -22,9 +21,7 @@ public abstract class PortSendRunnable extends XCRunnable {
     private int resendCount;//重发次数
     private int sendTimeout;//发送超时(毫秒)
     private PortReceiveThread portReceiveThread;//接收线程
-    //
-    boolean isResponse;//是否响应
-    int sendCount;//发送次数
+    private int sendCount = 1;//发送次数
 
     /**
      * @param sendDatas         发送数据
@@ -35,7 +32,7 @@ public abstract class PortSendRunnable extends XCRunnable {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendRunnable(byte[] sendDatas, int what, boolean isWaitResponse, PortParam portParam, PortReceiveThread portReceiveThread) {
+    public PortSendCallable(byte[] sendDatas, int what, boolean isWaitResponse, PortParam portParam, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
         this.isWaitResponse = isWaitResponse;
@@ -45,48 +42,52 @@ public abstract class PortSendRunnable extends XCRunnable {
     }
 
     @Override
-    protected Object onRun(Handler handler) {
+    public byte[] call() throws Exception {
+        byte[] responseDatas = null;
         try {
-            writeDatas();
-            if (!isResponse && isWaitResponse) {//超时
-                if ((sendCount - 1) <= resendCount) {
-                    writeDatas();
-                } else {
-                    sendMessage(0x123);
-                }
+            responseDatas = writeDatas();
+            if (responseDatas != null && responseDatas.length > 0) {
+                sendMessage(0x123, responseDatas);
+            } else {//超时
+                sendMessage(0x234);
             }
         } catch (Exception e) {
-            isResponse = true;
         }
-        return null;
+        return responseDatas;
     }
 
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://超时
-                onTimeout(what, sendDatas);
-                break;
-            case 0x234://响应
+            case 0x123://响应
                 onResponse(what, (byte[]) msg.obj);
+                break;
+            case 0x234://超时
+                onTimeout(what, sendDatas);
                 break;
         }
     }
+
 
     /**
      * @author ZhangXuanChen
      * @date 2020/3/8
      * @description writeDatas
      */
-    private void writeDatas() throws InterruptedException {
+    private byte[] writeDatas() throws InterruptedException {
         portReceiveThread.reset();
-        if (writePort(sendDatas)) {
-            sendCount++;
-            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
-            if (isWaitResponse) {//是否等待接收
-                waitResponse();
+        if (sendCount <= resendCount) {
+            writePort(sendDatas);
+            if (isWaitResponse) {//是否等待响应
+                byte[] responseDatas = waitResponse();
+                if (responseDatas == null || responseDatas.length == 0) {//重发
+                    writeDatas();
+                }
             }
+            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            sendCount++;
         }
+        return null;
     }
 
     /**
@@ -94,16 +95,16 @@ public abstract class PortSendRunnable extends XCRunnable {
      * Time：2020/3/9 13:05
      * Description：waitReceive
      */
-    private void waitResponse() throws InterruptedException {
+    private byte[] waitResponse() throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
             byte[] responseDatas = portReceiveThread.getResponseDatas();
             if (responseDatas != null && responseDatas.length > 0) {
-                isResponse = true;
-                sendMessage(0x234, responseDatas);
+                return responseDatas;
             }
             Thread.sleep(1);
-        } while (!isResponse && System.currentTimeMillis() - currentTime < sendTimeout);
+        } while (System.currentTimeMillis() - currentTime < sendTimeout);
+        return null;
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.xc.framework.port.serial;
 
 
-import com.xc.framework.port.core.PortSendRunnable;
+import com.xc.framework.port.core.PortSendCallable;
 
 
 /**
@@ -9,7 +9,7 @@ import com.xc.framework.port.core.PortSendRunnable;
  * Author：ZhangXuanChen
  * Description：串口发送
  */
-public abstract class SerialPortSendRunnable extends PortSendRunnable {
+public abstract class SerialPortSendCallable extends PortSendCallable {
     private final String TAG = "SerialPortSendRunnable";
     private SerialPort serialPort;
 
@@ -23,7 +23,7 @@ public abstract class SerialPortSendRunnable extends PortSendRunnable {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public SerialPortSendRunnable(byte[] sendDatas, int what, boolean isWaitResponse, SerialPortParam serialPortParam, SerialPort serialPort, SerialPortReceiveThread serialPortReceiveThread) {
+    public SerialPortSendCallable(byte[] sendDatas, int what, boolean isWaitResponse, SerialPortParam serialPortParam, SerialPort serialPort, SerialPortReceiveThread serialPortReceiveThread) {
         super(sendDatas, what, isWaitResponse, serialPortParam, serialPortReceiveThread);
         this.serialPort = serialPort;
     }
