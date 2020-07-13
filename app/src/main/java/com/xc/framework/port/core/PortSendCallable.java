@@ -22,7 +22,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private int resendCount;//重发次数
     private int sendTimeout;//发送超时(毫秒)
     private PortReceiveThread portReceiveThread;//接收线程
-    private int sendCount = 1;//发送次数
+    private int sendCount;//发送次数
 
     /**
      * @param sendDatas         发送数据
@@ -79,16 +79,18 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      */
     private byte[] writeDatas() throws InterruptedException {
         portReceiveThread.reset();
+        sendCount++;
         if (sendCount <= resendCount) {
             iPort.writePort(sendDatas);
+            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
             if (isWaitResponse) {//是否等待响应
                 byte[] responseDatas = waitResponse();
-                if (responseDatas == null || responseDatas.length == 0) {//重发
+                if (responseDatas != null && responseDatas.length > 0) {
+                    return responseDatas;
+                } else {//重发
                     writeDatas();
                 }
             }
-            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
-            sendCount++;
         }
         return null;
     }

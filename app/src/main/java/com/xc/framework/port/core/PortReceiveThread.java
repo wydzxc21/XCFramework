@@ -23,7 +23,7 @@ public abstract class PortReceiveThread extends XCThread {
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
     private boolean isResponseFrameHeads;//是否为响应帧头
-    private byte[] responseDatas;//接收响应数据
+    private  byte[] responseDatas;//接收响应数据
 
     /**
      * @param portParam 串口参数
@@ -56,10 +56,7 @@ public abstract class PortReceiveThread extends XCThread {
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://响应
-                responseDatas = (byte[]) msg.obj;
-                break;
-            case 0x234://请求
+            case 0x123://请求
                 onRequest((byte[]) msg.obj);
                 break;
         }
@@ -111,11 +108,11 @@ public abstract class PortReceiveThread extends XCThread {
             reset();
             byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
             if (isResponseFrameHeads) {
-                Log.i(TAG, "指令-接收:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
-                sendMessage(0x123, datas);
+                Log.i(TAG, "指令-响应:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                responseDatas = datas;
             } else {
-                Log.i(TAG, "指令-中断:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
-                sendMessage(0x234, datas);
+                Log.i(TAG, "指令-请求:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                sendMessage(0x123, datas);
             }
         }
     }
