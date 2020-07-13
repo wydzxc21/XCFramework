@@ -13,6 +13,9 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
+import com.xc.framework.port.core.IPort;
+import com.xc.framework.port.core.PortParam;
+
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -21,7 +24,7 @@ import java.util.Arrays;
  * Author：ZhangXuanChen
  * Description：UsbPort
  */
-public class UsbPort {
+public class UsbPort implements IPort {
     private static final String ACTION_USB_PERMISSION = "com.xc.framework.USB_PERMISSION";
     /**
      * timeout
@@ -108,6 +111,19 @@ public class UsbPort {
     private UsbDeviceConnection mUc;
     private UsbEndpoint mReadEndpoint;
     private UsbEndpoint mWriteEndpoint;
+    private static UsbPort mUsbPort;
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/13 8:28
+     * Description：getInstance
+     */
+    public static UsbPort getInstance(Context context) {
+        if (mUsbPort == null) {
+            mUsbPort = new UsbPort(context);
+        }
+        return mUsbPort;
+    }
 
     /**
      * Author：ZhangXuanChen
@@ -137,18 +153,21 @@ public class UsbPort {
         return mWriteEndpoint;
     }
 
+
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 10:56
      * Description：打开串口
      *
-     * @param usbPortParam usb参数
+     * @param portParam usb参数
      */
-    public boolean openUsbPort(UsbPortParam usbPortParam) {
+    @Override
+    public boolean openPort(PortParam portParam) {
+        UsbPortParam usbPortParam = (UsbPortParam) portParam;
         if (usbPortParam == null) {
             return false;
         }
-        return openUsbPort(
+        return openPort(
                 usbPortParam.getUsbDevice(),//usb设备
                 usbPortParam.getBaudrate(),//波特率
                 usbPortParam.getDataBits(),//数据位，默认8
@@ -167,7 +186,7 @@ public class UsbPort {
      * @param stopBits  停止位，默认1
      * @param parity    奇偶校验位，默认0（无校验）
      */
-    public boolean openUsbPort(UsbDevice usbDevice, int baudrate, int dataBits, int stopBits, int parity) {
+    public boolean openPort(UsbDevice usbDevice, int baudrate, int dataBits, int stopBits, int parity) {
         if (!isPermission(mUsbManager, usbDevice)) {
             getUsbPermission(usbDevice);
             return false;
@@ -212,13 +231,13 @@ public class UsbPort {
         return true;
     }
 
-
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 8:14
      * Description：关闭串口
      */
-    public boolean closeUsbPort() {
+    @Override
+    public boolean closePort() {
         try {
             if (mReadEndpoint != null) {
                 mReadEndpoint = null;
@@ -247,7 +266,8 @@ public class UsbPort {
      * Param：buffer readUsbPort
      * Return：int
      */
-    public synchronized byte[] readUsbPort() {
+    @Override
+    public synchronized byte[] readPort() {
         byte[] bytes = null;
         try {
             if (mReadEndpoint != null && mUc != null) {
@@ -271,7 +291,8 @@ public class UsbPort {
      * Param：buffer writeUsbPort
      * Return：boolean
      */
-    public synchronized boolean writeUsbPort(byte[] bytes) {
+    @Override
+    public synchronized boolean writePort(byte[] bytes) {
         try {
             if (mWriteEndpoint != null && mUc != null && bytes != null && bytes.length > 0) {
                 int writeSize = mUc.bulkTransfer(mWriteEndpoint, bytes, getMaxPacketSize(), 1);
@@ -447,4 +468,6 @@ public class UsbPort {
     public int getMaxPacketSize() {
         return READ_AND_WRITE_MAX_SIZE;
     }
+
+
 }

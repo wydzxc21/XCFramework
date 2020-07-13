@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 /**
  * Date：2020/7/11
  * Author：ZhangXuanChen
- * Description：
+ * Description：自定义Callable
  */
 public abstract class XCCallable<V> implements Callable<V> {
 

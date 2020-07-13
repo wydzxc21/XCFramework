@@ -16,6 +16,8 @@
 
 package com.xc.framework.port.serial;
 
+import com.xc.framework.port.core.IPort;
+import com.xc.framework.port.core.PortParam;
 import com.xc.framework.util.XCStringUtil;
 
 import java.io.File;
@@ -31,11 +33,24 @@ import java.util.Arrays;
  * Time：2019/11/25 10:13
  * Description：SerialPort
  */
-public final class SerialPort {
+public final class SerialPort implements IPort {
     private static final String TAG = "SerialPort";
     private FileDescriptor mFd;
     private FileInputStream mFileInputStream;
     private FileOutputStream mFileOutputStream;
+    private static SerialPort mSerialPort;
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/13 8:28
+     * Description：getInstance
+     */
+    public static SerialPort getInstance() {
+        if (mSerialPort == null) {
+            mSerialPort = new SerialPort();
+        }
+        return mSerialPort;
+    }
 
     /**
      * Author：ZhangXuanChen
@@ -64,19 +79,20 @@ public final class SerialPort {
         return mFileOutputStream;
     }
 
-
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/27 14:59
      * Description：打开串口
      *
-     * @param serialPortParam 串口参数
+     * @param portParam 串口参数
      */
-    public boolean openSerialPort(SerialPortParam serialPortParam) {
+    @Override
+    public boolean openPort(PortParam portParam) {
+        SerialPortParam serialPortParam = (SerialPortParam) portParam;
         if (serialPortParam == null) {
             return false;
         }
-        return openSerialPort(
+        return openPort(
                 serialPortParam.getSuPath(),//su路径，默认：/system/bin/su
                 serialPortParam.getSerialDevice(),//串口设备文件
                 serialPortParam.getBaudrate(),//波特率
@@ -99,7 +115,7 @@ public final class SerialPort {
      * @param parity   奇偶校验位，默认0（无校验）
      * @param flowCon  流控，默认0（不使用）
      */
-    public boolean openSerialPort(String suPath, File device, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
+    public boolean openPort(String suPath, File device, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
         if (!isPermission(suPath, device)) {
             return false;
         }
@@ -120,7 +136,8 @@ public final class SerialPort {
      * Time：2019/11/27 12:33
      * Description：关闭串口
      */
-    public boolean closeSerialPort() {
+    @Override
+    public boolean closePort() {
         try {
             if (mFileInputStream != null) {
                 mFileInputStream.close();
@@ -141,13 +158,15 @@ public final class SerialPort {
         return false;
     }
 
+
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/25 16:13
      * Description：readSerialPort
      * Return：int
      */
-    public synchronized byte[] readSerialPort() {
+    @Override
+    public synchronized byte[] readPort() {
         byte[] bytes = null;
         try {
             if (mFileInputStream != null) {
@@ -169,7 +188,8 @@ public final class SerialPort {
      * Description：writeSerialPort
      * Return：boolean
      */
-    public synchronized boolean writeSerialPort(byte[] bytes) {
+    @Override
+    public synchronized boolean writePort(byte[] bytes) {
         try {
             if (mFileOutputStream != null && bytes != null && bytes.length > 0) {
                 mFileOutputStream.write(bytes);

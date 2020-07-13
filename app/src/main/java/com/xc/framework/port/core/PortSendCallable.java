@@ -16,8 +16,9 @@ import com.xc.framework.util.XCByteUtil;
 public abstract class PortSendCallable extends XCCallable<byte[]> {
     private final String TAG = "PortSendRunnable";
     private byte[] sendDatas;//发送数据
-    private int what;
     private boolean isWaitResponse;//是否等待响应
+    private int what;
+    private IPort iPort;//串口工具
     private int resendCount;//重发次数
     private int sendTimeout;//发送超时(毫秒)
     private PortReceiveThread portReceiveThread;//接收线程
@@ -25,19 +26,21 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
 
     /**
      * @param sendDatas         发送数据
-     * @param what              区分消息
      * @param isWaitResponse    是否等待响应
+     * @param what              区分消息
      * @param portParam         串口参数
+     * @param iPort             串口工具
      * @param portReceiveThread 接收线程
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, int what, boolean isWaitResponse, PortParam portParam, PortReceiveThread portReceiveThread) {
+    public PortSendCallable(byte[] sendDatas, boolean isWaitResponse, int what, PortParam portParam, IPort iPort, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
         this.isWaitResponse = isWaitResponse;
         this.resendCount = portParam.getResendCount();
         this.sendTimeout = portParam.getSendTimeout();
+        this.iPort = iPort;
         this.portReceiveThread = portReceiveThread;
     }
 
@@ -77,7 +80,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private byte[] writeDatas() throws InterruptedException {
         portReceiveThread.reset();
         if (sendCount <= resendCount) {
-            writePort(sendDatas);
+            iPort.writePort(sendDatas);
             if (isWaitResponse) {//是否等待响应
                 byte[] responseDatas = waitResponse();
                 if (responseDatas == null || responseDatas.length == 0) {//重发
@@ -115,13 +118,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     public int getWhat() {
         return what;
     }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/7/10 16:39
-     * Description：writePort
-     */
-    protected abstract boolean writePort(byte[] sendDatas);
 
     /**
      * Author：ZhangXuanChen

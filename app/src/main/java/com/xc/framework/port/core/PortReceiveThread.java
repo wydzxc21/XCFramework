@@ -18,6 +18,7 @@ public abstract class PortReceiveThread extends XCThread {
     private final String TAG = "PortReceiveThread";
     private byte[] responseFrameHeads;//响应帧头
     private byte[] requestFrameHeads;//请求帧头
+    private IPort iPort;//串口工具
     //
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
@@ -26,12 +27,14 @@ public abstract class PortReceiveThread extends XCThread {
 
     /**
      * @param portParam 串口参数
+     * @param iPort     串口工具
      * @author ZhangXuanChen
      * @date 2020/3/15
      */
-    public PortReceiveThread(PortParam portParam) {
+    public PortReceiveThread(PortParam portParam, IPort iPort) {
         this.responseFrameHeads = portParam.getReceiveResponseFrameHeads();
         this.requestFrameHeads = portParam.getReceiveRequestFrameHeads();
+        this.iPort = iPort;
         this.bufferDatas = new byte[16 * 1024];
         this.bufferPosition = 0;
     }
@@ -68,7 +71,7 @@ public abstract class PortReceiveThread extends XCThread {
      * @description readDatas
      */
     private void readDatas() {
-        byte[] readDatas = readPort();
+        byte[] readDatas = iPort.readPort();
         if (readDatas != null && readDatas.length > 0) {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
@@ -135,13 +138,6 @@ public abstract class PortReceiveThread extends XCThread {
     public byte[] getResponseDatas() {
         return responseDatas;
     }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/7/10 16:39
-     * Description：readPort
-     */
-    protected abstract byte[] readPort();
 
     /**
      * Author：ZhangXuanChen
