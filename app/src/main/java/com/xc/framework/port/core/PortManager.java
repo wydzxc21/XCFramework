@@ -190,4 +190,25 @@ public abstract class PortManager {
         }
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/14 12:26
+     * Description：移除接收请求监听
+     */
+    public void removeOnReceiveRequestListener(OnReceiveRequestListener onReceiveRequestListener) {
+        if (receiveRequestListenerList != null && !receiveRequestListenerList.isEmpty()) {
+            receiveRequestListenerList.remove(onReceiveRequestListener);
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/14 12:26
+     * Description：清空接收请求监听
+     */
+    public void clearOnReceiveRequestListener() {
+        if (receiveRequestListenerList != null && !receiveRequestListenerList.isEmpty()) {
+            receiveRequestListenerList.clear();
+        }
+    }
 }
