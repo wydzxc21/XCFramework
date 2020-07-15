@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author ZhangXuanChen
@@ -78,6 +79,7 @@ public class XCTimeUtil {
                 dateFormat = FORMAT_DATE_TIME;
             }
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
             return simpleDateFormat.format(new Date(milliseconds));
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,6 +101,7 @@ public class XCTimeUtil {
                 dateStr = getCurrentTime(dateFormat);
             }
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
             return simpleDateFormat.parse(dateStr);
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,6 +128,7 @@ public class XCTimeUtil {
         String week = "";
         try {
             SimpleDateFormat format = new SimpleDateFormat(FORMAT_DATE, Locale.CHINESE);
+            format.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(format.parse(date));
             int weekKey = calendar.get(Calendar.DAY_OF_WEEK);
@@ -169,6 +173,7 @@ public class XCTimeUtil {
                 dateFormat = FORMAT_DATE;
             }
             SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
             day = compareDay(sdf.parse(beforeDate), sdf.parse(afterDate));
         } catch (ParseException e) {
         }
