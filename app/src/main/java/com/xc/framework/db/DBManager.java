@@ -519,7 +519,9 @@ public class DBManager {
                 String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
-                sql += "," + name + " text";
+                if (!name.equals(KEY_ID)) {
+                    sql += "," + name + " text";
+                }
             }
         }
         return "create table if not exists " + tableClass.getSimpleName() + "(" + KEY_ID + " integer not null primary key autoincrement" + sql + ")";
@@ -554,6 +556,7 @@ public class DBManager {
      */
     public <T> String getDeleteSql(String field, List<T> classObjectList) {
         if (!XCStringUtil.isEmpty(field) && classObjectList != null && !classObjectList.isEmpty()) {
+            String key = "";
             String value = "";
             for (int i = 0; i < classObjectList.size(); i++) {
                 Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObjectList.get(i).getClass());
@@ -563,10 +566,9 @@ public class DBManager {
                         String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
                         //优先采用别名，无别名再采用原名
                         String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
-                        // key
-                        String key = name;
                         if (field.equals(primitiveName) || field.equals(aliasName)) {
-                            field = key;
+                            // key
+                            key = name;
                             String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), primitiveName);
                             if (!XCStringUtil.isEmpty(tempVal)) {
                                 value += tempVal + ",";
@@ -576,7 +578,7 @@ public class DBManager {
                 }
             }
             value = value.substring(0, value.length() - 1);
-            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + field + " in (" + value + ")";
+            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
         }
         return "";
     }

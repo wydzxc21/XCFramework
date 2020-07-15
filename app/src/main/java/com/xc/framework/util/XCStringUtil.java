@@ -16,7 +16,7 @@ public class XCStringUtil {
      * @return 是否为:非null、非""、非"null"
      */
     public static boolean isEmpty(String str) {
-        if (str != null && !"".equals(str) && !"null".equals(str)) {
+        if (str != null && !"".equals(str) && !"null".equalsIgnoreCase(str)) {
             return false;
         }
         return true;
@@ -61,6 +61,12 @@ public class XCStringUtil {
             if (str.contains(split)) {
                 if (split.equals(".")) {
                     return str.split("\\.");
+                } else if (split.equals("|")) {
+                    return str.split("\\|");
+                } else if (split.equals("*")) {
+                    return str.split("\\*");
+                } else if (split.equals("+")) {
+                    return str.split("\\+");
                 } else {
                     return str.split(split);
                 }
@@ -111,5 +117,6 @@ public class XCStringUtil {
             return sb.toString();
         }
     }
+
 
 }
