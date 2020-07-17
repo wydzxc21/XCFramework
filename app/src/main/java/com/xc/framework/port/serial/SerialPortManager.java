@@ -15,9 +15,13 @@ public class SerialPortManager extends PortManager {
     private SerialPort mSerialPort;
     private SerialPortParam mSerialPortParam;
 
+    public SerialPortManager() {
+        mSerialPort = new SerialPort();
+    }
+
     @Override
     public IPort getIPort() {
-        return SerialPort.getInstance();
+        return mSerialPort;
     }
 
     @Override

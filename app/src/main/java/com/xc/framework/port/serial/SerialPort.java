@@ -38,19 +38,6 @@ public final class SerialPort implements IPort {
     private FileDescriptor mFd;
     private FileInputStream mFileInputStream;
     private FileOutputStream mFileOutputStream;
-    private static SerialPort mSerialPort;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/7/13 8:28
-     * Description：getInstance
-     */
-    public static SerialPort getInstance() {
-        if (mSerialPort == null) {
-            mSerialPort = new SerialPort();
-        }
-        return mSerialPort;
-    }
 
     /**
      * Author：ZhangXuanChen

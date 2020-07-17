@@ -15,15 +15,17 @@ import com.xc.framework.port.core.PortParam;
  */
 public class UsbPortManager extends PortManager {
     private Context mContext;
+    private UsbPort mUsbPort;
     private UsbPortParam mUsbPortParam;
 
     public UsbPortManager(Context context) {
         mContext = context;
+        mUsbPort = new UsbPort(mContext);
     }
 
     @Override
     public IPort getIPort() {
-        return UsbPort.getInstance(mContext);
+        return mUsbPort;
     }
 
     @Override

@@ -111,19 +111,6 @@ public class UsbPort implements IPort {
     private UsbDeviceConnection mUc;
     private UsbEndpoint mReadEndpoint;
     private UsbEndpoint mWriteEndpoint;
-    private static UsbPort mUsbPort;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/7/13 8:28
-     * Description：getInstance
-     */
-    public static UsbPort getInstance(Context context) {
-        if (mUsbPort == null) {
-            mUsbPort = new UsbPort(context);
-        }
-        return mUsbPort;
-    }
 
     /**
      * Author：ZhangXuanChen
