@@ -38,6 +38,14 @@ public class XCTimeUtil {
      * 日期格式（yyyy-MM-dd E HH:mm）
      */
     public static final String FORMAT_DATE_WEEK_TIME = "yyyy-MM-dd E HH:mm";
+    /**
+     * 时差-世界
+     */
+    public static final String TIME_ZONE_WORLD = "GMT+00:00";
+    /**
+     * 时差-北京
+     */
+    public static final String TIME_ZONE_BEIJING = "GMT+:08:00";
 
     /**
      * 获取当前时间
@@ -71,15 +79,22 @@ public class XCTimeUtil {
      * @return 时间格式字符串
      */
     public static String getTime(long milliseconds, String dateFormat) {
+        return getTime(milliseconds, dateFormat, null);
+    }
+
+    /**
+     * 获取时间
+     *
+     * @param milliseconds 时间戳
+     * @param dateFormat   时间格式
+     * @return 时间格式字符串
+     */
+    public static String getTime(long milliseconds, String dateFormat, String timeZone) {
         try {
             if (milliseconds < 0) {
                 milliseconds = System.currentTimeMillis();
             }
-            if (XCStringUtil.isEmpty(dateFormat)) {
-                dateFormat = FORMAT_DATE_TIME;
-            }
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
-            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
+            SimpleDateFormat simpleDateFormat = getSimpleDateFormat(dateFormat, timeZone);
             return simpleDateFormat.format(new Date(milliseconds));
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,16 +108,20 @@ public class XCTimeUtil {
      * Description：获取日期
      */
     public static Date getDate(String dateStr, String dateFormat) {
+        return getDate(dateStr, dateFormat, null);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/2 13:58
+     * Description：获取日期
+     */
+    public static Date getDate(String dateStr, String dateFormat, String timeZone) {
         try {
-            if (XCStringUtil.isEmpty(dateFormat)) {
-                dateFormat = FORMAT_DATE_TIME;
-            }
             if (XCStringUtil.isEmpty(dateStr)) {
                 dateStr = getCurrentTime(dateFormat);
             }
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
-            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
-            return simpleDateFormat.parse(dateStr);
+            return getSimpleDateFormat(dateFormat, timeZone).parse(dateStr);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -125,10 +144,19 @@ public class XCTimeUtil {
      * @return 例:星期一
      */
     public static String getWeek(String date) {
+        return getWeek(date, null);
+    }
+
+    /**
+     * 获取星期
+     *
+     * @param date 日期格式yyyy-MM-dd
+     * @return 例:星期一
+     */
+    public static String getWeek(String date, String timeZone) {
         String week = "";
         try {
-            SimpleDateFormat format = new SimpleDateFormat(FORMAT_DATE, Locale.CHINESE);
-            format.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
+            SimpleDateFormat format = getSimpleDateFormat(FORMAT_DATE, timeZone);
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(format.parse(date));
             int weekKey = calendar.get(Calendar.DAY_OF_WEEK);
@@ -172,8 +200,7 @@ public class XCTimeUtil {
             if (XCStringUtil.isEmpty(dateFormat)) {
                 dateFormat = FORMAT_DATE;
             }
-            SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
-            sdf.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
+            SimpleDateFormat sdf = getSimpleDateFormat(dateFormat, null);
             day = compareDay(sdf.parse(beforeDate), sdf.parse(afterDate));
         } catch (ParseException e) {
         }
@@ -206,5 +233,22 @@ public class XCTimeUtil {
         } catch (Exception e) {
         }
         return (int) day;
+    }
+
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/18 14:36
+     * Description：getSimpleDateFormat
+     */
+    private static SimpleDateFormat getSimpleDateFormat(String dateFormat, String timeZone) {
+        if (XCStringUtil.isEmpty(dateFormat)) {
+            dateFormat = FORMAT_DATE_TIME;
+        }
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.CHINESE);
+        if (!XCStringUtil.isEmpty(timeZone)) {
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
+        }
+        return simpleDateFormat;
     }
 }
