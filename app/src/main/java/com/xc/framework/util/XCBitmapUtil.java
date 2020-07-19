@@ -226,7 +226,7 @@ public class XCBitmapUtil {
      * @return drawable对象
      */
     @SuppressWarnings("deprecation")
-    public static Drawable bitmapToDrawable(Bitmap bitmap) {
+    public static Drawable toDrawable(Bitmap bitmap) {
         BitmapDrawable bitmapDrawable = null;
         if (bitmap != null) {
             bitmapDrawable = new BitmapDrawable(bitmap);
@@ -235,12 +235,12 @@ public class XCBitmapUtil {
     }
 
     /**
-     * 将Bitmap转换为字节数组
+     * 换字节数组
      *
      * @param bitmap bitmap对象
      * @return 字节数组
      */
-    public static byte[] bitmapToByte(Bitmap bitmap) {
+    public static byte[] toBytes(Bitmap bitmap) {
         if (bitmap != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -252,11 +252,11 @@ public class XCBitmapUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/9 11:55
-     * Description：bitmap转Base64
+     * Description：转Base64
      */
-    public static String bitmapToBase64(Bitmap bitmap) {
+    public static String toBase64(Bitmap bitmap) {
         if (bitmap != null) {
-            return XCByteUtil.byteToBase64(bitmapToByte(bitmap));
+            return XCByteUtil.toBase64(toBytes(bitmap));
         }
         return null;
     }

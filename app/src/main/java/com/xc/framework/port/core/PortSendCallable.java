@@ -82,7 +82,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         sendCount++;
         if (sendCount <= resendCount) {
             iPort.writePort(sendDatas);
-            Log.i(TAG, "指令-发送:[" + XCByteUtil.byteToHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            Log.i(TAG, "指令-发送:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             if (isWaitResponse) {//是否等待响应
                 byte[] responseDatas = waitResponse();
                 if (responseDatas != null && responseDatas.length > 0) {

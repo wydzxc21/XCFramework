@@ -27,36 +27,22 @@ public class XCStringUtil {
      * @date 2020/2/8
      * @description 是否为数字
      */
-    public static boolean isInteger(String intStr) {
-        boolean isInteger = false;
+    public static boolean isInt(String intStr) {
+        boolean isInt = false;
         Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
         if (!XCStringUtil.isEmpty(intStr)) {
-            isInteger = pattern.matcher(intStr).matches();
+            isInt = pattern.matcher(intStr).matches();
         }
-        return isInteger;
+        return isInt;
     }
 
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/4/7 13:34
-     * Description：字符串转int
-     */
-    public static int strToInt(String intStr) {
-        int number = 0;
-        if (!XCStringUtil.isEmpty(intStr)) {
-            if (XCStringUtil.isInteger(intStr)) {
-                number = Integer.parseInt(intStr);
-            }
-        }
-        return number;
-    }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/3 8:22
      * Description：获取截取字符串
      */
-    public static String[] getSplitStr(String str, String split) {
+    public static String[] split(String str, String split) {
         if (!XCStringUtil.isEmpty(str) && !XCStringUtil.isEmpty(split)) {
             if (str.contains(split)) {
                 if (split.equals(".")) {
@@ -76,12 +62,27 @@ public class XCStringUtil {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/7 13:34
+     * Description：转int
+     */
+    public static int toInt(String intStr) {
+        int number = 0;
+        if (!XCStringUtil.isEmpty(intStr)) {
+            if (XCStringUtil.isInt(intStr)) {
+                number = Integer.parseInt(intStr);
+            }
+        }
+        return number;
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/8
      * @description 16进制字符串转10进制字符串
      */
-    public static String hexStrToDecStr(String hexStr) {
-        return hexStrToDecStr(hexStr, false);
+    public static String toDecStr(String hexStr) {
+        return toDecStr(hexStr, false);
     }
 
     /**
@@ -90,7 +91,7 @@ public class XCStringUtil {
      * @date 2020/2/8
      * @description 16进制字符串转10进制字符串
      */
-    public static String hexStrToDecStr(String hexStr, boolean isSpace) {
+    public static String toDecStr(String hexStr, boolean isSpace) {
         if (XCStringUtil.isEmpty(hexStr)) {
             return "";
         }
@@ -117,6 +118,4 @@ public class XCStringUtil {
             return sb.toString();
         }
     }
-
-
 }

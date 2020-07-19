@@ -16,9 +16,9 @@ public class XCBase64Util {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/9 9:53
-     * Description：Base64转字节数组
+     * Description：转字节数组
      */
-    public static byte[] base64ToByte(String base64Str) {
+    public static byte[] toBytes(String base64Str) {
         if (XCStringUtil.isEmpty(base64Str)) {
             return null;
         }
@@ -29,12 +29,12 @@ public class XCBase64Util {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/9 11:53
-     * Description：Base64转bitmap
+     * Description：转bitmap
      */
-    public static Bitmap base64ToBitmap(String base64Str) {
+    public static Bitmap toBitmap(String base64Str) {
         if (XCStringUtil.isEmpty(base64Str)) {
             return null;
         }
-        return XCByteUtil.byteToBitmap(base64ToByte(base64Str));
+        return XCByteUtil.toBitmap(toBytes(base64Str));
     }
 }

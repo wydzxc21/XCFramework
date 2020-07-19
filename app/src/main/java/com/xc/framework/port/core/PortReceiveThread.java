@@ -108,10 +108,10 @@ public abstract class PortReceiveThread extends XCThread {
             reset();
             byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
             if (isResponseFrameHeads) {
-                Log.i(TAG, "指令-响应:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                Log.i(TAG, "指令-响应:[" + XCByteUtil.toHexStr(datas, true) + "]");
                 responseDatas = datas;
             } else {
-                Log.i(TAG, "指令-请求:[" + XCByteUtil.byteToHexStr(datas, true) + "]");
+                Log.i(TAG, "指令-请求:[" + XCByteUtil.toHexStr(datas, true) + "]");
                 sendMessage(0x123, datas);
             }
         }

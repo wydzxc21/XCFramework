@@ -16,19 +16,28 @@ public class XCByteUtil {
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节数组转16进制字符串
+     * @description 转16进制字符串
      */
-    public static String byteToHexStr(byte[] bytes) {
-        return byteToHexStr(bytes, false);
+    public static String toHexStr(byte b) {
+        return toHexStr(new byte[]{b});
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 转16进制字符串
+     */
+    public static String toHexStr(byte[] bytes) {
+        return toHexStr(bytes, false);
     }
 
     /**
      * @param isSpace 是否加空格
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节数组转16进制字符串
+     * @description 转16进制字符串
      */
-    public static String byteToHexStr(byte[] bytes, boolean isSpace) {
+    public static String toHexStr(byte[] bytes, boolean isSpace) {
         if (bytes == null || bytes.length <= 0) {
             return "";
         }
@@ -51,37 +60,27 @@ public class XCByteUtil {
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节数组转10进制字符串
+     * @description 转10进制字符串
      */
-    public static String byteToDecStr(byte[] bytes) {
-        return XCStringUtil.hexStrToDecStr(byteToHexStr(bytes), false);
+    public static String toDecStr(byte b) {
+        return toDecStr(new byte[]{b});
     }
 
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节转16进制字符串
+     * @description 转10进制字符串
      */
-    public static String byteToHexStr(byte b) {
-        return byteToHexStr(new byte[]{b});
+    public static String toDecStr(byte[] bytes) {
+        return XCStringUtil.toDecStr(toHexStr(bytes), false);
     }
 
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节转10进制字符串
+     * @description 转long
      */
-    public static String byteToDecStr(byte b) {
-        return byteToDecStr(new byte[]{b});
-    }
-
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/2/8
-     * @description 字节转long
-     */
-    public static long byteToLong(byte b) {
+    public static long toLong(byte b) {
         long n = b;
         if (n < 0) {
             n = (n & 0x7F) + 0x80;
@@ -92,10 +91,10 @@ public class XCByteUtil {
     /**
      * @author ZhangXuanChen
      * @date 2020/2/8
-     * @description 字节转int
+     * @description 转int
      */
-    public static int byteToInt(byte b) {
-        return (int) byteToLong(b);
+    public static int toInt(byte b) {
+        return (int) toLong(b);
     }
 
     /**
@@ -104,7 +103,7 @@ public class XCByteUtil {
      * @param bytes 字节数组
      * @return bitmap对象
      */
-    public static Bitmap byteToBitmap(byte[] bytes) {
+    public static Bitmap toBitmap(byte[] bytes) {
         Bitmap bitmap = null;
         if (bytes != null && bytes.length > 0) {
             bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
@@ -115,15 +114,59 @@ public class XCByteUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/9 9:49
-     * Description：字节数组转Base64
+     * Description：转Base64
      */
-    public static String byteToBase64(byte[] bytes) {
+    public static String toBase64(byte[] bytes) {
         if (bytes == null || bytes.length <= 0) {
             return "";
         }
         String base64Str = new String(Base64.encodeBase64(bytes));
         base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
         return base64Str;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/19 10:53
+     * Description：低位在前
+     */
+    public static class LittleEndian {
+        /**
+         * Author：ZhangXuanChen
+         * Time：2020/7/19 10:46
+         * Description：转int
+         */
+        public static int toInt(byte[] bytes) {
+            if (bytes == null || bytes.length <= 0) {
+                return 0;
+            }
+            return bytes[0] & 0xFF |
+                    (bytes[1] & 0xFF) << 8 |
+                    (bytes[2] & 0xFF) << 16 |
+                    (bytes[3] & 0xFF) << 24;
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/19 10:54
+     * Description：高位在前
+     */
+    public static class BigEndian {
+        /**
+         * Author：ZhangXuanChen
+         * Time：2020/7/19 10:46
+         * Description：转int
+         */
+        public static int toInt(byte[] bytes) {
+            if (bytes == null || bytes.length <= 0) {
+                return 0;
+            }
+            return (bytes[0] & 0xFF) << 24 |
+                    (bytes[1] & 0xFF) << 16 |
+                    (bytes[2] & 0xFF) << 8 |
+                    bytes[3] & 0xFF;
+        }
     }
 
 }
