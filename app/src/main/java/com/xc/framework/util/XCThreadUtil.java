@@ -122,8 +122,20 @@ public class XCThreadUtil {
      * @description sleep
      */
     public static void sleep(long millis) {
+        sleep(null, millis);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/3/1
+     * @description sleep
+     */
+    public static void sleep(Thread thread, long millis) {
+        if (thread == null) {
+            thread = Thread.currentThread();
+        }
         try {
-            Thread.sleep(millis);
+            thread.sleep(millis);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
