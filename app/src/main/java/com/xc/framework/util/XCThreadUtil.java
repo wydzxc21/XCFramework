@@ -135,7 +135,16 @@ public class XCThreadUtil {
      * Description：park
      */
     public static void park() {
-        park(-1);
+        park(null, -1);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:50
+     * Description：park
+     */
+    public static void park(Thread thread) {
+        park(thread, -1);
     }
 
     /**
@@ -144,10 +153,22 @@ public class XCThreadUtil {
      * Description：park
      */
     public static void park(long nanos) {
+        park(null, nanos);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/11 13:50
+     * Description：park
+     */
+    public static void park(Thread thread, long nanos) {
+        if (thread == null) {
+            thread = Thread.currentThread();
+        }
         if (nanos > 0) {
-            LockSupport.parkNanos(nanos);
+            LockSupport.parkNanos(thread, nanos);
         } else {
-            LockSupport.park();
+            LockSupport.park(thread);
         }
     }
 
