@@ -2,6 +2,7 @@ package com.xc.framework.util;
 
 import android.content.Context;
 import android.os.Environment;
+import android.os.storage.StorageManager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -78,6 +79,26 @@ public class XCFileUtil {
         return "";
     }
 
+    /**
+     * 获取U盘路径
+     * @return
+     */
+    public static List<String> getUsbDirs(Context context) {
+        List<String> usbPaths = new ArrayList<>();
+        try {
+            StorageManager srgMgr = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+            Class<StorageManager> srgMgrClass = StorageManager.class;
+            String[] paths = (String[]) srgMgrClass.getMethod("getVolumePaths").invoke(srgMgr);
+            for (String path : paths) {
+                Object volumeState = srgMgrClass.getMethod("getVolumeState", String.class).invoke(srgMgr, path);
+                if (!path.contains("emulated") && Environment.MEDIA_MOUNTED.equals(volumeState))
+                    usbPaths.add(path);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return usbPaths;
+    }
     /**
      * 获取下载文件名
      *
