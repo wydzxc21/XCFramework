@@ -5,6 +5,9 @@ import android.graphics.BitmapFactory;
 
 import org.apache.commons.codec.binary.Base64;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 /**
  * @author ZhangXuanChen
  * @date 2020/2/8
@@ -127,46 +130,24 @@ public class XCByteUtil {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/7/19 10:53
-     * Description：低位在前
+     * Time：2020/7/25 9:30
+     * Description：转int
+     * Param：bytes 数组
+     * Param：byteOrder 高低位
      */
-    public static class LittleEndian {
-        /**
-         * Author：ZhangXuanChen
-         * Time：2020/7/19 10:46
-         * Description：转int
-         */
-        public static int toInt(byte[] bytes) {
-            if (bytes == null || bytes.length <= 0) {
-                return 0;
-            }
-            return bytes[0] & 0xFF |
-                    (bytes[1] & 0xFF) << 8 |
-                    (bytes[2] & 0xFF) << 16 |
-                    (bytes[3] & 0xFF) << 24;
+    public static int toInt(byte[] bytes, ByteOrder byteOrder) {
+        if (bytes == null || bytes.length <= 0 || byteOrder == null) {
+            return 0;
         }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/7/19 10:54
-     * Description：高位在前
-     */
-    public static class BigEndian {
-        /**
-         * Author：ZhangXuanChen
-         * Time：2020/7/19 10:46
-         * Description：转int
-         */
-        public static int toInt(byte[] bytes) {
-            if (bytes == null || bytes.length <= 0) {
-                return 0;
-            }
-            return (bytes[0] & 0xFF) << 24 |
-                    (bytes[1] & 0xFF) << 16 |
-                    (bytes[2] & 0xFF) << 8 |
-                    bytes[3] & 0xFF;
+        int value = 0;
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(byteOrder);
+        if (bytes.length == 2) {
+            value = byteBuffer.asShortBuffer().get();
+        } else if (bytes.length == 4) {
+            value = byteBuffer.asIntBuffer().get();
+        } else if (bytes.length == 8) {
+            value = (int) byteBuffer.asLongBuffer().get();
         }
+        return value;
     }
-
 }
