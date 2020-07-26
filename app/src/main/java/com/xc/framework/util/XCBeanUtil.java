@@ -62,10 +62,11 @@ public class XCBeanUtil {
                         for (int i = 0; i < fields.length; i++) {
                             Field field = fields[i];
                             if (field != null) {
+                                String tag = "TAG";//tag
                                 String filter = "serialVersionUID";// 序列化变量
                                 String change = "$";// studio 2.0以上反射多出参数:$change
                                 String name = field.getName() != null ? field.getName() : "";
-                                if (!name.equals(filter) && !name.contains(change)) {
+                                if (!name.equals(tag) && !name.equals(filter) && !name.contains(change)) {
                                     boolean isFieldIgnore = field.isAnnotationPresent(FieldIgnore.class);//忽略字段
                                     if (!isFieldIgnore) {
                                         FieldKeyId keyId = field.getAnnotation(FieldKeyId.class);
