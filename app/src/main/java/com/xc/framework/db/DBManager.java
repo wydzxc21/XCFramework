@@ -400,7 +400,7 @@ public class DBManager {
      * @return 结果集                 new空对象查询该表所有数据 )
      */
     public synchronized <T> List<T> query(T classObject) {
-        return query(classObject, -1, -1, null, null);
+        return query(classObject, -1, -1, null, null, null);
     }
 
     /**
@@ -413,7 +413,7 @@ public class DBManager {
      * @return 结果集
      */
     public synchronized <T> List<T> query(T classObject, String field, String like) {
-        return query(classObject, -1, -1, field, like);
+        return query(classObject, -1, -1, field, like, null);
     }
 
     /**
@@ -426,7 +426,19 @@ public class DBManager {
      * @return 结果集
      */
     public synchronized <T> List<T> query(T classObject, int limit, int offset) {
-        return query(classObject, limit, offset, null, null);
+        return query(classObject, limit, offset, null, null, null);
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param sqlStr      自定义sql语句
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, String sqlStr) {
+        return query(classObject, -1, -1, null, null, sqlStr);
     }
 
     /**
@@ -438,8 +450,9 @@ public class DBManager {
      * @param offset      分页查询-其实索引(从0开始)
      * @param field       模糊查询-字段名
      * @param like        模糊查询-包含字符串
+     * @param sqlStr      自定义sql语句
      */
-    private synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like) {
+    private synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like, String sqlStr) {
         if (!isTableExist(classObject.getClass())) {
             createTable(classObject.getClass());
         }
@@ -448,7 +461,10 @@ public class DBManager {
         if (db != null && classObject != null) {
             Cursor cursor = null;
             try {
-                cursor = db.rawQuery(getQuerySql(classObject, limit, offset, field, like), null);
+                if (XCStringUtil.isEmpty(sqlStr)) {
+                    sqlStr = getQuerySql(classObject, limit, offset, field, like);
+                }
+                cursor = db.rawQuery(sqlStr, null);
                 if (cursor != null) {
                     if (cursor.moveToFirst()) {
                         do {
