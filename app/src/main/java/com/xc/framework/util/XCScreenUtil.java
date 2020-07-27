@@ -150,6 +150,19 @@ public class XCScreenUtil {
     public static void showInputKeyboard(Context context) {
         try {
             View view = ((Activity) context).getWindow().peekDecorView();
+            showInputKeyboard(context, view);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 显示输入法
+     *
+     * @param context 上下文
+     */
+    public static void showInputKeyboard(Context context, View view) {
+        try {
             if (view != null && view.getWindowToken() != null) {
                 InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(0, InputMethodManager.SHOW_FORCED);
@@ -168,6 +181,19 @@ public class XCScreenUtil {
     public static void hideInputKeyboard(Context context) {
         try {
             View view = ((Activity) context).getWindow().peekDecorView();
+            hideInputKeyboard(context, view);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 隐藏输入法
+     *
+     * @param context 上下文
+     */
+    public static void hideInputKeyboard(Context context, View view) {
+        try {
             if (view != null && view.getWindowToken() != null) {
                 InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
