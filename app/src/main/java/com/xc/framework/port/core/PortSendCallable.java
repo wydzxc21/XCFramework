@@ -16,17 +16,17 @@ import com.xc.framework.util.XCByteUtil;
 public abstract class PortSendCallable extends XCCallable<byte[]> {
     private final String TAG = "PortSendRunnable";
     private byte[] sendDatas;//发送数据
-    private boolean isWaitResponse;//是否等待响应
+    private ReceiveType receiveType;//接收类型
     private int what;
+    private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
-    private int resendCount;//重发次数
-    private int sendTimeout;//发送超时(毫秒)
     private PortReceiveThread portReceiveThread;//接收线程
+    //
     private int sendCount;//发送次数
 
     /**
      * @param sendDatas         发送数据
-     * @param isWaitResponse    是否等待响应
+     * @param receiveType       接收类型
      * @param what              区分消息
      * @param portParam         串口参数
      * @param iPort             串口工具
@@ -34,29 +34,32 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, boolean isWaitResponse, int what, PortParam portParam, IPort iPort, PortReceiveThread portReceiveThread) {
+    public PortSendCallable(byte[] sendDatas, ReceiveType receiveType, int what, PortParam portParam, IPort iPort, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
-        this.isWaitResponse = isWaitResponse;
-        this.resendCount = portParam.getResendCount();
-        this.sendTimeout = portParam.getSendTimeout();
+        this.receiveType = receiveType;
+        this.portParam = portParam;
         this.iPort = iPort;
         this.portReceiveThread = portReceiveThread;
     }
 
     @Override
     public byte[] call() throws Exception {
-        byte[] responseDatas = null;
+        byte[] receiveDatas = null;
         try {
-            responseDatas = writeDatas();
-            if (responseDatas != null && responseDatas.length > 0) {
-                sendMessage(0x123, responseDatas);
+            receiveDatas = writeDatas();
+            if (receiveDatas != null && receiveDatas.length > 0) {
+                if (receiveType == ReceiveType.Response) {//响应
+                    sendMessage(0x123, receiveDatas);
+                } else if (receiveType == ReceiveType.Interrupt) {//中断
+                    sendMessage(0x234, receiveDatas);
+                }
             } else {//超时
-                sendMessage(0x234);
+                sendMessage(0x345);
             }
         } catch (Exception e) {
         }
-        return responseDatas;
+        return receiveDatas;
     }
 
     @Override
@@ -65,7 +68,10 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             case 0x123://响应
                 onResponse(what, (byte[]) msg.obj);
                 break;
-            case 0x234://超时
+            case 0x234://中断
+                onInterrupt(what, (byte[]) msg.obj);
+                break;
+            case 0x345://超时
                 onTimeout(what, sendDatas);
                 break;
         }
@@ -80,13 +86,13 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private byte[] writeDatas() throws InterruptedException {
         portReceiveThread.reset();
         sendCount++;
-        if (sendCount <= resendCount) {
+        if (sendCount <= portParam.getResendCount()) {
             iPort.writePort(sendDatas);
-            Log.i(TAG, "指令-发送:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
-            if (isWaitResponse) {//是否等待响应
-                byte[] responseDatas = waitResponse();
-                if (responseDatas != null && responseDatas.length > 0) {
-                    return responseDatas;
+            Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            if (receiveType == ReceiveType.Response || receiveType == ReceiveType.Interrupt) {//等待响应or中断
+                byte[] receiveDatas = waitReceive();
+                if (receiveDatas != null && receiveDatas.length > 0) {
+                    return receiveDatas;
                 } else {//重发
                     writeDatas();
                 }
@@ -100,15 +106,22 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Time：2020/3/9 13:05
      * Description：waitReceive
      */
-    private byte[] waitResponse() throws InterruptedException {
+    private byte[] waitReceive() throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
-            byte[] responseDatas = portReceiveThread.getResponseDatas();
-            if (responseDatas != null && responseDatas.length > 0) {
-                return responseDatas;
+            byte[] receiveDatas = null;
+            if (receiveType == ReceiveType.Response) {//响应
+                receiveDatas = portReceiveThread.getResponseDatas();
+            } else if (receiveType == ReceiveType.Interrupt) {//中断
+                receiveDatas = portReceiveThread.getInterruptDatas();
+            }
+            //
+            if (receiveDatas != null && receiveDatas.length > 0) {
+                return receiveDatas;
             }
             Thread.sleep(1);
-        } while (System.currentTimeMillis() - currentTime < sendTimeout);
+        }
+        while (System.currentTimeMillis() - currentTime < (receiveType == ReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
         return null;
     }
 
@@ -127,6 +140,13 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：onResponse
      */
     public abstract void onResponse(int what, byte[] responseDatas);
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 15:14
+     * Description：onInterrupt
+     */
+    public abstract void onInterrupt(int what, byte[] interruptDatas);
 
     /**
      * Author：ZhangXuanChen

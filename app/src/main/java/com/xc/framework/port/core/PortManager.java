@@ -95,14 +95,6 @@ public abstract class PortManager {
     private void startReceivedThread() {
         mPortReceiveThread = new PortReceiveThread(getPortParam(), getIPort()) {
             @Override
-            public int setLength(byte[] receiveDatas) {
-                if (getPortParam().getLengthCallback() != null) {
-                    return getPortParam().getLengthCallback().onLength(receiveDatas);
-                }
-                return 0;
-            }
-
-            @Override
             public void onRequest(byte[] requestDatas) {
                 if (receiveRequestListenerList != null && !receiveRequestListenerList.isEmpty()) {
                     for (OnReceiveRequestListener listener : receiveRequestListenerList) {
@@ -118,14 +110,14 @@ public abstract class PortManager {
     }
 
     /**
-     * Author：ZhangXuanChen
+     * Author：ZhangXuanChena
      * Time：2020/7/11 16:48
      * Description：串口发送-阻塞
      * Param：bytes 发送数据
-     * Param：isWaitResponse 是否等待响应
+     * Param：receiveType 接收类型
      */
-    public byte[] send(byte[] bytes, boolean isWaitResponse) {
-        return send(bytes, isWaitResponse, true, 0x123, null);
+    public byte[] send(byte[] bytes, ReceiveType receiveType) {
+        return send(bytes, receiveType, true, -1, null);
     }
 
     /**
@@ -133,12 +125,12 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送-异步
      * Param：bytes 发送数据
-     * Param：isWaitResponse 是否等待响应
+     * Param：receiveType 接收类型
      * Param：what 区分消息
      * Param：receiveResponseCallback 异步发送接收回调
      */
-    public void send(byte[] bytes, boolean isWaitResponse, int what, ReceiveResponseCallback receiveResponseCallback) {
-        send(bytes, isWaitResponse, false, what, receiveResponseCallback);
+    public void send(byte[] bytes, ReceiveType receiveType, int what, PortReceiveCallback portReceiveCallback) {
+        send(bytes, receiveType, false, what, portReceiveCallback);
     }
 
     /**
@@ -146,28 +138,35 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      * Param：bytes 发送数据
-     * Param：isWaitResponse 是否等待响应
+     * Param：receiveType 接收类型
      * Param：isBlockSend 是否阻塞发送
      * Param：what 区分消息
      * Param：receiveResponseCallback 异步发送接收回调
      */
-    private byte[] send(byte[] bytes, boolean isWaitResponse, boolean isBlockSend, int what, final ReceiveResponseCallback receiveResponseCallback) {
+    private byte[] send(byte[] bytes, ReceiveType receiveType, boolean isBlockSend, int what, final PortReceiveCallback portReceiveCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return null;
         }
         try {
-            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, isWaitResponse, what, getPortParam(), getIPort(), mPortReceiveThread) {
+            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, receiveType, what, getPortParam(), getIPort(), mPortReceiveThread) {
                 @Override
                 public void onResponse(int what, byte[] responseDatas) {
-                    if (receiveResponseCallback != null) {
-                        receiveResponseCallback.onResponse(what, responseDatas);
+                    if (portReceiveCallback != null) {
+                        portReceiveCallback.onResponse(what, responseDatas);
+                    }
+                }
+
+                @Override
+                public void onInterrupt(int what, byte[] interruptDatas) {
+                    if (portReceiveCallback != null) {
+                        portReceiveCallback.onInterrupt(what, interruptDatas);
                     }
                 }
 
                 @Override
                 public void onTimeout(int what, byte[] sendDatas) {
-                    if (receiveResponseCallback != null) {
-                        receiveResponseCallback.onTimeout(what, sendDatas);
+                    if (portReceiveCallback != null) {
+                        portReceiveCallback.onTimeout(what, sendDatas);
                     }
                 }
             });

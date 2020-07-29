@@ -4,7 +4,7 @@ import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
 import com.xc.framework.port.core.IPort;
-import com.xc.framework.port.core.LengthCallback;
+import com.xc.framework.port.core.PortParamCallback;
 import com.xc.framework.port.core.PortManager;
 import com.xc.framework.port.core.PortParam;
 
@@ -76,18 +76,20 @@ public class UsbPortManager extends PortManager {
      * Param：pid 设备id
      * Param：baudrate 波特率
      * Param：resendCount 重发次数，默认0
-     * Param：sendTimeout 发送超时(毫秒)，默认2000
+     * Param：sendTimeout 发送超时(毫秒)，默认1000
+     * Param：interruptTimeout 中断超时(毫秒)，默认10000
      * Param：receiveResponseFrameHeads 接收响应帧头，默认null
      * Param：receiveRequestFrameHeads 接收请求帧头，默认null
-     * Param：lengthCallback 设置长度回调，默认null
+     * Param：portParamCallback 设置串口参数回调，默认null
      */
-    public void init(int vid, int pid, int baudrate, int resendCount, int sendTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, LengthCallback lengthCallback) {
+    public void init(int vid, int pid, int baudrate, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.mUsbPortParam = new UsbPortParam(mContext, vid, pid, baudrate);
         this.mUsbPortParam.setResendCount(resendCount);
         this.mUsbPortParam.setSendTimeout(sendTimeout);
+        this.mUsbPortParam.setInterruptTimeout(interruptTimeout);
         this.mUsbPortParam.setReceiveResponseFrameHeads(receiveResponseFrameHeads);
         this.mUsbPortParam.setReceiveRequestFrameHeads(receiveRequestFrameHeads);
-        this.mUsbPortParam.setLengthCallback(lengthCallback);
+        this.mUsbPortParam.setPortParamCallback(portParamCallback);
     }
 
 }

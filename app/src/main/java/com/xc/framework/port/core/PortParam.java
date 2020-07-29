@@ -27,9 +27,13 @@ public class PortParam {
      */
     protected int resendCount = 0;
     /**
-     * 发送超时(毫秒)，默认2000
+     * 发送超时(毫秒)，默认1000
      */
-    protected int sendTimeout = 2000;
+    protected int sendTimeout = 1000;
+    /**
+     * 中断超时(毫秒)，默认10000
+     */
+    protected int interruptTimeout = 10000;
     /**
      * 接收响应帧头，默认null，处理丢包粘包
      */
@@ -39,9 +43,10 @@ public class PortParam {
      */
     protected byte[] receiveRequestFrameHeads;
     /**
-     * 设置接收数据长度回调
+     * 设置接收参数回调
      */
-    protected LengthCallback lengthCallback;
+    protected PortParamCallback portParamCallback;
+
 
     public int getBaudrate() {
         return baudrate;
@@ -91,6 +96,14 @@ public class PortParam {
         this.sendTimeout = sendTimeout;
     }
 
+    public int getInterruptTimeout() {
+        return interruptTimeout;
+    }
+
+    public void setInterruptTimeout(int interruptTimeout) {
+        this.interruptTimeout = interruptTimeout;
+    }
+
     public byte[] getReceiveResponseFrameHeads() {
         return receiveResponseFrameHeads;
     }
@@ -107,11 +120,11 @@ public class PortParam {
         this.receiveRequestFrameHeads = receiveRequestFrameHeads;
     }
 
-    public LengthCallback getLengthCallback() {
-        return lengthCallback;
+    public PortParamCallback getPortParamCallback() {
+        return portParamCallback;
     }
 
-    public void setLengthCallback(LengthCallback lengthCallback) {
-        this.lengthCallback = lengthCallback;
+    public void setPortParamCallback(PortParamCallback portParamCallback) {
+        this.portParamCallback = portParamCallback;
     }
 }

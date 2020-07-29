@@ -1,7 +1,7 @@
 package com.xc.framework.port.serial;
 
 import com.xc.framework.port.core.IPort;
-import com.xc.framework.port.core.LengthCallback;
+import com.xc.framework.port.core.PortParamCallback;
 import com.xc.framework.port.core.PortManager;
 import com.xc.framework.port.core.PortParam;
 
@@ -57,18 +57,20 @@ public class SerialPortManager extends PortManager {
      * Param：devicePath 串口地址
      * Param：baudrate 波特率
      * Param：resendCount 重发次数，默认0
-     * Param：sendTimeout 发送超时(毫秒)，默认2000
+     * Param：sendTimeout 发送超时(毫秒)，默认1000
+     * Param：interruptTimeout 中断超时(毫秒)，默认10000
      * Param：receiveResponseFrameHeads 接收响应帧头，默认null
      * Param：receiveRequestFrameHeads 接收请求帧头，默认null
-     * Param：lengthCallback 设置长度回调，默认null
+     * Param：portParamCallback 设置串口参数回调，默认null
      */
-    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, LengthCallback lengthCallback) {
+    public void init(String devicePath, int baudrate, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.mSerialPortParam = new SerialPortParam(devicePath, baudrate);
         this.mSerialPortParam.setResendCount(resendCount);
         this.mSerialPortParam.setSendTimeout(sendTimeout);
+        this.mSerialPortParam.setInterruptTimeout(interruptTimeout);
         this.mSerialPortParam.setReceiveResponseFrameHeads(receiveResponseFrameHeads);
         this.mSerialPortParam.setReceiveRequestFrameHeads(receiveRequestFrameHeads);
-        this.mSerialPortParam.setLengthCallback(lengthCallback);
+        this.mSerialPortParam.setPortParamCallback(portParamCallback);
     }
 
 }
