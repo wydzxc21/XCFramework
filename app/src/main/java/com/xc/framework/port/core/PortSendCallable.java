@@ -90,8 +90,11 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             iPort.writePort(sendDatas);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             if (receiveType == ReceiveType.Response || receiveType == ReceiveType.Interrupt) {//等待响应or中断
-                byte[] receiveDatas = waitReceive();
+                byte[] receiveDatas = waitReceive(ReceiveType.Response);//先等响应
                 if (receiveDatas != null && receiveDatas.length > 0) {
+                    if (receiveType == ReceiveType.Interrupt) {//中断请求
+                        receiveDatas = waitReceive(ReceiveType.Interrupt);
+                    }
                     return receiveDatas;
                 } else {//重发
                     writeDatas();
@@ -106,7 +109,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Time：2020/3/9 13:05
      * Description：waitReceive
      */
-    private byte[] waitReceive() throws InterruptedException {
+    private byte[] waitReceive(ReceiveType receiveType) throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
             byte[] receiveDatas = null;
@@ -117,7 +120,9 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             }
             //
             if (receiveDatas != null && receiveDatas.length > 0) {
-                return receiveDatas;
+                if (portParam.portParamCallback != null ? portParam.portParamCallback.onJudge(sendDatas, receiveDatas) : true) {//判断指令正确性
+                    return receiveDatas;
+                }
             }
             Thread.sleep(1);
         }

@@ -18,6 +18,13 @@ public interface PortParamCallback {
     /**
      * @author ZhangXuanChen
      * @date 2020/3/7
+     * @description 返回是否为正确指令
+     */
+    boolean onJudge(byte[] sendDatas, byte[] receiveDatas);
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/3/7
      * @description 返回是否为中断
      */
     boolean onInterrupt(byte[] receiveDatas);
