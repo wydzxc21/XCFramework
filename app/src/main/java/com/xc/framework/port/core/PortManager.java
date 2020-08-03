@@ -46,7 +46,7 @@ public abstract class PortManager {
      * Description：initPool
      */
     private void initPool() {
-        mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
+        mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardOldestPolicy());
     }
 
     /**
@@ -176,6 +176,14 @@ public abstract class PortManager {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    public void clearSend() {
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+            mExecutorService = null;
+        }
+        initPool();
     }
 
     /**
