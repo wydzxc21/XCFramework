@@ -109,6 +109,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Time：2020/3/9 13:05
      * Description：waitReceive
      */
+    boolean isMatchLog;
+
     private byte[] waitReceive(ReceiveType receiveType) throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
@@ -122,7 +124,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             if (receiveDatas != null && receiveDatas.length > 0) {
                 if (portParam.portParamCallback != null ? portParam.portParamCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
                     return receiveDatas;
-                } else {
+                } else if (!isMatchLog) {
+                    isMatchLog = true;
                     Log.i(TAG, "指令-未能匹配:[" + XCByteUtil.toHexStr(sendDatas, true) + "]" + " , [" + XCByteUtil.toHexStr(receiveDatas, true) + "]");
                 }
             }
