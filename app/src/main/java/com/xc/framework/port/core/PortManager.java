@@ -110,6 +110,16 @@ public abstract class PortManager {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/5 17:05
+     * Description：串口发送-直接串口写入
+     * Param：bytes 发送数据
+     */
+    public void send(byte[] bytes) {
+        getIPort().writePort(bytes);
+    }
+
+    /**
      * Author：ZhangXuanChena
      * Time：2020/7/11 16:48
      * Description：串口发送-阻塞

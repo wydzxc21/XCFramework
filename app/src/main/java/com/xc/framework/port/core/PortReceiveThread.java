@@ -113,13 +113,13 @@ public abstract class PortReceiveThread extends XCThread {
                 Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(datas, true) + "]");
                 responseDatas = datas;
             } else if (frameHeadsType == 2) {//请求
+                sendMessage(0x123, datas);
                 boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(datas) : false;
                 if (isInterrupt) {//接收中断
                     Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(datas, true) + "]");
                     interruptDatas = datas;
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(datas, true) + "]");
-                    sendMessage(0x123, datas);
                 }
             }
         }
