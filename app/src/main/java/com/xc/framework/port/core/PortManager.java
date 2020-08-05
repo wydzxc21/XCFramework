@@ -178,9 +178,14 @@ public abstract class PortManager {
         return null;
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/5 8:42
+     * Description：清空发送
+     */
     public void clearSend() {
         if (mExecutorService != null) {
-            mExecutorService.shutdown();
+            mExecutorService.shutdownNow();
             mExecutorService = null;
         }
         initPool();
