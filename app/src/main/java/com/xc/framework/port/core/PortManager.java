@@ -115,8 +115,13 @@ public abstract class PortManager {
      * Description：串口发送-直接串口写入
      * Param：bytes 发送数据
      */
-    public void send(byte[] bytes) {
-        getIPort().writePort(bytes);
+    public void send(final byte[] bytes) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                getIPort().writePort(bytes);
+            }
+        }).start();
     }
 
     /**
