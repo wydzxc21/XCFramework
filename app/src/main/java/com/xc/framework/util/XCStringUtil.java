@@ -53,6 +53,10 @@ public class XCStringUtil {
                     return str.split("\\*");
                 } else if (split.equals("+")) {
                     return str.split("\\+");
+                } else if (split.equals("(")) {
+                    return str.split("\\(");
+                } else if (split.equals(")")) {
+                    return str.split("\\)");
                 } else {
                     return str.split(split);
                 }

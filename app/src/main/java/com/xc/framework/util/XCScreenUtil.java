@@ -53,6 +53,15 @@ public class XCScreenUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/15 15:28
+     * Description：屏幕常亮
+     */
+    public static void keepScreen(Activity activity) {
+        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/15 15:28
      * Description：全屏
      */
     public static void fullScreen(Dialog dialog) {
