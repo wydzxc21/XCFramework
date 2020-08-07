@@ -126,6 +126,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                     return receiveDatas;
                 } else if (!isMatchLog) {
                     isMatchLog = true;
+                    portReceiveThread.reset();//丢掉
                     Log.i(TAG, "指令-未能匹配:[" + XCByteUtil.toHexStr(sendDatas, true) + "]" + " , [" + XCByteUtil.toHexStr(receiveDatas, true) + "]");
                 }
             }
