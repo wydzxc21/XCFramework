@@ -1,6 +1,12 @@
 package com.xc.framework.util;
 
+import org.apache.commons.codec.binary.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author ZhangXuanChen
@@ -121,5 +127,63 @@ public class XCStringUtil {
         } else {
             return sb.toString();
         }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/9 9:49
+     * Description：转Base64
+     */
+    public static String toBase64(String decStr) {
+        if (XCStringUtil.isEmpty(decStr)) {
+            return "";
+        }
+        String base64Str = new String(Base64.encodeBase64(decStr.getBytes()));
+        base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
+        return base64Str;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/10 12:10
+     * Description：压缩
+     */
+    public static String compress(String str) {
+        try {
+            if (!XCStringUtil.isEmpty(str)) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                GZIPOutputStream gzip = new GZIPOutputStream(out);
+                gzip.write(str.getBytes());
+                gzip.close();
+                return out.toString("ISO-8859-1");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/10 12:12
+     * Description：解压
+     */
+    public static String uncompress(String compressStr) {
+        try {
+            if (!XCStringUtil.isEmpty(compressStr)) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                ByteArrayInputStream in = new ByteArrayInputStream(compressStr.getBytes("ISO-8859-1"));
+                GZIPInputStream gunzip = new GZIPInputStream(in);
+                byte[] buffer = new byte[256];
+                int n;
+                while ((n = gunzip.read(buffer)) >= 0) {
+                    out.write(buffer, 0, n);
+                }
+                return out.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

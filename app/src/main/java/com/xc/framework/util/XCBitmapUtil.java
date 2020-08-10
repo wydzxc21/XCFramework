@@ -349,28 +349,25 @@ public class XCBitmapUtil {
     /**
      * 保存图片到本地
      *
-     * @param context     上下文
-     * @param bitmap      bitmap对象
-     * @param pictureName 图片名
+     * @param bitmap    bitmap对象
+     * @param imagePath 图片绝对路径（含后缀名）
      * @return 保存路径
      */
-    public static String saveBitmap(Context context, Bitmap bitmap, String pictureName) {
-        String path = "";
+    public static boolean saveBitmap(Bitmap bitmap, String imagePath) {
         try {
-            if (context != null && bitmap != null && !XCStringUtil.isEmpty(pictureName)) {
-                path = XCFileUtil.getExternalCacheDir(context) + File.separator + pictureName;
-                File f = new File(path);
-                if (f.exists()) {
-                    f.delete();
+            if (bitmap != null && !XCStringUtil.isEmpty(imagePath)) {
+                File file = new File(imagePath);
+                if (file.exists() && file.isFile()) {
+                    FileOutputStream os = new FileOutputStream(file);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, os);
+                    os.flush();
+                    os.close();
+                    return true;
                 }
-                FileOutputStream out = new FileOutputStream(f);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-                out.flush();
-                out.close();
             }
         } catch (Exception e) {
         }
-        return path;
+        return false;
     }
 
     /**
