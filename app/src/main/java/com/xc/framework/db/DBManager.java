@@ -430,15 +430,20 @@ public class DBManager {
     }
 
     /**
-     * 分页查询
+     * 语句查询
      *
-     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     * @param classObject 类,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
      *                    new空对象查询该表所有数据 )
      * @param sqlStr      自定义sql语句
      * @return 结果集
      */
-    public synchronized <T> List<T> query(T classObject, String sqlStr) {
-        return query(classObject, -1, -1, null, null, sqlStr);
+    public synchronized <T> List<T> query(Class<T> classObject, String sqlStr) {
+        try {
+            return query(classObject.newInstance(), -1, -1, null, null, sqlStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

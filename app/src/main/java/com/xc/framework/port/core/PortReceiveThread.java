@@ -22,8 +22,6 @@ public abstract class PortReceiveThread extends XCThread {
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
     private int frameHeadsType;//帧头类型，1：响应，2：请求
-    private byte[] responseDatas;//接收响应数据
-    private byte[] interruptDatas;//接收中断数据
 
     /**
      * @param portParam 串口参数
@@ -55,7 +53,13 @@ public abstract class PortReceiveThread extends XCThread {
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://请求
+            case 0x123://响应
+                onResponse((byte[]) msg.obj);
+                break;
+            case 0x234://中断
+                onInterrupt((byte[]) msg.obj);
+                break;
+            case 0x345://请求
                 onRequest((byte[]) msg.obj);
                 break;
         }
@@ -73,26 +77,53 @@ public abstract class PortReceiveThread extends XCThread {
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
             if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
-                if (cutDatas.length >= portParam.getReceiveResponseFrameHeads().length || cutDatas.length >= portParam.getReceiveRequestFrameHeads().length) {
-                    //获取最后一组接收帧头索引
-                    frameHeadsType = 1;//响应
-                    int lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
-                    //获取最后一组请求帧头索引
-                    if (lastFrameHeadPosition < 0) {
-                        frameHeadsType = 2;//请求
-                        lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
-                    }
-                    //最终
-                    if (lastFrameHeadPosition < 0) {//没有帧头
-                        reset();
-                    } else {
-                        cutDatas = FrameHeadUtil.splitDataByLastFrameHead(lastFrameHeadPosition, cutDatas);//根据最后一组帧头索引分割数据
-                        result(cutDatas);
-                    }
+                int lastFrameHeadPosition = getLastFrameHeadPosition(cutDatas);
+                //最终
+                if (lastFrameHeadPosition < 0) {//没有帧头
+                    reset();
+                } else {
+                    splitData(lastFrameHeadPosition, cutDatas);
                 }
             } else {//未设置帧头
                 result(cutDatas);
             }
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/13 10:54
+     * Description：最后一组接收帧头索引
+     */
+    private int getLastFrameHeadPosition(byte[] cutDatas) {
+        //获取最后一组接收帧头索引
+        frameHeadsType = 1;//响应
+        int lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
+        //获取最后一组请求帧头索引
+        if (lastFrameHeadPosition < 0) {
+            frameHeadsType = 2;//请求
+            lastFrameHeadPosition = FrameHeadUtil.getLastFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
+        }
+        return lastFrameHeadPosition;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/13 10:59
+     * Description：截取数据
+     */
+    private void splitData(int lastFrameHeadPosition, byte[] cutDatas) {
+        if (cutDatas == null || cutDatas.length <= 0) {
+            return;
+        }
+        int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
+        if (length > 0 && length <= cutDatas.length) {
+            byte[][] splitData = FrameHeadUtil.splitDataByLastFrameHead(lastFrameHeadPosition, length, cutDatas);
+            result(splitData[0]);
+            splitData(getLastFrameHeadPosition(splitData[1]), splitData[1]);
+        } else {
+            cutDatas = FrameHeadUtil.splitDataByLastFrameHead(lastFrameHeadPosition, 0, cutDatas)[0];//根据最后一组帧头索引分割数据
+            result(cutDatas);
         }
     }
 
@@ -105,23 +136,19 @@ public abstract class PortReceiveThread extends XCThread {
         if (cutDatas == null || cutDatas.length <= 0) {
             return;
         }
-        int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-        if (length > 0 && length <= cutDatas.length) {
-            reset();
-            byte[] datas = Arrays.copyOf(cutDatas, length);//重发粘包根据长度截取
-            if (frameHeadsType == 1) {//响应
-                Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(datas, true) + "]");
-                responseDatas = datas;
-            } else if (frameHeadsType == 2) {//请求
-                boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(datas) : false;
-                if (isInterrupt) {//接收中断
-                    Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(datas, true) + "]");
-                    interruptDatas = datas;
-                } else {//接收请求
-                    Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(datas, true) + "]");
-                }
-                sendMessage(0x123, datas);
+        reset();
+        if (frameHeadsType == 1) {//响应
+            Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+            sendMessage(0x123, cutDatas);
+        } else if (frameHeadsType == 2) {//请求
+            boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
+            if (isInterrupt) {//接收中断
+                Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                sendMessage(0x234, cutDatas);
+            } else {//接收请求
+                Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
             }
+            sendMessage(0x345, cutDatas);
         }
     }
 
@@ -132,27 +159,21 @@ public abstract class PortReceiveThread extends XCThread {
      */
     public void reset() {
         bufferPosition = 0;
-        responseDatas = null;
-        interruptDatas = null;
     }
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/7/3 9:23
-     * Description：getResponseDatas
+     * Time：2019/11/27 15:14
+     * Description：onResponse
      */
-    public byte[] getResponseDatas() {
-        return responseDatas;
-    }
+    public abstract void onResponse(byte[] responseDatas);
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/7/3 9:23
-     * Description：getInterruptDatas
+     * Time：2019/11/27 15:14
+     * Description：onInterrupt
      */
-    public byte[] getInterruptDatas() {
-        return interruptDatas;
-    }
+    public abstract void onInterrupt(byte[] interruptDatas);
 
     /**
      * Author：ZhangXuanChen

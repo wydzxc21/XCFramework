@@ -31,9 +31,9 @@ public class PortParam {
      */
     protected int sendTimeout = 1000;
     /**
-     * 中断超时(毫秒)，默认10000
+     * 中断超时(毫秒)，默认30*1000
      */
-    protected int interruptTimeout = 10000;
+    protected int interruptTimeout = 10 * 1000;
     /**
      * 接收响应帧头，默认null，处理丢包粘包
      */

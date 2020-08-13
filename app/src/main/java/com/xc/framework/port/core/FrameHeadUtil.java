@@ -6,18 +6,23 @@ package com.xc.framework.port.core;
  * Description：帧头工具
  */
 public class FrameHeadUtil {
+
     /**
      * @author ZhangXuanChen
      * @date 2020/3/8
      * @description 根据最后一组帧头索引分割数据
      */
-    public static byte[] splitDataByLastFrameHead(int lastFrameHeadPosition, byte[] cutDatas) {
+    public static byte[][] splitDataByLastFrameHead(int lastFrameHeadPosition, int length, byte[] cutDatas) {
         if (lastFrameHeadPosition < 0 || cutDatas == null || cutDatas.length <= 0) {
             return null;
         }
-        byte[] splitData = new byte[cutDatas.length - lastFrameHeadPosition];
-        System.arraycopy(cutDatas, lastFrameHeadPosition, splitData, 0, splitData.length);
-        return splitData;
+        //一条完整数据
+        byte[] splitOne = new byte[length > 0 ? length : cutDatas.length - lastFrameHeadPosition];
+        System.arraycopy(cutDatas, lastFrameHeadPosition, splitOne, 0, splitOne.length);
+        //剩余数据
+        byte[] splitTwo = new byte[cutDatas.length - splitOne.length];
+        System.arraycopy(cutDatas, splitOne.length, splitTwo, 0, splitTwo.length);
+        return new byte[][]{splitOne, splitTwo};
     }
 
     /**
@@ -25,7 +30,7 @@ public class FrameHeadUtil {
      * @date 2020/3/8
      * @description 获取最后一组帧头索引
      */
-    public static  int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
+    public static int getLastFrameHeadPosition(byte[] frameHeaders, byte[] cutDatas) {
         if (frameHeaders == null || frameHeaders.length <= 0 || cutDatas == null || cutDatas.length <= 0) {
             return -1;
         }

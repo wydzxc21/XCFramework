@@ -73,6 +73,15 @@ public class XCStringUtil {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2020/8/11 16:10
+     * Description：toStr
+     */
+    public static String toStr(String str) {
+        return !XCStringUtil.isEmpty(str) ? str : "";
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2020/4/7 13:34
      * Description：转int
      */

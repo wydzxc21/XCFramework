@@ -3,9 +3,9 @@ package com.xc.framework.port.core;
 /**
  * Date：2020/7/29
  * Author：ZhangXuanChen
- * Description：接收类型
+ * Description：串口接收类型
  */
-public enum ReceiveType {
+public enum PortReceiveType {
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/29 9:04

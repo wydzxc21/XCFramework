@@ -6,7 +6,7 @@ package com.xc.framework.port.core;
  * @package com.xc.framework.port.serial
  * @description 接收请求监听
  */
-public interface OnReceiveRequestListener {
+public interface OnPortReceiveThreadListener {
     /**
      * Author：ZhangXuanChen
      * Time：2020/4/29 11:35
