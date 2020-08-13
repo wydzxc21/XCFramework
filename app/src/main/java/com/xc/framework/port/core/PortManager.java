@@ -28,7 +28,6 @@ public abstract class PortManager {
 
     public PortManager() {
         portReceiveRequestListenerList = new ArrayList<OnPortReceiveRequestListener>();
-        initPool();
     }
 
     /**
@@ -47,16 +46,6 @@ public abstract class PortManager {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/3/27 13:25
-     * Description：initPool
-     */
-    private void initPool() {
-        mLinkedBlockingQueue = new LinkedBlockingQueue<PortSendCallable>(1);
-        mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
-    }
-
-    /**
-     * Author：ZhangXuanChen
      * Time：2019/11/25 16:01
      * Description：串口打开
      * Return：boolean
@@ -70,6 +59,17 @@ public abstract class PortManager {
             }
         }
         return isOpen;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/27 13:25
+     * Description：initPool
+     */
+    private void initPool() {
+        mLinkedBlockingQueue = new LinkedBlockingQueue<PortSendCallable>(1);
+        mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
+        Log.i(TAG, "initPool: ");
     }
 
     /**
@@ -209,10 +209,16 @@ public abstract class PortManager {
 
                 @Override
                 public void onTimeout(int what, byte[] sendDatas) {
+                    isStopSend = false;
                     mLinkedBlockingQueue.poll();
                     if (portReceiveCallback != null) {
                         portReceiveCallback.onTimeout(what, sendDatas);
                     }
+                }
+
+                @Override
+                public boolean isStopSend() {
+                    return isStopSend;
                 }
             });
             if (isBlockSend) {
@@ -228,7 +234,10 @@ public abstract class PortManager {
      * Time：2020/8/5 8:42
      * Description：清空发送
      */
+    boolean isStopSend;//是否停止发送
+
     public void clearSend() {
+        isStopSend = true;
         if (mLinkedBlockingQueue != null) {
             mLinkedBlockingQueue.clear();
             mLinkedBlockingQueue = null;

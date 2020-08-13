@@ -98,7 +98,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                         receiveDatas = waitReceive(PortReceiveType.Interrupt);
                     }
                     return receiveDatas;
-                } else {//重发
+                } else if (!isStopSend()) {//重发
                     writeDatas();
                 }
             }
@@ -112,8 +112,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：waitReceive
      */
     boolean isMatchLog;
-    byte[] responseDatas;
-    byte[] interruptDatas;
+    byte[] responseDatas;//响应数据
+    byte[] interruptDatas;//中断数据
 
     private byte[] waitReceive(PortReceiveType receiveType) throws InterruptedException {
         long currentTime = System.currentTimeMillis();
@@ -135,7 +135,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             }
             Thread.sleep(1);
         }
-        while (System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
+        while (!isStopSend() && System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
         return null;
     }
 
@@ -159,15 +159,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/3/10 15:18
-     * Description：what
-     */
-    public int getWhat() {
-        return what;
-    }
-
-    /**
-     * Author：ZhangXuanChen
      * Time：2019/11/27 15:14
      * Description：onResponse
      */
@@ -186,5 +177,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：onTimeout
      */
     public abstract void onTimeout(int what, byte[] sendDatas);
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/10 11:18
+     * Description：isStopSend
+     */
+    public abstract boolean isStopSend();
 
 }
