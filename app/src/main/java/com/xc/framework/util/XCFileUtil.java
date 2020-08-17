@@ -378,7 +378,7 @@ public class XCFileUtil {
      * Param：targetFile 目标文件
      * Return：boolean
      */
-    public boolean copyFile(File sourceFile, File targetFile) {
+    public static boolean copyFile(File sourceFile, File targetFile) {
         if (sourceFile == null || targetFile == null) {
             return false;
         }
@@ -415,7 +415,7 @@ public class XCFileUtil {
      * Param：outFile 输出文件
      * Return：boolean
      */
-    public boolean copyAssetsFile(Context context, String fileName, File outFile) {
+    public static boolean copyAssetsFile(Context context, String fileName, File outFile) {
         if (context == null || XCStringUtil.isEmpty(fileName) || outFile == null) {
             return false;
         }
