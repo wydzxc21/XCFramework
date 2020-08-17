@@ -9,8 +9,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,8 +87,8 @@ public class XCFileUtil {
      *
      * @return
      */
-    public static String getUsbPath(Context context) {
-        List<String> usbDirs = XCFileUtil.getUsbPathList(context);
+    public static String getUsbDir(Context context) {
+        List<String> usbDirs = XCFileUtil.getUsbDirList(context);
         if (usbDirs == null || usbDirs.size() == 0) {
             return null;
         }
@@ -97,8 +100,8 @@ public class XCFileUtil {
      *
      * @return
      */
-    public static List<String> getUsbPathList(Context context) {
-        List<String> usbPaths = new ArrayList<>();
+    public static List<String> getUsbDirList(Context context) {
+        List<String> usbDirs = new ArrayList<>();
         try {
             StorageManager srgMgr = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
             Class<StorageManager> srgMgrClass = StorageManager.class;
@@ -106,12 +109,12 @@ public class XCFileUtil {
             for (String path : paths) {
                 Object volumeState = srgMgrClass.getMethod("getVolumeState", String.class).invoke(srgMgr, path);
                 if (!path.contains("emulated") && Environment.MEDIA_MOUNTED.equals(volumeState))
-                    usbPaths.add(path);
+                    usbDirs.add(path);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return usbPaths;
+        return usbDirs;
     }
 
     /**
@@ -366,4 +369,78 @@ public class XCFileUtil {
         }
         return fileSizeStr;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/17 10:03
+     * Description：复制文件
+     * Param：sourceFile 资源文件
+     * Param：targetFile 目标文件
+     * Return：boolean
+     */
+    public boolean copyFile(File sourceFile, File targetFile) {
+        if (sourceFile == null || targetFile == null) {
+            return false;
+        }
+        try {
+            if (!sourceFile.exists()) {
+                return false;
+            }
+            if (!targetFile.exists()) {
+                targetFile.createNewFile();
+            }
+            FileInputStream fi = new FileInputStream(sourceFile);
+            FileOutputStream fo = new FileOutputStream(targetFile);
+            FileChannel in = fi.getChannel();
+            FileChannel out = fo.getChannel();
+            in.transferTo(0, in.size(), out);
+            //
+            fi.close();
+            in.close();
+            fo.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/17 10:35
+     * Description：复制assets文件
+     * Param：context
+     * Param：fileName 资源文件
+     * Param：outFile 输出文件
+     * Return：boolean
+     */
+    public boolean copyAssetsFile(Context context, String fileName, File outFile) {
+        if (context == null || XCStringUtil.isEmpty(fileName) || outFile == null) {
+            return false;
+        }
+        try {
+            InputStream is = context.getResources().getAssets().open(fileName);
+            if (is == null) {
+                return false;
+            }
+            if (!outFile.exists()) {
+                outFile.createNewFile();
+            }
+            byte[] bytes = new byte[1024];
+            int bt;
+            FileOutputStream fos = new FileOutputStream(outFile);
+            while ((bt = is.read(bytes)) != -1) {
+                fos.write(bytes, 0, bt);
+            }
+            fos.flush();
+            is.close();
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
 }
