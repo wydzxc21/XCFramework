@@ -80,10 +80,24 @@ public class XCFileUtil {
     }
 
     /**
-     * 获取U盘路径
+     * 获取U盘唯一路径
+     *
      * @return
      */
-    public static List<String> getUsbDirs(Context context) {
+    public static String getUsbPath(Context context) {
+        List<String> usbDirs = XCFileUtil.getUsbPathList(context);
+        if (usbDirs == null || usbDirs.size() == 0) {
+            return null;
+        }
+        return usbDirs.get(0);
+    }
+
+    /**
+     * 获取U盘路径集合
+     *
+     * @return
+     */
+    public static List<String> getUsbPathList(Context context) {
         List<String> usbPaths = new ArrayList<>();
         try {
             StorageManager srgMgr = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
@@ -99,6 +113,7 @@ public class XCFileUtil {
         }
         return usbPaths;
     }
+
     /**
      * 获取下载文件名
      *
