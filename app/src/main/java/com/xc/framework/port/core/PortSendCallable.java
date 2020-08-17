@@ -7,7 +7,7 @@ import android.util.Log;
 import com.xc.framework.thread.XCCallable;
 import com.xc.framework.util.XCByteUtil;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.List;
 
 
 /**
@@ -22,32 +22,31 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private int what;
     private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
-    private LinkedBlockingQueue<PortSendCallable> linkedBlockingQueue;//正在执行的发送线程
+    private PortReceiveThread portReceiveThread;
     //
     private int sendCount;//发送次数
 
     /**
-     * @param sendDatas           发送数据
-     * @param portReceiveType     接收类型
-     * @param what                区分消息
-     * @param portParam           串口参数
-     * @param iPort               串口工具
-     * @param linkedBlockingQueue 正在执行的发送线程
+     * @param sendDatas         发送数据
+     * @param portReceiveType   接收类型
+     * @param what              区分消息
+     * @param portParam         串口参数
+     * @param iPort             串口工具
+     * @param portReceiveThread 接收线程
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortParam portParam, IPort iPort, LinkedBlockingQueue<PortSendCallable> linkedBlockingQueue) {
+    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortParam portParam, IPort iPort, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
         this.portReceiveType = portReceiveType;
         this.portParam = portParam;
         this.iPort = iPort;
-        this.linkedBlockingQueue = linkedBlockingQueue;
+        this.portReceiveThread = portReceiveThread;
     }
 
     @Override
     public byte[] call() throws Exception {
-        linkedBlockingQueue.put(this);
         byte[] receiveDatas = null;
         try {
             receiveDatas = writeDatas();
@@ -88,6 +87,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      */
     private byte[] writeDatas() throws InterruptedException {
         sendCount++;
+        portReceiveThread.clear();
         if (sendCount <= portParam.getResendCount()) {
             iPort.writePort(sendDatas);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
@@ -112,49 +112,33 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：waitReceive
      */
     boolean isMatchLog;
-    byte[] responseDatas;//响应数据
-    byte[] interruptDatas;//中断数据
 
     private byte[] waitReceive(PortReceiveType receiveType) throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
-            byte[] receiveDatas = null;
+            List<byte[]> receiveList = null;
             if (receiveType == PortReceiveType.Response) {//响应
-                receiveDatas = responseDatas;
+                receiveList = portReceiveThread.getResponseList();
             } else if (receiveType == PortReceiveType.Interrupt) {//中断
-                receiveDatas = interruptDatas;
+                receiveList = portReceiveThread.getInterruptList();
             }
             //
-            if (receiveDatas != null && receiveDatas.length > 0) {
-                if (portParam.portParamCallback != null ? portParam.portParamCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
-                    return receiveDatas;
-                } else if (!isMatchLog) {
-                    isMatchLog = true;
-                    Log.i(TAG, "指令-未能匹配:[" + XCByteUtil.toHexStr(sendDatas, true) + "]" + " , [" + XCByteUtil.toHexStr(receiveDatas, true) + "]");
+            if (receiveList != null && !receiveList.isEmpty()) {
+                isMatchLog = false;
+                for (int i = receiveList.size() - 1; i >= 0; i--) {
+                    byte[] receiveDatas = receiveList.get(i);
+                    if (portParam.portParamCallback != null ? portParam.portParamCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
+                        return receiveDatas;
+                    } else if (!isMatchLog) {
+                        isMatchLog = true;
+                        Log.i(TAG, "指令-未能匹配:[" + XCByteUtil.toHexStr(sendDatas, true) + "]" + " , [" + XCByteUtil.toHexStr(receiveDatas, true) + "]");
+                    }
                 }
             }
             Thread.sleep(1);
         }
         while (!isStopSend() && System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
         return null;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/13 14:08
-     * Description：setResponseDatas
-     */
-    public void setResponseDatas(byte[] responseDatas) {
-        this.responseDatas = responseDatas;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/13 14:08
-     * Description：setInterruptDatas
-     */
-    public void setInterruptDatas(byte[] interruptDatas) {
-        this.interruptDatas = interruptDatas;
     }
 
     /**

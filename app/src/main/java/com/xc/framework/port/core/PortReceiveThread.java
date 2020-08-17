@@ -7,7 +7,9 @@ import android.util.Log;
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCByteUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Date：2020/3/10
@@ -22,6 +24,9 @@ public abstract class PortReceiveThread extends XCThread {
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
     private int frameHeadsType;//帧头类型，1：响应，2：请求
+    //
+    private ArrayList<byte[]> responseList;//响应缓存
+    private ArrayList<byte[]> interruptList;//中断缓存
 
     /**
      * @param portParam 串口参数
@@ -34,6 +39,8 @@ public abstract class PortReceiveThread extends XCThread {
         this.iPort = iPort;
         this.bufferDatas = new byte[16 * 1024];
         this.bufferPosition = 0;
+        this.responseList = new ArrayList<byte[]>();
+        this.interruptList = new ArrayList<byte[]>();
     }
 
 
@@ -53,13 +60,7 @@ public abstract class PortReceiveThread extends XCThread {
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://响应
-                onResponse((byte[]) msg.obj);
-                break;
-            case 0x234://中断
-                onInterrupt((byte[]) msg.obj);
-                break;
-            case 0x345://请求
+            case 0x123://请求
                 onRequest((byte[]) msg.obj);
                 break;
         }
@@ -76,6 +77,7 @@ public abstract class PortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
+//            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
             if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
                 int lastFrameHeadPosition = getLastFrameHeadPosition(cutDatas);
                 //最终
@@ -132,6 +134,8 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2020/5/18 17:38
      * Description：结果
      */
+
+
     private void result(byte[] cutDatas) {
         if (cutDatas == null || cutDatas.length <= 0) {
             return;
@@ -139,16 +143,16 @@ public abstract class PortReceiveThread extends XCThread {
         reset();
         if (frameHeadsType == 1) {//响应
             Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-            sendMessage(0x123, cutDatas);
+            responseList.add(cutDatas);
         } else if (frameHeadsType == 2) {//请求
             boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
             if (isInterrupt) {//接收中断
                 Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                sendMessage(0x234, cutDatas);
+                interruptList.add(cutDatas);
             } else {//接收请求
                 Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
             }
-            sendMessage(0x345, cutDatas);
+            sendMessage(0x123, cutDatas);
         }
     }
 
@@ -163,17 +167,35 @@ public abstract class PortReceiveThread extends XCThread {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/27 15:14
-     * Description：onResponse
+     * Time：2020/8/17 13:14
+     * Description：clear
      */
-    public abstract void onResponse(byte[] responseDatas);
+    public void clear() {
+        if (responseList != null) {
+            responseList.clear();
+        }
+        if (interruptList != null) {
+            interruptList.clear();
+        }
+    }
 
     /**
      * Author：ZhangXuanChen
-     * Time：2019/11/27 15:14
-     * Description：onInterrupt
+     * Time：2020/8/17 12:50
+     * Description：getResponseList
      */
-    public abstract void onInterrupt(byte[] interruptDatas);
+    public List<byte[]> getResponseList() {
+        return responseList;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/17 12:50
+     * Description：getInterruptList
+     */
+    public List<byte[]> getInterruptList() {
+        return interruptList;
+    }
 
     /**
      * Author：ZhangXuanChen

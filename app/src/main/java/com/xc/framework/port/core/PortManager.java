@@ -23,7 +23,6 @@ public abstract class PortManager {
     private List<OnPortReceiveRequestListener> portReceiveRequestListenerList;//接收请求监听集合
     private PortReceiveThread mPortReceiveThread;//接收线程
     private ExecutorService mExecutorService;//发送线程池
-    private LinkedBlockingQueue<PortSendCallable> mLinkedBlockingQueue;//正在执行的发送线程
     private boolean isOpen = false;
 
     public PortManager() {
@@ -67,9 +66,7 @@ public abstract class PortManager {
      * Description：initPool
      */
     private void initPool() {
-        mLinkedBlockingQueue = new LinkedBlockingQueue<PortSendCallable>(1);
         mExecutorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
-        Log.i(TAG, "initPool: ");
     }
 
     /**
@@ -80,10 +77,6 @@ public abstract class PortManager {
     public boolean close() {
         if (getIPort() != null) {
             getIPort().closePort();
-        }
-        if (mLinkedBlockingQueue != null) {
-            mLinkedBlockingQueue.clear();
-            mLinkedBlockingQueue = null;
         }
         if (mExecutorService != null) {
             mExecutorService.shutdown();
@@ -104,22 +97,6 @@ public abstract class PortManager {
      */
     private void startReceivedThread() {
         mPortReceiveThread = new PortReceiveThread(getPortParam(), getIPort()) {
-            @Override
-            public void onResponse(byte[] responseDatas) {
-                PortSendCallable portSendCallable = mLinkedBlockingQueue.peek();
-                if (portSendCallable != null) {
-                    portSendCallable.setResponseDatas(responseDatas);
-                }
-            }
-
-            @Override
-            public void onInterrupt(byte[] interruptDatas) {
-                PortSendCallable portSendCallable = mLinkedBlockingQueue.peek();
-                if (portSendCallable != null) {
-                    portSendCallable.setInterruptDatas(interruptDatas);
-                }
-            }
-
             @Override
             public void onRequest(byte[] requestDatas) {
                 if (portReceiveRequestListenerList != null && !portReceiveRequestListenerList.isEmpty()) {
@@ -158,8 +135,8 @@ public abstract class PortManager {
      * Param：bytes 发送数据
      * Param：receiveType 接收类型
      */
-    public byte[] send(byte[] bytes, PortReceiveType receiveType) {
-        return send(bytes, receiveType, true, -1, null);
+    public byte[] send(byte[] bytes, PortReceiveType portReceiveType) {
+        return send(bytes, portReceiveType, true, -1, null);
     }
 
     /**
@@ -171,8 +148,8 @@ public abstract class PortManager {
      * Param：what 区分消息
      * Param：receiveResponseCallback 异步发送接收回调
      */
-    public void send(byte[] bytes, PortReceiveType receiveType, int what, PortReceiveCallback portReceiveCallback) {
-        send(bytes, receiveType, false, what, portReceiveCallback);
+    public void send(byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback) {
+        send(bytes, portReceiveType, false, what, portReceiveCallback);
     }
 
     /**
@@ -180,20 +157,19 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送
      * Param：bytes 发送数据
-     * Param：receiveType 接收类型
+     * Param：portReceiveType 串口接收类型
      * Param：isBlockSend 是否阻塞发送
      * Param：what 区分消息
      * Param：receiveResponseCallback 异步发送接收回调
      */
-    private byte[] send(byte[] bytes, PortReceiveType receiveType, boolean isBlockSend, int what, final PortReceiveCallback portReceiveCallback) {
+    private byte[] send(byte[] bytes, PortReceiveType portReceiveType, boolean isBlockSend, int what, final PortReceiveCallback portReceiveCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return null;
         }
         try {
-            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, receiveType, what, getPortParam(), getIPort(), mLinkedBlockingQueue) {
+            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, portReceiveType, what, getPortParam(), getIPort(), mPortReceiveThread) {
                 @Override
                 public void onResponse(int what, byte[] responseDatas) {
-                    mLinkedBlockingQueue.poll();
                     if (portReceiveCallback != null) {
                         portReceiveCallback.onResponse(what, responseDatas);
                     }
@@ -201,7 +177,6 @@ public abstract class PortManager {
 
                 @Override
                 public void onInterrupt(int what, byte[] interruptDatas) {
-                    mLinkedBlockingQueue.poll();
                     if (portReceiveCallback != null) {
                         portReceiveCallback.onInterrupt(what, interruptDatas);
                     }
@@ -209,8 +184,8 @@ public abstract class PortManager {
 
                 @Override
                 public void onTimeout(int what, byte[] sendDatas) {
+                    Log.i(TAG, "onTimeout: ");
                     isStopSend = false;
-                    mLinkedBlockingQueue.poll();
                     if (portReceiveCallback != null) {
                         portReceiveCallback.onTimeout(what, sendDatas);
                     }
@@ -238,10 +213,8 @@ public abstract class PortManager {
 
     public void clearSend() {
         isStopSend = true;
-        if (mLinkedBlockingQueue != null) {
-            mLinkedBlockingQueue.clear();
-            mLinkedBlockingQueue = null;
-        }
+        mPortReceiveThread.reset();
+        mPortReceiveThread.clear();
         if (mExecutorService != null) {
             mExecutorService.shutdownNow();
             mExecutorService = null;
