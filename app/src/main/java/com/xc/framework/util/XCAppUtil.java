@@ -17,6 +17,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.provider.Settings;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -247,6 +248,16 @@ public class XCAppUtil {
             }
         }
         return "";
+    }
+
+    /**
+     * 安装APP
+     *
+     * @param context 上下文
+     * @param file    file
+     */
+    public static void installApp(Context context, File file) {
+        installApp(context, Uri.fromFile(file));
     }
 
     /**
