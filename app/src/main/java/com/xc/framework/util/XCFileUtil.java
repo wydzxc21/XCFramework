@@ -4,6 +4,8 @@ import android.content.Context;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -257,19 +260,29 @@ public class XCFileUtil {
         return false;
     }
 
-
     /**
      * @param content  写入内容
      * @param filePath 文件绝对路径（含后缀名）
      * @return
      * @author ZhangXuanChen
      * @date 2020/2/19
-     * @description 写入文件
+     * @description 写入文本
      */
-    public static boolean writeFile(String content, String filePath) {
+    public static boolean writeText(String content, String filePath) {
+        return writeText(content, new File(filePath));
+    }
+
+    /**
+     * @param content 写入内容
+     * @param file    文件
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 写入文本
+     */
+    public static boolean writeText(String content, File file) {
         try {
-            if (!XCStringUtil.isEmpty(content) && !XCStringUtil.isEmpty(filePath)) {
-                File file = new File(filePath);
+            if (!XCStringUtil.isEmpty(content) && file != null) {
                 if (file.exists() && file.isFile()) {
                     FileOutputStream os = new FileOutputStream(file, true);
                     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
@@ -287,14 +300,53 @@ public class XCFileUtil {
     }
 
     /**
+     * @param bytes    字节数组
      * @param filePath 文件绝对路径（含后缀名）
      * @return
      * @author ZhangXuanChen
      * @date 2020/2/19
-     * @description 读取文件
+     * @description 写入字节数组
      */
-    public static String readFile(String filePath) {
-        return readFile(new File(filePath));
+    public static boolean writeBytes(byte[] bytes, String filePath) {
+        return writeBytes(bytes, new File(filePath));
+    }
+
+    /**
+     * @param bytes 字节数组
+     * @param file  文件
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 写入字节数组
+     */
+    public static boolean writeBytes(byte[] bytes, File file) {
+        try {
+            if (bytes != null && bytes.length > 0 && file != null) {
+                if (file.exists() && file.isFile()) {
+                    FileOutputStream os = new FileOutputStream(file, true);
+                    BufferedOutputStream bos = new BufferedOutputStream(os);
+                    bos.write(bytes);
+                    bos.write("\r\n".getBytes());
+                    bos.close();
+                    os.close();
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * @param filePath 文件绝对路径（含后缀名）
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取文本
+     */
+    public static String readText(String filePath) {
+        return readText(new File(filePath));
     }
 
     /**
@@ -302,9 +354,9 @@ public class XCFileUtil {
      * @return
      * @author ZhangXuanChen
      * @date 2020/2/19
-     * @description 读取文件
+     * @description 读取文本
      */
-    public static String readFile(File file) {
+    public static String readText(File file) {
         try {
             if (file != null) {
                 if (file.exists() && file.isFile()) {
@@ -324,6 +376,47 @@ public class XCFileUtil {
             e.printStackTrace();
         }
         return "";
+    }
+
+    /**
+     * @param filePath 文件绝对路径（含后缀名）
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取字节数组
+     */
+    public static byte[] readBytes(String filePath) {
+        return readBytes(new File(filePath));
+    }
+
+    /**
+     * @param file 文件
+     * @return
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 读取字节数组
+     */
+    public static byte[] readBytes(File file) {
+        try {
+            if (file != null) {
+                if (file.exists() && file.isFile()) {
+                    FileInputStream is = new FileInputStream(file);
+                    BufferedInputStream bis = new BufferedInputStream(is);
+                    ByteBuffer bb = ByteBuffer.allocate((int) file.length());
+                    int len;
+                    byte[] bytes = new byte[1024];
+                    while ((len = bis.read(bytes)) != -1) {
+                        bb.put(bytes, 0, len);
+                    }
+                    bis.close();
+                    is.close();
+                    return bb.array();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

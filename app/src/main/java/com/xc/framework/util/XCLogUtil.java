@@ -102,7 +102,7 @@ public class XCLogUtil {
                 XCFileUtil.createFile(filePath);
             }
         }
-        return XCFileUtil.writeFile(log, filePath);
+        return XCFileUtil.writeText(log, filePath);
     }
 
     /**
@@ -112,7 +112,7 @@ public class XCLogUtil {
      * @description 读取log
      */
     public synchronized static String readLog(String filePath) {
-        return XCFileUtil.readFile(filePath);
+        return XCFileUtil.readText(filePath);
     }
 
     /**
@@ -122,7 +122,7 @@ public class XCLogUtil {
      * @description 读取log
      */
     public synchronized static String readLog(File file) {
-        return XCFileUtil.readFile(file);
+        return XCFileUtil.readText(file);
     }
 
     /**
