@@ -136,7 +136,19 @@ public abstract class PortManager {
      * Param：receiveType 接收类型
      */
     public byte[] send(byte[] bytes, PortReceiveType portReceiveType) {
-        return send(bytes, portReceiveType, true, -1, null);
+        return send(bytes, portReceiveType, true, -1, null, null);
+    }
+
+    /**
+     * Author：ZhangXuanChena
+     * Time：2020/7/11 16:48
+     * Description：串口发送-阻塞
+     * Param：bytes 发送数据
+     * Param：receiveType 接收类型
+     * Param：portReceiveCallback 异步发送接收回调
+     */
+    public byte[] send(byte[] bytes, PortReceiveType portReceiveType, PortMatchCallback portMatchCallback) {
+        return send(bytes, portReceiveType, true, -1, portMatchCallback, null);
     }
 
     /**
@@ -146,10 +158,24 @@ public abstract class PortManager {
      * Param：bytes 发送数据
      * Param：receiveType 接收类型
      * Param：what 区分消息
-     * Param：receiveResponseCallback 异步发送接收回调
+     * Param：portReceiveCallback 异步发送接收回调
      */
     public void send(byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback) {
-        send(bytes, portReceiveType, false, what, portReceiveCallback);
+        send(bytes, portReceiveType, false, what, null, portReceiveCallback);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 16:15
+     * Description：串口发送-异步
+     * Param：bytes 发送数据
+     * Param：receiveType 接收类型
+     * Param：what 区分消息
+     * Param：portMatchCallback 串口接收匹配回调
+     * Param：portReceiveCallback 异步发送接收回调
+     */
+    public void send(byte[] bytes, PortReceiveType portReceiveType, int what, PortMatchCallback portMatchCallback, PortReceiveCallback portReceiveCallback) {
+        send(bytes, portReceiveType, false, what, portMatchCallback, portReceiveCallback);
     }
 
     /**
@@ -160,14 +186,15 @@ public abstract class PortManager {
      * Param：portReceiveType 串口接收类型
      * Param：isBlockSend 是否阻塞发送
      * Param：what 区分消息
-     * Param：receiveResponseCallback 异步发送接收回调
+     * Param：portMatchCallback 串口接收匹配回调
+     * Param：portReceiveCallback 异步发送接收回调
      */
-    private byte[] send(byte[] bytes, PortReceiveType portReceiveType, boolean isBlockSend, int what, final PortReceiveCallback portReceiveCallback) {
+    private byte[] send(byte[] bytes, PortReceiveType portReceiveType, boolean isBlockSend, int what, final PortMatchCallback portMatchCallback, final PortReceiveCallback portReceiveCallback) {
         if (mExecutorService == null || mExecutorService.isShutdown()) {
             return null;
         }
         try {
-            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, portReceiveType, what, getPortParam(), getIPort(), mPortReceiveThread) {
+            Future<byte[]> mFuture = mExecutorService.submit(new PortSendCallable(bytes, portReceiveType, what, getPortParam(), getIPort(), portMatchCallback, mPortReceiveThread) {
                 @Override
                 public void onResponse(int what, byte[] responseDatas) {
                     if (portReceiveCallback != null) {
@@ -184,7 +211,6 @@ public abstract class PortManager {
 
                 @Override
                 public void onTimeout(int what, byte[] sendDatas) {
-                    Log.i(TAG, "onTimeout: ");
                     isStopSend = false;
                     if (portReceiveCallback != null) {
                         portReceiveCallback.onTimeout(what, sendDatas);

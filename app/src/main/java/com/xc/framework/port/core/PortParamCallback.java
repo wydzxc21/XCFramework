@@ -18,13 +18,6 @@ public interface PortParamCallback {
     /**
      * @author ZhangXuanChen
      * @date 2020/3/7
-     * @description 返回是否相匹配
-     */
-    boolean onMatch(byte[] sendDatas, byte[] receiveDatas);
-
-    /**
-     * @author ZhangXuanChen
-     * @date 2020/3/7
      * @description 返回是否为中断
      */
     boolean onInterrupt(byte[] receiveDatas);

@@ -22,6 +22,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private int what;
     private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
+    private PortMatchCallback portMatchCallback;
     private PortReceiveThread portReceiveThread;
     //
     private int sendCount;//发送次数
@@ -32,16 +33,18 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @param what              区分消息
      * @param portParam         串口参数
      * @param iPort             串口工具
+     * @param portMatchCallback 匹配回调
      * @param portReceiveThread 接收线程
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortParam portParam, IPort iPort, PortReceiveThread portReceiveThread) {
+    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortParam portParam, IPort iPort, PortMatchCallback portMatchCallback, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
         this.what = what;
         this.portReceiveType = portReceiveType;
         this.portParam = portParam;
         this.iPort = iPort;
+        this.portMatchCallback = portMatchCallback;
         this.portReceiveThread = portReceiveThread;
     }
 
@@ -127,7 +130,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                 isMatchLog = false;
                 for (int i = receiveList.size() - 1; i >= 0; i--) {
                     byte[] receiveDatas = receiveList.get(i);
-                    if (portParam.portParamCallback != null ? portParam.portParamCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
+                    if (portMatchCallback != null ? portMatchCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
                         return receiveDatas;
                     } else if (!isMatchLog) {
                         isMatchLog = true;
