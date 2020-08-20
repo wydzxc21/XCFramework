@@ -584,25 +584,36 @@ public class DBManager {
             if (cursor == null) {
                 return null;
             }
-            Map<T, List<Object>> mMap = new HashMap<T, List<Object>>();
+            Map<T, List<Object>> mAllMap = new HashMap<T, List<Object>>();
+            Map<String, T> masterTempMap = new HashMap<String, T>();
+            Map<String, Object> slaveTempMap = new HashMap<String, Object>();
             if (cursor.moveToFirst()) {
-                String value = "";
-                List<Object> mList = null;
                 do {
+                    String masterId = cursor.getString(cursor.getColumnIndex(masterClass.getSimpleName() + KEY_ID));
                     T masterObject = parseClassObject(cursor, masterClass.newInstance(), true);
-                    String masterFieldValue = cursor.getString(cursor.getColumnIndex(masterClass.getSimpleName() + masterField));
-                    if (!value.equals(masterFieldValue)) {
-                        mList = new ArrayList<Object>();
-                        mMap.put(masterObject, mList);
-                        value = masterFieldValue;
-                    }
+                    masterTempMap.put(masterId, masterObject);
+                    //
                     for (Class<?> key : slaveMap.keySet()) {
-                        Object slaveObject = parseClassObject(cursor, key.newInstance(), true);
-                        mList.add(slaveObject);
+                        String salveId = cursor.getString(cursor.getColumnIndex(key.getSimpleName() + KEY_ID));
+                        if (!XCStringUtil.isEmpty(salveId)) {
+                            Object slaveObject = parseClassObject(cursor, key.newInstance(), true);
+                            slaveTempMap.put(masterId + "/" + slaveObject.getClass().getSimpleName() + salveId, slaveObject);
+                        }
                     }
                 } while (cursor.moveToNext());
             }
-            return mMap;
+            //
+            for (Map.Entry<String, T> master : masterTempMap.entrySet()) {
+                List<Object> mList = new ArrayList<Object>();
+                for (Map.Entry<String, Object> slave : slaveTempMap.entrySet()) {
+                    String masterId = XCStringUtil.split(slave.getKey(), "/")[0];
+                    if (master.getKey().equals(masterId)) {
+                        mList.add(slave.getValue());
+                    }
+                }
+                mAllMap.put(master.getValue(), mList);
+            }
+            return mAllMap;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -821,7 +832,7 @@ public class DBManager {
      * Param：slaveObjectMap 副类集合
      */
     private String getJoinFieldAliasSql(Class<?> joinClass) {
-        String condition = "";
+        String condition = joinClass.getSimpleName() + "." + KEY_ID + " as " + joinClass.getSimpleName() + KEY_ID + ",";
         Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(joinClass);
         if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
             for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {

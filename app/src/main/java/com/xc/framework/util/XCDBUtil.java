@@ -5,6 +5,7 @@ import android.content.Context;
 import com.xc.framework.db.DBManager;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author ZhangXuanChen
@@ -198,6 +199,32 @@ public class XCDBUtil {
      */
     public static <T> List<T> query(Context context, Class<T> classObject, String sqlStr) {
         return DBManager.getInstance(context).query(classObject, sqlStr);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/20 9:48
+     * Description：左联查询
+     * Param：masterClass 主表类
+     * Param：masterField 主表条件字段
+     * Param：slaveMap 从表类与从表条件字段
+     * Return：java.lang.Object 第一条为主表类数据，之后为从表类数据
+     */
+    public static <T> Map<T, List<Object>> queryLeftJoin(Context context, Class<T> masterClass, String masterField, Map<Class<?>, String> slaveMap) {
+        return DBManager.getInstance(context).queryLeftJoin(masterClass, masterField, slaveMap);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/20 9:48
+     * Description：内联查询
+     * Param：masterClass 主表类
+     * Param：masterField 主表条件字段
+     * Param：slaveMap 从表类与从表条件字段
+     * Return：java.lang.Object 第一条为主表类数据，之后为从表类数据
+     */
+    public static <T> Map<T, List<Object>> queryInnerJoin(Context context, Class<T> masterClass, String masterField, Map<Class<?>, String> slaveMap) {
+        return DBManager.getInstance(context).queryInnerJoin(masterClass, masterField, slaveMap);
     }
 
     /**
