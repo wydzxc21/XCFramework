@@ -257,7 +257,10 @@ public class DBManager {
     public synchronized <T> boolean delete(T classObject) {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         String condition = getKeyEqualValueSql(classObject, "and");
-        String deleteSql = "delete from " + classObject.getClass().getSimpleName() + " where " + condition;
+        String deleteSql = "delete from " + classObject.getClass().getSimpleName();
+        if (!XCStringUtil.isEmpty(condition)) {
+            deleteSql += " where " + condition;
+        }
         if (db != null && !XCStringUtil.isEmpty(deleteSql)) {
             try {
                 db.execSQL(deleteSql);
