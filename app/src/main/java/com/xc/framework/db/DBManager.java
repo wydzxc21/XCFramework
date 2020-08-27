@@ -907,13 +907,12 @@ public class DBManager {
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
                 if (!name.equals(KEY_ID)) {
-                    String getValue = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
-                    if (!XCStringUtil.isEmpty(getValue)) {
-                        // key
-                        key += name + ",";
-                        // value
-                        value += "'" + getValue + "',";
-                    }
+                    // key
+                    String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
+                    String getValue = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
+                    key += name + ",";
+                    // value
+                    value += "'" + getValue + "',";
                 }
             }
             key = key.substring(0, key.length() - 1);
