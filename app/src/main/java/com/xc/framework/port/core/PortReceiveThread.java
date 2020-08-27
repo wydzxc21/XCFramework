@@ -98,15 +98,28 @@ public abstract class PortReceiveThread extends XCThread {
      * Description：最前一组接收帧头索引
      */
     private int getFirstFrameHeadPosition(byte[] cutDatas) {
-        //获取最后一组接收帧头索引
-        frameHeadsType = 1;//响应
-        int firstFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
-        //获取最后一组请求帧头索引
-        if (firstFrameHeadPosition < 0) {
-            frameHeadsType = 2;//请求
-            firstFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
+        //获取最前一组接收帧头索引
+        int responseFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
+        //获取最前一组请求帧头索引
+        int requestFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
+        //返回最前一组帧头
+        if (responseFrameHeadPosition < 0 || requestFrameHeadPosition < 0) {
+            if (responseFrameHeadPosition > requestFrameHeadPosition) {
+                frameHeadsType = 1;//响应
+                return responseFrameHeadPosition;
+            } else {
+                frameHeadsType = 2;//请求
+                return requestFrameHeadPosition;
+            }
+        } else {
+            if (responseFrameHeadPosition < requestFrameHeadPosition) {
+                frameHeadsType = 1;//响应
+                return responseFrameHeadPosition;
+            } else {
+                frameHeadsType = 2;//请求
+                return requestFrameHeadPosition;
+            }
         }
-        return firstFrameHeadPosition;
     }
 
     /**
@@ -124,7 +137,7 @@ public abstract class PortReceiveThread extends XCThread {
             result(splitData[0]);
             splitData(splitData[1]);
         } else {
-            cutDatas = FrameHeadUtil.splitDataByFirstFrameHead(0, 0, cutDatas)[0];//根据最后一组帧头索引分割数据
+            cutDatas = FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0];//根据最后一组帧头索引分割数据
             result(cutDatas);
         }
     }
