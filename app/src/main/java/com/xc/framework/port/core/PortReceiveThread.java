@@ -78,16 +78,13 @@ public abstract class PortReceiveThread extends XCThread {
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
 //            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
-            if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
-                int firstFrameHeadPosition = getFirstFrameHeadPosition(cutDatas);
-                //最终
-                if (firstFrameHeadPosition < 0) {//没有帧头
-                    reset();
-                } else {
-                    splitData(FrameHeadUtil.splitDataByFirstFrameHead(firstFrameHeadPosition, 0, cutDatas)[0]);
+            int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
+            if (length > 0 && cutDatas.length >= length) {
+                if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
+                    splitData(FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0]);
+                } else {//未设置帧头
+                    result(cutDatas);
                 }
-            } else {//未设置帧头
-                result(cutDatas);
             }
         }
     }
@@ -132,11 +129,11 @@ public abstract class PortReceiveThread extends XCThread {
             return;
         }
         int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-        if (length > 0 && length < cutDatas.length) {
+        if (cutDatas.length > length) {
             byte[][] splitData = FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
             result(splitData[0]);
             splitData(splitData[1]);
-        } else {
+        } else if (length == cutDatas.length) {
             cutDatas = FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0];//根据最后一组帧头索引分割数据
             result(cutDatas);
         }
@@ -149,10 +146,6 @@ public abstract class PortReceiveThread extends XCThread {
      */
     private void result(byte[] cutDatas) {
         if (cutDatas == null || cutDatas.length <= 0) {
-            return;
-        }
-        int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-        if (length <= 0 || length > cutDatas.length) {
             return;
         }
         reset();
