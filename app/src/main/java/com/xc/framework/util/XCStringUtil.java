@@ -35,40 +35,25 @@ public class XCStringUtil {
      */
     public static boolean isInt(String intStr) {
         boolean isInt = false;
-        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
         if (!XCStringUtil.isEmpty(intStr)) {
+            Pattern pattern = Pattern.compile("(-|[0-9])[0-9]+");
             isInt = pattern.matcher(intStr).matches();
         }
         return isInt;
     }
 
-
     /**
-     * Author：ZhangXuanChen
-     * Time：2020/4/3 8:22
-     * Description：获取截取字符串
+     * @author ZhangXuanChen
+     * @date 2020/2/8
+     * @description 是否为浮点数
      */
-    public static String[] split(String str, String split) {
-        if (!XCStringUtil.isEmpty(str) && !XCStringUtil.isEmpty(split)) {
-            if (str.contains(split)) {
-                if (split.equals(".")) {
-                    return str.split("\\.");
-                } else if (split.equals("|")) {
-                    return str.split("\\|");
-                } else if (split.equals("*")) {
-                    return str.split("\\*");
-                } else if (split.equals("+")) {
-                    return str.split("\\+");
-                } else if (split.equals("(")) {
-                    return str.split("\\(");
-                } else if (split.equals(")")) {
-                    return str.split("\\)");
-                } else {
-                    return str.split(split);
-                }
-            }
+    public static boolean isFloat(String intStr) {
+        boolean isFloat = false;
+        if (!XCStringUtil.isEmpty(intStr)) {
+            Pattern pattern = Pattern.compile("(-|[0-9])?[0-9]*(\\.?)[0-9]+");
+            isFloat = pattern.matcher(intStr).matches();
         }
-        return null;
+        return isFloat;
     }
 
     /**
@@ -88,8 +73,23 @@ public class XCStringUtil {
     public static int toInt(String intStr) {
         int number = 0;
         if (!XCStringUtil.isEmpty(intStr)) {
-            if (XCStringUtil.isInt(intStr)) {
-                number = Integer.parseInt(intStr);
+            if (isFloat(intStr)) {
+                number = (int) Float.parseFloat(intStr);
+            }
+        }
+        return number;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/7 13:34
+     * Description：转float
+     */
+    public static float toFloat(String floatStr) {
+        float number = 0;
+        if (!XCStringUtil.isEmpty(floatStr)) {
+            if (isFloat(floatStr)) {
+                number = Float.parseFloat(floatStr);
             }
         }
         return number;
@@ -150,6 +150,34 @@ public class XCStringUtil {
         String base64Str = new String(Base64.encodeBase64(decStr.getBytes()));
         base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
         return base64Str;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/4/3 8:22
+     * Description：获取截取字符串
+     */
+    public static String[] split(String str, String split) {
+        if (!XCStringUtil.isEmpty(str) && !XCStringUtil.isEmpty(split)) {
+            if (str.contains(split)) {
+                if (split.equals(".")) {
+                    return str.split("\\.");
+                } else if (split.equals("|")) {
+                    return str.split("\\|");
+                } else if (split.equals("*")) {
+                    return str.split("\\*");
+                } else if (split.equals("+")) {
+                    return str.split("\\+");
+                } else if (split.equals("(")) {
+                    return str.split("\\(");
+                } else if (split.equals(")")) {
+                    return str.split("\\)");
+                } else {
+                    return str.split(split);
+                }
+            }
+        }
+        return null;
     }
 
     /**
