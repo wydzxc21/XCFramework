@@ -36,7 +36,7 @@ public class XCStringUtil {
     public static boolean isInt(String intStr) {
         boolean isInt = false;
         if (!XCStringUtil.isEmpty(intStr)) {
-            Pattern pattern = Pattern.compile("(-|[0-9])[0-9]+");
+            Pattern pattern = Pattern.compile("^-?[1-9]+[0-9]*$|^0$");
             isInt = pattern.matcher(intStr).matches();
         }
         return isInt;
