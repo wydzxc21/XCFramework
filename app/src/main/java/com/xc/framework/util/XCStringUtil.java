@@ -36,7 +36,7 @@ public class XCStringUtil {
     public static boolean isInt(String intStr) {
         boolean isInt = false;
         if (!XCStringUtil.isEmpty(intStr)) {
-            Pattern pattern = Pattern.compile("^-?[1-9]+[0-9]*$|^0$");
+            Pattern pattern = Pattern.compile("^-?\\d+$");
             isInt = pattern.matcher(intStr).matches();
         }
         return isInt;
@@ -50,7 +50,7 @@ public class XCStringUtil {
     public static boolean isFloat(String intStr) {
         boolean isFloat = false;
         if (!XCStringUtil.isEmpty(intStr)) {
-            Pattern pattern = Pattern.compile("(-|[0-9])?[0-9]*(\\.?)[0-9]+");
+            Pattern pattern = Pattern.compile("^(-?\\d+)(\\.\\d+)?$");
             isFloat = pattern.matcher(intStr).matches();
         }
         return isFloat;

@@ -1,11 +1,15 @@
 package com.xc.framework.port.core;
 
+import com.xc.framework.util.XCByteUtil;
+
+import java.util.ArrayList;
+
 /**
  * Date：2020/5/19
  * Author：ZhangXuanChen
- * Description：帧头工具
+ * Description：串口帧工具
  */
-public class FrameHeadUtil {
+public class PortFrameUtil {
 
     /**
      * @author ZhangXuanChen
@@ -55,4 +59,20 @@ public class FrameHeadUtil {
         }
         return headerPosition;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/9/7 15:47
+     * Description：removeBytes
+     */
+    public static void removeBytes(byte[] bytes, ArrayList<byte[]> mList) {
+        if (bytes != null && bytes.length > 0 && mList != null && !mList.isEmpty()) {
+            for (int i = mList.size() - 1; i >= 0; i--) {
+                if (XCByteUtil.equals(bytes, mList.get(i))) {
+                    mList.remove(i);
+                }
+            }
+        }
+    }
+
 }

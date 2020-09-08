@@ -22,29 +22,29 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private int what;
     private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
-    private PortMatchCallback portMatchCallback;
+    private PortFilterCallback portFilterCallback;
     private PortReceiveThread portReceiveThread;
     //
     private int sendCount;//发送次数
 
     /**
-     * @param sendDatas         发送数据
-     * @param portReceiveType   接收类型
-     * @param what              区分消息
-     * @param portParam         串口参数
-     * @param iPort             串口工具
-     * @param portMatchCallback 匹配回调
-     * @param portReceiveThread 接收线程
+     * @param sendDatas          发送数据
+     * @param portReceiveType    接收类型
+     * @param what               区分消息
+     * @param portFilterCallback 过滤回调
+     * @param iPort              串口工具
+     * @param portParam          串口参数
+     * @param portReceiveThread  接收线程
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortParam portParam, IPort iPort, PortMatchCallback portMatchCallback, PortReceiveThread portReceiveThread) {
+    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback, IPort iPort, PortParam portParam, PortReceiveThread portReceiveThread) {
         this.sendDatas = sendDatas;
-        this.what = what;
         this.portReceiveType = portReceiveType;
-        this.portParam = portParam;
+        this.what = what;
+        this.portFilterCallback = portFilterCallback;
         this.iPort = iPort;
-        this.portMatchCallback = portMatchCallback;
+        this.portParam = portParam;
         this.portReceiveThread = portReceiveThread;
     }
 
@@ -58,6 +58,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                     sendMessage(0x123, receiveDatas);
                 } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
                     sendMessage(0x234, receiveDatas);
+                } else if (portReceiveType == PortReceiveType.NULL) {
+                    Log.i(TAG, "call: ");
                 }
             } else {//超时
                 sendMessage(0x345);
@@ -90,7 +92,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      */
     private byte[] writeDatas() throws InterruptedException {
         sendCount++;
-        portReceiveThread.clear();
         if (sendCount <= portParam.getResendCount()) {
             iPort.writePort(sendDatas);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
@@ -101,7 +102,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                         receiveDatas = waitReceive(PortReceiveType.Interrupt);
                     }
                     return receiveDatas;
-                } else if (!isStopSend()) {//重发
+                } else if (!isClearSend()) {//重发
                     writeDatas();
                 }
             }
@@ -127,14 +128,15 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             if (receiveList != null && !receiveList.isEmpty()) {
                 for (int i = receiveList.size() - 1; i >= 0; i--) {
                     byte[] receiveDatas = receiveList.get(i);
-                    if (portMatchCallback != null ? portMatchCallback.onMatch(sendDatas, receiveDatas) : true) {//判断指令正确性
+                    if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
+                        portReceiveThread.remove(receiveDatas);
                         return receiveDatas;
                     }
                 }
             }
             Thread.sleep(1);
         }
-        while (!isStopSend() && System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
+        while (!isClearSend() && System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
         return null;
     }
 
@@ -162,8 +164,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     /**
      * Author：ZhangXuanChen
      * Time：2020/3/10 11:18
-     * Description：isStopSend
+     * Description：isClearSend
      */
-    public abstract boolean isStopSend();
+    public abstract boolean isClearSend();
 
 }

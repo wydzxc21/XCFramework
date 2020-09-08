@@ -150,4 +150,24 @@ public class XCByteUtil {
         }
         return value;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/9/7 15:58
+     * Description：比对
+     */
+    public static boolean equals(byte[] mainBytes, byte[] otherBytes) {
+        if (mainBytes == null || mainBytes.length <= 0 || otherBytes == null || otherBytes.length <= 0) {
+            return false;
+        }
+        if (mainBytes.length != otherBytes.length) {
+            return false;
+        }
+        for (int i = 0; i < mainBytes.length; i++) {
+            if (mainBytes[i] != otherBytes[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

@@ -77,11 +77,11 @@ public abstract class PortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-//            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
+            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
             int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
             if (length > 0 && cutDatas.length >= length) {
                 if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
-                    splitData(FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0]);
+                    splitData(PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0]);
                 } else {//未设置帧头
                     result(cutDatas);
                 }
@@ -96,9 +96,9 @@ public abstract class PortReceiveThread extends XCThread {
      */
     private int getFirstFrameHeadPosition(byte[] cutDatas) {
         //获取最前一组接收帧头索引
-        int responseFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
+        int responseFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
         //获取最前一组请求帧头索引
-        int requestFrameHeadPosition = FrameHeadUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
+        int requestFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
         //返回最前一组帧头
         if (responseFrameHeadPosition < 0 || requestFrameHeadPosition < 0) {
             if (responseFrameHeadPosition > requestFrameHeadPosition) {
@@ -130,11 +130,11 @@ public abstract class PortReceiveThread extends XCThread {
         }
         int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
         if (cutDatas.length > length) {
-            byte[][] splitData = FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
+            byte[][] splitData = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
             result(splitData[0]);
             splitData(splitData[1]);
         } else if (length == cutDatas.length) {
-            cutDatas = FrameHeadUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0];//根据最后一组帧头索引分割数据
+            cutDatas = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0];//根据最后一组帧头索引分割数据
             result(cutDatas);
         }
     }
@@ -186,6 +186,17 @@ public abstract class PortReceiveThread extends XCThread {
             interruptList.clear();
         }
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/9/7 15:47
+     * Description：remove
+     */
+    public void remove(byte[] bytes) {
+        PortFrameUtil.removeBytes(bytes, responseList);
+        PortFrameUtil.removeBytes(bytes, interruptList);
+    }
+
 
     /**
      * Author：ZhangXuanChen
