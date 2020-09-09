@@ -77,7 +77,7 @@ public abstract class PortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
+//            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
             int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
             if (length > 0 && cutDatas.length >= length) {
                 if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
@@ -169,22 +169,8 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2020/3/10 14:51
      * Description：reset
      */
-    public void reset() {
+    public synchronized void reset() {
         bufferPosition = 0;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/17 13:14
-     * Description：clear
-     */
-    public void clear() {
-        if (responseList != null) {
-            responseList.clear();
-        }
-        if (interruptList != null) {
-            interruptList.clear();
-        }
     }
 
     /**
@@ -192,11 +178,24 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2020/9/7 15:47
      * Description：remove
      */
-    public void remove(byte[] bytes) {
-        PortFrameUtil.removeBytes(bytes, responseList);
-        PortFrameUtil.removeBytes(bytes, interruptList);
+    public synchronized void remove(byte[] bytes) {
+        PortFrameUtil.remove(bytes, responseList);
+        PortFrameUtil.remove(bytes, interruptList);
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/17 13:14
+     * Description：clear
+     */
+    public synchronized void clear() {
+        if (responseList != null) {
+            responseList.clear();
+        }
+        if (interruptList != null) {
+            interruptList.clear();
+        }
+    }
 
     /**
      * Author：ZhangXuanChen

@@ -63,9 +63,9 @@ public class PortFrameUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/9/7 15:47
-     * Description：removeBytes
+     * Description：remove
      */
-    public static void removeBytes(byte[] bytes, ArrayList<byte[]> mList) {
+    public static void remove(byte[] bytes, ArrayList<byte[]> mList) {
         if (bytes != null && bytes.length > 0 && mList != null && !mList.isEmpty()) {
             for (int i = mList.size() - 1; i >= 0; i--) {
                 if (XCByteUtil.equals(bytes, mList.get(i))) {
