@@ -6,6 +6,8 @@ import com.xc.framework.util.XCByteUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -23,7 +25,9 @@ public abstract class PortManager {
     private List<OnPortReceiveRequestListener> portReceiveRequestListenerList;//接收请求监听集合
     private PortReceiveThread mPortReceiveThread;//接收线程
     private ExecutorService queueSendPool;//队列发送线程池
+    private CompletionService<byte[]> queueSendService;//队列发送服务
     private ExecutorService directSendPool;//直接发送线程池
+    private CompletionService<byte[]> directSendService;//直接发送服务
     private boolean isOpen = false;//是否打开串口
     boolean isClearSend;//是否清空发送
 
@@ -52,7 +56,9 @@ public abstract class PortManager {
      */
     private void initPool() {
         queueSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
+        queueSendService = new ExecutorCompletionService(queueSendPool);
         directSendPool = Executors.newCachedThreadPool();
+        directSendService = new ExecutorCompletionService(directSendPool);
     }
 
     /**
@@ -236,14 +242,20 @@ public abstract class PortManager {
         try {
             Future<byte[]> mFuture;
             if (portSendType == PortSendType.Queue) {
-                mFuture = queueSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+                queueSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+                mFuture = queueSendService.take();
             } else {
-                mFuture = directSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+                directSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+                mFuture = directSendService.take();
             }
             if (isBlockSend) {
+                while (!mFuture.isDone()) {
+                    Thread.sleep(1);
+                }
                 return mFuture.get();
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
