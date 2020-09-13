@@ -203,7 +203,6 @@ public class DBManager {
         }
     }
 
-
     /**
      * 插入
      *
@@ -213,7 +212,20 @@ public class DBManager {
     public synchronized <T> boolean insert(T classObject) {
         List<T> classObjectList = new ArrayList<T>();
         classObjectList.add(classObject);
-        return insert(classObjectList);
+        return insert(classObjectList, null);
+    }
+
+    /**
+     * 插入
+     *
+     * @param classObject     类对象,操作以该对象类名创建的表,反射get方法获取插入数据,只支持String变量(完全相同的数据不会重复插入)
+     * @param conditionObject 条件对象，存在不插入
+     * @return
+     */
+    public synchronized <T> boolean insert(T classObject, T conditionObject) {
+        List<T> classObjectList = new ArrayList<T>();
+        classObjectList.add(classObject);
+        return insert(classObjectList, conditionObject);
     }
 
     /**
@@ -223,6 +235,17 @@ public class DBManager {
      * @return
      */
     public synchronized <T> boolean insert(List<T> classObjectList) {
+        return insert(classObjectList, null);
+    }
+
+    /**
+     * 插入
+     *
+     * @param classObjectList 类对象集合,操作以该对象类名创建的表,反射get方法获取插入数据,只支持String变量(完全相同的数据不会重复插入)
+     * @param conditionObject 条件对象，存在不插入
+     * @return
+     */
+    private synchronized <T> boolean insert(List<T> classObjectList, T conditionObject) {
         if (classObjectList == null || classObjectList.isEmpty()) {
             return false;
         }
@@ -230,7 +253,7 @@ public class DBManager {
             createTable(classObjectList.get(0).getClass());
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String insertSql = getInsertSql(classObjectList);
+        String insertSql = getInsertSql(classObjectList, conditionObject);
         if (db == null || XCStringUtil.isEmpty(insertSql)) {
             return false;
         }
@@ -711,7 +734,7 @@ public class DBManager {
      * Time：2020/5/22 15:28
      * Description：获取插入sql语句
      */
-    private <T> String getInsertSql(List<T> classObjectList) {
+    private <T> String getInsertSql(List<T> classObjectList, T conditionObject) {
         if (classObjectList != null && !classObjectList.isEmpty()) {
             String key = "";
             String value = "";
@@ -720,10 +743,22 @@ public class DBManager {
                 if (i == 0) {
                     key = "(" + keyAndValueSql[0] + ")";
                 }
-                value += "(" + keyAndValueSql[1] + "),";
+                if (conditionObject != null) {
+                    value += "" + keyAndValueSql[1] + ",";
+                } else {
+                    value += "(" + keyAndValueSql[1] + "),";
+                }
             }
             value = value.substring(0, value.length() - 1);
-            return "insert into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
+            String insertSql;
+            String querySql = "";
+            if (conditionObject != null) {
+                insertSql = "insert into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
+                querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null) + " )";
+            } else {
+                insertSql = "insert into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
+            }
+            return insertSql + querySql;
         }
         return "";
     }
@@ -757,7 +792,7 @@ public class DBManager {
                 }
             }
             value = value.substring(0, value.length() - 1);
-            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
+            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in ('" + value + "')";
         }
         return "";
     }

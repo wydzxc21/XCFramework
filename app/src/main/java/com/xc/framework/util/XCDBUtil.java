@@ -105,6 +105,18 @@ public class XCDBUtil {
      * 插入
      *
      * @param context         上下文
+     * @param classObject     类对象,操作以该对象类名创建的表,反射get方法获取插入数据,只支持String变量(完全相同的数据不会重复插入)
+     * @param conditionObject 条件对象，存在不插入
+     * @return 是否成功
+     */
+    public static <T> boolean insert(Context context, T classObject, T conditionObject) {
+        return DBManager.getInstance(context).insert(classObject, conditionObject);
+    }
+
+    /**
+     * 插入
+     *
+     * @param context         上下文
      * @param classObjectList 类对象集合,操作以该对象类名创建的表,反射get方法获取插入数据,只支持String变量(完全相同的数据不会重复插入)
      * @return 是否成功
      */
