@@ -785,14 +785,14 @@ public class DBManager {
                             key = name;
                             String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), primitiveName);
                             if (!XCStringUtil.isEmpty(tempVal)) {
-                                value += tempVal + ",";
+                                value += "'" + tempVal + "',";
                             }
                         }
                     }
                 }
             }
             value = value.substring(0, value.length() - 1);
-            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in ('" + value + "')";
+            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
         }
         return "";
     }
