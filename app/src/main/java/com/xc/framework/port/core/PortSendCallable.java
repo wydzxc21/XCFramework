@@ -24,6 +24,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private IPort iPort;//串口工具
     private PortFilterCallback portFilterCallback;
     private PortReceiveThread portReceiveThread;
+    private byte[] receiveDatas;
     //
     private int sendCount;//发送次数
 
@@ -50,16 +51,14 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
 
     @Override
     public byte[] call() throws Exception {
-        byte[] receiveDatas = null;
         try {
-            receiveDatas = writeDatas();
+            writeDatas();
             if (receiveDatas != null && receiveDatas.length > 0) {
                 if (portReceiveType == PortReceiveType.Response) {//响应
                     sendMessage(0x123, receiveDatas);
                 } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
                     sendMessage(0x234, receiveDatas);
                 } else if (portReceiveType == PortReceiveType.NULL) {
-                    Log.i(TAG, "call: ");
                 }
             } else {//超时
                 sendMessage(0x345);
@@ -90,24 +89,22 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @date 2020/3/8
      * @description writeDatas
      */
-    private byte[] writeDatas() throws InterruptedException {
+    private void writeDatas() throws InterruptedException {
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
             iPort.writePort(sendDatas);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             if (portReceiveType == PortReceiveType.Response || portReceiveType == PortReceiveType.Interrupt) {//等待响应or中断
-                byte[] receiveDatas = waitReceive(PortReceiveType.Response);//先等响应
+                receiveDatas = waitReceive(PortReceiveType.Response);//先等响应
                 if (receiveDatas != null && receiveDatas.length > 0) {
                     if (portReceiveType == PortReceiveType.Interrupt) {//中断请求
                         receiveDatas = waitReceive(PortReceiveType.Interrupt);
                     }
-                    return receiveDatas;
                 } else if (!isClearSend()) {//重发
                     writeDatas();
                 }
             }
         }
-        return null;
     }
 
     /**

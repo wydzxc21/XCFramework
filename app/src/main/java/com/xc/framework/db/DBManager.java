@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.xc.framework.bean.FieldBean;
 import com.xc.framework.util.XCBeanUtil;
 import com.xc.framework.util.XCStringUtil;
 
@@ -677,24 +678,26 @@ public class DBManager {
      */
     private <T> T parseClassObject(Cursor cursor, T classObject, boolean isAlias) {
         try {
-            Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObject.getClass());
             T newClassObject = (T) classObject.getClass().newInstance();
-            if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                    String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                    String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+            List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
+            if (fieldList != null && !fieldList.isEmpty()) {
+                for (FieldBean entity : fieldList) {
+                    String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                    String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                     //优先采用别名，无别名再采用原名
-                    String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                    String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                     // key
                     String key;
                     if (isAlias) {
                         key = classObject.getClass().getSimpleName() + name;
+                    } else if (entity.isKeyId()) {
+                        key = KEY_ID;
                     } else {
                         key = name;
                     }
                     // value
                     String value = cursor.getString(cursor.getColumnIndex(key));
-                    XCBeanUtil.invokeSetMethod(newClassObject, primitiveName, value);
+                    XCBeanUtil.invokeSetMethod(newClassObject, original, value);
                 }
             }
             return newClassObject;
@@ -714,13 +717,13 @@ public class DBManager {
      */
     private String getCreateTableSql(Class<?> tableClass) {
         String sql = "";
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(tableClass);
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(tableClass);
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 if (!name.equals(KEY_ID)) {
                     sql += "," + name + " text";
                 }
@@ -773,17 +776,17 @@ public class DBManager {
             String key = "";
             String value = "";
             for (int i = 0; i < classObjectList.size(); i++) {
-                Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObjectList.get(i).getClass());
-                if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-                    for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                        String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                        String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+                List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObjectList.get(i).getClass());
+                if (fieldList != null && !fieldList.isEmpty()) {
+                    for (FieldBean entity : fieldList) {
+                        String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                        String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                         //优先采用别名，无别名再采用原名
-                        String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
-                        if (field.equals(primitiveName) || field.equals(aliasName)) {
+                        String name = !XCStringUtil.isEmpty(alias) ? alias : original;
+                        if (field.equals(original) || field.equals(alias)) {
                             // key
                             key = name;
-                            String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), primitiveName);
+                            String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), original);
                             if (!XCStringUtil.isEmpty(tempVal)) {
                                 value += "'" + tempVal + "',";
                             }
@@ -871,13 +874,13 @@ public class DBManager {
      */
     private String getJoinFieldAliasSql(Class<?> joinClass) {
         String condition = joinClass.getSimpleName() + "." + KEY_ID + " as " + joinClass.getSimpleName() + KEY_ID + ",";
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(joinClass);
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(joinClass);
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 // key
                 String key = name;
                 //
@@ -899,17 +902,17 @@ public class DBManager {
      */
     private static String getKeyEqualValueSql(Object classObject, String connectFlag) {
         String condition = "";
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObject.getClass());
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 // key
                 String key = name;
                 // value
-                String value = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
+                String value = "" + XCBeanUtil.invokeGetMethod(classObject, original);
                 if (!XCStringUtil.isEmpty(value)) {
                     condition += key + " = '" + value + "' " + connectFlag + " ";
                 }
@@ -934,19 +937,19 @@ public class DBManager {
     private String[] getKeyAndValueSql(Object classObject) {
         String key = "";
         String value = "";
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObject.getClass());
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 if (!name.equals(KEY_ID)) {
                     // key
-                    String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
-                    String getValue = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
                     key += name + ",";
                     // value
+                    String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, original);
+                    String getValue = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
                     value += "'" + getValue + "',";
                 }
             }

@@ -3,10 +3,11 @@ package com.xc.framework.sp;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.xc.framework.bean.FieldBean;
 import com.xc.framework.util.XCBeanUtil;
 import com.xc.framework.util.XCStringUtil;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author ZhangXuanChen
@@ -67,14 +68,14 @@ public class SPManager {
      * @description 保存
      */
     public <T> void save(T classObject) {
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(classObject.getClass());
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
-                String value = "" + XCBeanUtil.invokeGetMethod(classObject, primitiveName);
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
+                String value = "" + XCBeanUtil.invokeGetMethod(classObject, original);
                 sp.edit().putString(classObject.getClass().getSimpleName() + name, value).commit();
             }
         }
@@ -99,21 +100,19 @@ public class SPManager {
         T info = null;
         try {
             info = (T) objectClass.newInstance();
-            //
-            Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(objectClass);
-            if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                    String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                    String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+            List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
+            if (fieldList != null && !fieldList.isEmpty()) {
+                for (FieldBean entity : fieldList) {
+                    String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                    String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                     //优先采用别名，无别名再采用原名
-                    String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                    String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                     if (!XCStringUtil.isEmpty(name)) {
                         String value = sp.getString(objectClass.getSimpleName() + name, "");
-                        XCBeanUtil.invokeSetMethod(info, primitiveName, !XCStringUtil.isEmpty(value) ? value : "");//赋值给原名
+                        XCBeanUtil.invokeSetMethod(info, original, !XCStringUtil.isEmpty(value) ? value : "");//赋值给原名
                     }
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,13 +125,13 @@ public class SPManager {
      * @description clear
      */
     public <T> void clear(Class<T> objectClass) {
-        Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(objectClass);
-        if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-            for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 sp.edit().putString(objectClass.getSimpleName() + name, "").commit();
             }
         }

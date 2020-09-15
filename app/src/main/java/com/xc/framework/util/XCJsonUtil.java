@@ -1,11 +1,12 @@
 package com.xc.framework.util;
 
+import com.xc.framework.bean.FieldBean;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author ZhangXuanChen
@@ -139,16 +140,16 @@ public class XCJsonUtil {
 					if (!XCStringUtil.isEmpty(jsonObjectName) && !jsonObject.isNull(jsonObjectName)) {
 						jsonObject = jsonObject.optJSONObject(jsonObjectName);
 					}
-					Map<String, String> fieldNameMap = XCBeanUtil.getFieldNameMap(objectClass);
-					if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-						for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-							String primitiveName = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-							String aliasName = !XCStringUtil.isEmpty(entry.getValue()) ? entry.getValue() : "";
-							//有限采用别名，无别用再采用原名
-							String name = !XCStringUtil.isEmpty(aliasName) ? aliasName : primitiveName;
+					List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
+					if (fieldList != null && !fieldList.isEmpty()) {
+						for (FieldBean entity : fieldList) {
+							String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+							String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
+							//优先采用别名，无别名再采用原名
+							String name = !XCStringUtil.isEmpty(alias) ? alias : original;
 							if (!XCStringUtil.isEmpty(name) && !jsonObject.isNull(name)) {
 								String value = jsonObject.optString(name, "");
-								XCBeanUtil.invokeSetMethod(info, primitiveName, !XCStringUtil.isEmpty(value) ? value : "");//赋值给原名
+								XCBeanUtil.invokeSetMethod(info, original, !XCStringUtil.isEmpty(value) ? value : "");//赋值给原名
 							}
 						}
 					}

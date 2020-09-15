@@ -1,18 +1,16 @@
 package com.xc.framework.util;
 
-import android.util.ArrayMap;
-
 import com.xc.framework.annotation.FieldAlias;
 import com.xc.framework.annotation.FieldIgnore;
 import com.xc.framework.annotation.FieldKeyId;
-import com.xc.framework.db.DBManager;
+import com.xc.framework.annotation.FieldUnique;
+import com.xc.framework.bean.FieldBean;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author ZhangXuanChen
@@ -26,35 +24,13 @@ public class XCBeanUtil {
      * 获取bean成员变量名集合
      *
      * @param objectClass 实体类
-     * @return 变量名集合(只含原字段名)
+     * @return 变量名集合
      */
-    public static List<String> getFieldNameList(Class<?> objectClass) {
-        List<String> mList = null;
-        if (objectClass != null) {
-            Map<String, String> fieldNameMap = getFieldNameMap(objectClass);
-            if (fieldNameMap != null && !fieldNameMap.isEmpty()) {
-                mList = new ArrayList<String>();
-                for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
-                    String name = !XCStringUtil.isEmpty(entry.getKey()) ? entry.getKey() : "";
-                    mList.add(name);
-                }
-            }
-        }
-        return mList;
-    }
-
-    /**
-     * 获取bean成员变量名集合
-     *
-     * @param objectClass 实体类
-     * @return 变量名集合（含原字段名、别名）
-     * @deprecated key: 原名 value: 别名
-     */
-    public static Map<String, String> getFieldNameMap(Class<?> objectClass) {
-        Map<String, String> mMap = null;
+    public static List<FieldBean> getFieldList(Class<?> objectClass) {
+        List<FieldBean> mList = null;
         if (objectClass != null) {
             try {
-                mMap = new ArrayMap<String, String>();
+                mList = new ArrayList<FieldBean>();
                 Class<?> tempClass = objectClass;
                 while (tempClass != null) {
                     Field[] fields = tempClass.getDeclaredFields();
@@ -67,15 +43,27 @@ public class XCBeanUtil {
                                 String change = "$";// studio 2.0以上反射多出参数:$change
                                 String name = field.getName() != null ? field.getName() : "";
                                 if (!name.equals(tag) && !name.equals(filter) && !name.contains(change)) {
-                                    boolean isFieldIgnore = field.isAnnotationPresent(FieldIgnore.class);//忽略字段
-                                    if (!isFieldIgnore) {
+                                    boolean isIgnore = field.isAnnotationPresent(FieldIgnore.class); //忽略字段
+                                    if (!isIgnore) {
+                                        FieldBean mFieldBean = new FieldBean();
+                                        //原名
+                                        mFieldBean.setOriginal(name);
+                                        //别名
+                                        FieldAlias alias = field.getAnnotation(FieldAlias.class);
+                                        if (alias != null) {
+                                            mFieldBean.setAlias(!XCStringUtil.isEmpty(alias.value()) ? alias.value() : "");
+                                        }
+                                        //反射主键
                                         FieldKeyId keyId = field.getAnnotation(FieldKeyId.class);
                                         if (keyId != null) {
-                                            mMap.put(name, DBManager.KEY_ID);
-                                        } else {
-                                            FieldAlias alias = field.getAnnotation(FieldAlias.class);
-                                            mMap.put(name, alias != null ? !XCStringUtil.isEmpty(alias.value()) ? alias.value() : "" : "");
+                                            mFieldBean.setKeyId(true);
                                         }
+                                        //唯一约束
+                                        FieldUnique unique = field.getAnnotation(FieldUnique.class);
+                                        if (unique != null) {
+                                            mFieldBean.setUnique(true);
+                                        }
+                                        mList.add(mFieldBean);
                                     }
                                 }
                             }
@@ -87,8 +75,55 @@ public class XCBeanUtil {
             } catch (Exception e) {
             }
         }
-        return mMap;
+        return mList;
     }
+
+//    /**
+//     * 获取bean成员变量名集合
+//     *
+//     * @param objectClass 实体类
+//     * @return 变量名集合（含原字段名、别名）
+//     * @deprecated key: 原名 value: 别名
+//     */
+//    public static Map<String, String> getFieldNameMap(Class<?> objectClass) {
+//        Map<String, String> mMap = null;
+//        if (objectClass != null) {
+//            try {
+//                mMap = new ArrayMap<String, String>();
+//                Class<?> tempClass = objectClass;
+//                while (tempClass != null) {
+//                    Field[] fields = tempClass.getDeclaredFields();
+//                    if (fields != null && fields.length > 0) {
+//                        for (int i = 0; i < fields.length; i++) {
+//                            Field field = fields[i];
+//                            if (field != null) {
+//                                String tag = "TAG";//tag
+//                                String filter = "serialVersionUID";// 序列化变量
+//                                String change = "$";// studio 2.0以上反射多出参数:$change
+//                                String name = field.getName() != null ? field.getName() : "";
+//                                if (!name.equals(tag) && !name.equals(filter) && !name.contains(change)) {
+//                                    boolean isFieldIgnore = field.isAnnotationPresent(FieldIgnore.class);//忽略字段
+//                                    if (!isFieldIgnore) {
+//                                        FieldKeyId keyId = field.getAnnotation(FieldKeyId.class);
+//                                        if (keyId != null) {
+//                                            mMap.put(name, DBManager.KEY_ID);
+//                                        } else {
+//                                            FieldAlias alias = field.getAnnotation(FieldAlias.class);
+//                                            mMap.put(name, alias != null ? !XCStringUtil.isEmpty(alias.value()) ? alias.value() : "" : "");
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    //
+//                    tempClass = tempClass.getSuperclass();//递归父类
+//                }
+//            } catch (Exception e) {
+//            }
+//        }
+//        return mMap;
+//    }
 
     /**
      * 获取get方法
