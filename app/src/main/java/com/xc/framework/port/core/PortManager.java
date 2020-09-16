@@ -263,12 +263,15 @@ public abstract class PortManager {
             Future<byte[]> mFuture;
             if (portSendType == PortSendType.Queue) {
                 queueSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
-                mFuture = queueSendService.take();
             } else {
                 directSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
-                mFuture = directSendService.take();
             }
             if (isBlockSend) {
+                if (portSendType == PortSendType.Queue) {
+                    mFuture = queueSendService.take();
+                } else {
+                    mFuture = directSendService.take();
+                }
                 while (!mFuture.isDone()) {
                     Thread.sleep(1);
                 }
