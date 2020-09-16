@@ -123,9 +123,7 @@ public class XCByteUtil {
         if (bytes == null || bytes.length <= 0) {
             return "";
         }
-        String base64Str = new String(Base64.encodeBase64(bytes));
-        base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
-        return base64Str;
+        return new String(Base64.encodeBase64(bytes));
     }
 
     /**

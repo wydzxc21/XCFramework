@@ -147,9 +147,7 @@ public class XCStringUtil {
         if (XCStringUtil.isEmpty(decStr)) {
             return "";
         }
-        String base64Str = new String(Base64.encodeBase64(decStr.getBytes()));
-        base64Str = base64Str.replaceAll("\\+", "-").replaceAll("/", "_").replaceAll("%", "_").replaceAll("=", "");
-        return base64Str;
+        return new String(Base64.encodeBase64(decStr.getBytes()));
     }
 
     /**
@@ -186,18 +184,35 @@ public class XCStringUtil {
      * Description：压缩
      */
     public static String compress(String str) {
+        if (XCStringUtil.isEmpty(str)) {
+            return "";
+        }
+        ByteArrayOutputStream out = null;
+        GZIPOutputStream gzip = null;
+        String compressStr = "";
         try {
-            if (!XCStringUtil.isEmpty(str)) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                GZIPOutputStream gzip = new GZIPOutputStream(out);
-                gzip.write(str.getBytes());
-                gzip.close();
-                return out.toString("ISO-8859-1");
-            }
+            out = new ByteArrayOutputStream();
+            gzip = new GZIPOutputStream(out);
+            gzip.write(str.getBytes());
+            gzip.flush();
+            gzip.finish();
+            gzip.close();
+            compressStr = out.toString("ISO-8859-1");
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (gzip != null) {
+                    gzip.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        return "";
+        return compressStr;
     }
 
     /**
@@ -206,21 +221,35 @@ public class XCStringUtil {
      * Description：解压
      */
     public static String uncompress(String compressStr) {
+        if (XCStringUtil.isEmpty(compressStr)) {
+            return "";
+        }
+        ByteArrayOutputStream out = null;
+        GZIPInputStream gzip = null;
+        String uncompressStr = "";
         try {
-            if (!XCStringUtil.isEmpty(compressStr)) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                ByteArrayInputStream in = new ByteArrayInputStream(compressStr.getBytes("ISO-8859-1"));
-                GZIPInputStream gunzip = new GZIPInputStream(in);
-                byte[] buffer = new byte[256];
-                int n;
-                while ((n = gunzip.read(buffer)) >= 0) {
-                    out.write(buffer, 0, n);
-                }
-                return out.toString();
+            out = new ByteArrayOutputStream();
+            gzip = new GZIPInputStream(new ByteArrayInputStream(compressStr.getBytes("ISO-8859-1")));
+            byte[] buffer = new byte[256];
+            int n;
+            while ((n = gzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
             }
+            uncompressStr = out.toString();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (gzip != null) {
+                    gzip.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        return "";
+        return uncompressStr;
     }
 }

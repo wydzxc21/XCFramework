@@ -22,7 +22,6 @@ public class XCBase64Util {
         if (XCStringUtil.isEmpty(base64Str)) {
             return null;
         }
-        base64Str = base64Str.replaceAll("-", "\\+").replaceAll("_", "/");
         return Base64.decodeBase64(base64Str.getBytes());
     }
 
@@ -33,9 +32,8 @@ public class XCBase64Util {
      */
     public static String toStr(String base64Str) {
         if (XCStringUtil.isEmpty(base64Str)) {
-            return null;
+            return "";
         }
-        base64Str = base64Str.replaceAll("-", "\\+").replaceAll("_", "/");
         return new String(Base64.decodeBase64(base64Str.getBytes()));
     }
 
