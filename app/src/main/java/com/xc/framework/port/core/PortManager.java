@@ -22,7 +22,8 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class PortManager {
     private final String TAG = "PortManager";
-    private List<OnPortReceiveRequestListener> portReceiveRequestListenerList;//接收请求监听集合
+    private List<OnPortSendListener> portSendListenerList;//发送监听集合
+    private List<OnPortReceiveListener> portReceiveListenerList;//接收监听集合
     private PortReceiveThread mPortReceiveThread;//接收线程
     private ExecutorService queueSendPool;//队列发送线程池
     private CompletionService<byte[]> queueSendService;//队列发送服务
@@ -32,7 +33,8 @@ public abstract class PortManager {
     boolean isClearSend;//是否清空发送
 
     public PortManager() {
-        portReceiveRequestListenerList = new ArrayList<OnPortReceiveRequestListener>();
+        portSendListenerList = new ArrayList<OnPortSendListener>();
+        portReceiveListenerList = new ArrayList<OnPortReceiveListener>();
     }
 
     /**
@@ -138,9 +140,20 @@ public abstract class PortManager {
     private void startReceivedThread() {
         mPortReceiveThread = new PortReceiveThread(getPortParam(), getIPort()) {
             @Override
+            public void onResponse(byte[] responseDatas) {
+                if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
+                    for (OnPortReceiveListener listener : portReceiveListenerList) {
+                        if (listener != null) {
+                            listener.onResponse(responseDatas);
+                        }
+                    }
+                }
+            }
+
+            @Override
             public void onRequest(byte[] requestDatas) {
-                if (portReceiveRequestListenerList != null && !portReceiveRequestListenerList.isEmpty()) {
-                    for (OnPortReceiveRequestListener listener : portReceiveRequestListenerList) {
+                if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
+                    for (OnPortReceiveListener listener : portReceiveListenerList) {
                         if (listener != null) {
                             listener.onRequest(requestDatas);
                         }
@@ -163,6 +176,13 @@ public abstract class PortManager {
             @Override
             public void run() {
                 getIPort().writePort(bytes);
+                if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+                    for (OnPortSendListener listener : portSendListenerList) {
+                        if (listener != null) {
+                            listener.onSend(-1, bytes, 1);
+                        }
+                    }
+                }
                 Log.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
             }
         }).start();
@@ -289,6 +309,17 @@ public abstract class PortManager {
             }
 
             @Override
+            public void onSend(int what, byte[] sendDatas, int sendCount) {
+                if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+                    for (OnPortSendListener listener : portSendListenerList) {
+                        if (listener != null) {
+                            listener.onSend(what, sendDatas, sendCount);
+                        }
+                    }
+                }
+            }
+
+            @Override
             public boolean isClearSend() {
                 return isClearSend;
             }
@@ -299,33 +330,66 @@ public abstract class PortManager {
     /**
      * Author：ZhangXuanChen
      * Time：2019/11/26 14:07
-     * Description：设置接收请求监听
+     * Description：设置接收监听
      */
-    public void setOnPortReceiveRequestListener(OnPortReceiveRequestListener onPortReceiveRequestListener) {
-        if (portReceiveRequestListenerList != null) {
-            portReceiveRequestListenerList.add(onPortReceiveRequestListener);
+    public void setOnPortReceiveListener(OnPortReceiveListener onPortReceiveListener) {
+        if (portReceiveListenerList != null) {
+            portReceiveListenerList.add(onPortReceiveListener);
         }
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/14 12:26
-     * Description：移除接收请求监听
+     * Description：移除接收监听
      */
-    public void removeOnPortReceiveRequestListener(OnPortReceiveRequestListener onPortReceiveRequestListener) {
-        if (portReceiveRequestListenerList != null && !portReceiveRequestListenerList.isEmpty()) {
-            portReceiveRequestListenerList.remove(onPortReceiveRequestListener);
+    public void removeOnPortReceiveListener(OnPortReceiveListener onPortReceiveListener) {
+        if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
+            portReceiveListenerList.remove(onPortReceiveListener);
         }
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/14 12:26
-     * Description：清空接收请求监听
+     * Description：清空接收监听
      */
-    public void clearOnPortReceiveRequestListener() {
-        if (portReceiveRequestListenerList != null && !portReceiveRequestListenerList.isEmpty()) {
-            portReceiveRequestListenerList.clear();
+    public void clearOnPortReceiveListener() {
+        if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
+            portReceiveListenerList.clear();
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/26 14:07
+     * Description：设置发送监听
+     */
+    public void setOnPortSendListener(OnPortSendListener onPortSendListener) {
+        if (portSendListenerList != null) {
+            portSendListenerList.add(onPortSendListener);
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/14 12:26
+     * Description：移除发送监听
+     */
+    public void removeOnPortSendListener(OnPortSendListener onPortSendListener) {
+        if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+            portSendListenerList.remove(onPortSendListener);
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/14 12:26
+     * Description：清空发送监听
+     */
+    public void clearOnPortSendListener() {
+        if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+            portSendListenerList.clear();
         }
     }
 }

@@ -60,7 +60,10 @@ public abstract class PortReceiveThread extends XCThread {
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://请求
+            case 0x123://响应
+                onResponse((byte[]) msg.obj);
+                break;
+            case 0x234://请求
                 onRequest((byte[]) msg.obj);
                 break;
         }
@@ -152,6 +155,7 @@ public abstract class PortReceiveThread extends XCThread {
         if (frameHeadsType == 1) {//响应
             Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
             responseList.add(cutDatas);
+            sendMessage(0x123, cutDatas);
         } else if (frameHeadsType == 2) {//请求
             boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
             if (isInterrupt) {//接收中断
@@ -160,7 +164,7 @@ public abstract class PortReceiveThread extends XCThread {
             } else {//接收请求
                 Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
             }
-            sendMessage(0x123, cutDatas);
+            sendMessage(0x234, cutDatas);
         }
     }
 
@@ -214,6 +218,13 @@ public abstract class PortReceiveThread extends XCThread {
     public List<byte[]> getInterruptList() {
         return interruptList;
     }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2019/11/27 15:14
+     * Description：onResponse
+     */
+    public abstract void onResponse(byte[] responseDatas);
 
     /**
      * Author：ZhangXuanChen

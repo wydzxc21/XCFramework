@@ -55,13 +55,13 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             writeDatas();
             if (receiveDatas != null && receiveDatas.length > 0) {
                 if (portReceiveType == PortReceiveType.Response) {//响应
-                    sendMessage(0x123, receiveDatas);
-                } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
                     sendMessage(0x234, receiveDatas);
+                } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
+                    sendMessage(0x345, receiveDatas);
                 } else if (portReceiveType == PortReceiveType.NULL) {
                 }
             } else {//超时
-                sendMessage(0x345);
+                sendMessage(0x456);
             }
         } catch (Exception e) {
         }
@@ -71,13 +71,16 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     @Override
     protected void onHandler(Message msg) {
         switch (msg.what) {
-            case 0x123://响应
+            case 0x123://发送
+                onSend(what, sendDatas, sendCount);
+                break;
+            case 0x234://响应
                 onResponse(what, (byte[]) msg.obj);
                 break;
-            case 0x234://中断
+            case 0x345://中断
                 onInterrupt(what, (byte[]) msg.obj);
                 break;
-            case 0x345://超时
+            case 0x456://超时
                 onTimeout(what, sendDatas);
                 break;
         }
@@ -93,6 +96,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
             iPort.writePort(sendDatas);
+            sendMessage(0x123);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             if (portReceiveType == PortReceiveType.Response || portReceiveType == PortReceiveType.Interrupt) {//等待响应or中断
                 receiveDatas = waitReceive(PortReceiveType.Response);//先等响应
@@ -157,6 +161,13 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：onTimeout
      */
     public abstract void onTimeout(int what, byte[] sendDatas);
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/3/10 11:18
+     * Description：onSend
+     */
+    public abstract void onSend(int what, byte[] sendDatas, int sendCount);
 
     /**
      * Author：ZhangXuanChen

@@ -31,6 +31,10 @@ public class XCTimeUtil {
      */
     public static final String FORMAT_DATE_SECOND = "yyyy-MM-dd HH:mm:ss";
     /**
+     * 日期格式（yyyy-MM-dd HH:mm:ss.SSS）
+     */
+    public static final String FORMAT_DATE_MSEC = "yyyy-MM-dd HH:mm:ss.SSS";
+    /**
      * 日期格式（yyyy-MM-dd E）
      */
     public static final String FORMAT_DATE_WEEK = "yyyy-MM-dd E";
