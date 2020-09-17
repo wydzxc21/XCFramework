@@ -26,7 +26,6 @@ public abstract class PortManager {
     private List<OnPortReceiveListener> portReceiveListenerList;//接收监听集合
     private PortReceiveThread mPortReceiveThread;//接收线程
     private ExecutorService queueSendPool;//队列发送线程池
-    private CompletionService<byte[]> queueSendService;//队列发送服务
     private ExecutorService directSendPool;//直接发送线程池
     private CompletionService<byte[]> directSendService;//直接发送服务
     private boolean isOpen = false;//是否打开串口
@@ -58,7 +57,6 @@ public abstract class PortManager {
      */
     private void initPool() {
         queueSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
-        queueSendService = new ExecutorCompletionService(queueSendPool);
         directSendPool = Executors.newCachedThreadPool();
         directSendService = new ExecutorCompletionService(directSendPool);
     }
@@ -176,6 +174,7 @@ public abstract class PortManager {
             @Override
             public void run() {
                 getIPort().writePort(bytes);
+                Log.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
                 if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
                     for (OnPortSendListener listener : portSendListenerList) {
                         if (listener != null) {
@@ -183,7 +182,6 @@ public abstract class PortManager {
                         }
                     }
                 }
-                Log.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
             }
         }).start();
     }
@@ -260,22 +258,17 @@ public abstract class PortManager {
             return null;
         }
         try {
-            Future<byte[]> mFuture;
+            Future<byte[]> mFuture = null;
             if (portSendType == PortSendType.Queue) {
-                queueSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+                mFuture = queueSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
             } else {
                 directSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
             }
             if (isBlockSend) {
-                if (portSendType == PortSendType.Queue) {
-                    mFuture = queueSendService.take();
-                } else {
+                if (portSendType == PortSendType.Free) {
                     mFuture = directSendService.take();
                 }
-                while (!mFuture.isDone()) {
-                    Thread.sleep(1);
-                }
-                return mFuture.get();
+                return mFuture != null ? mFuture.get() : null;
             }
         } catch (Exception e) {
             e.printStackTrace();
