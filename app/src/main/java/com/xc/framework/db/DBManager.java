@@ -725,7 +725,11 @@ public class DBManager {
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 if (!name.equals(KEY_ID)) {
-                    sql += "," + name + " text";
+                    if (entity.isUnique()) {
+                        sql += "," + name + " text not null unique";
+                    } else {
+                        sql += "," + name + " text not null";
+                    }
                 }
             }
         }
@@ -756,10 +760,10 @@ public class DBManager {
             String insertSql;
             String querySql = "";
             if (conditionObject != null) {
-                insertSql = "insert into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
+                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
                 querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null) + " )";
             } else {
-                insertSql = "insert into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
+                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
             }
             return insertSql + querySql;
         }
