@@ -726,9 +726,9 @@ public class DBManager {
                 String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 if (!name.equals(KEY_ID)) {
                     if (entity.isUnique()) {
-                        sql += "," + name + " text not null unique";
+                        sql += "," + name + " text unique";
                     } else {
-                        sql += "," + name + " text not null";
+                        sql += "," + name + " text";
                     }
                 }
             }
