@@ -21,12 +21,11 @@ public abstract class PortReceiveThread extends XCThread {
     private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
     //
-    private byte[] bufferDatas;//缓存数据
-    private int bufferPosition;//缓存索引
     private int frameHeadsType;//帧头类型，1：响应，2：请求
-    //
-    private ArrayList<byte[]> responseList;//响应缓存
-    private ArrayList<byte[]> interruptList;//中断缓存
+    private static byte[] bufferDatas;//缓存数据
+    private static int bufferPosition;//缓存索引
+    private static ArrayList<byte[]> responseList;//响应缓存
+    private static ArrayList<byte[]> interruptList;//中断缓存
 
     /**
      * @param portParam 串口参数
@@ -37,10 +36,10 @@ public abstract class PortReceiveThread extends XCThread {
     public PortReceiveThread(PortParam portParam, IPort iPort) {
         this.portParam = portParam;
         this.iPort = iPort;
-        this.bufferDatas = new byte[16 * 1024];
-        this.bufferPosition = 0;
-        this.responseList = new ArrayList<byte[]>();
-        this.interruptList = new ArrayList<byte[]>();
+        bufferDatas = new byte[1024];
+        bufferPosition = 0;
+        responseList = new ArrayList<byte[]>();
+        interruptList = new ArrayList<byte[]>();
     }
 
 
@@ -84,7 +83,7 @@ public abstract class PortReceiveThread extends XCThread {
             int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
             if (length > 0 && cutDatas.length >= length) {
                 if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
-                    splitData(PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0]);
+                    splitData(cutDatas);
                 } else {//未设置帧头
                     result(cutDatas);
                 }
@@ -131,14 +130,19 @@ public abstract class PortReceiveThread extends XCThread {
         if (cutDatas == null || cutDatas.length <= 0) {
             return;
         }
-        int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-        if (cutDatas.length > length) {
-            byte[][] splitData = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
-            result(splitData[0]);
-            splitData(splitData[1]);
-        } else if (length == cutDatas.length) {
-            cutDatas = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), 0, cutDatas)[0];//根据最后一组帧头索引分割数据
-            result(cutDatas);
+        int firstFrameHeadPosition = getFirstFrameHeadPosition(cutDatas);
+        if (firstFrameHeadPosition >= 0) {
+            cutDatas = PortFrameUtil.splitDataByFirstFrameHead(firstFrameHeadPosition, 0, cutDatas)[0];
+            int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
+            if (length > 0) {
+                if (cutDatas.length > length) {
+                    byte[][] splitData = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
+                    result(splitData[0]);
+                    splitData(splitData[1]);
+                } else if (length == cutDatas.length) {
+                    result(cutDatas);
+                }
+            }
         }
     }
 
@@ -151,20 +155,23 @@ public abstract class PortReceiveThread extends XCThread {
         if (cutDatas == null || cutDatas.length <= 0) {
             return;
         }
-        reset();
-        if (frameHeadsType == 1) {//响应
-            Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-            responseList.add(cutDatas);
-            sendMessage(0x123, cutDatas);
-        } else if (frameHeadsType == 2) {//请求
-            boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
-            if (isInterrupt) {//接收中断
-                Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                interruptList.add(cutDatas);
-            } else {//接收请求
-                Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+        int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
+        if (length > 0 && length == cutDatas.length) {
+            reset();
+            if (frameHeadsType == 1) {//响应
+                Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                responseList.add(cutDatas);
+                sendMessage(0x123, cutDatas);
+            } else if (frameHeadsType == 2) {//请求
+                boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
+                if (isInterrupt) {//接收中断
+                    Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                    interruptList.add(cutDatas);
+                } else {//接收请求
+                    Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                }
+                sendMessage(0x234, cutDatas);
             }
-            sendMessage(0x234, cutDatas);
         }
     }
 

@@ -95,9 +95,9 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private void writeDatas() throws InterruptedException {
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
-            iPort.writePort(sendDatas);
-            sendMessage(0x123);
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            sendMessage(0x123);
+            iPort.writePort(sendDatas);
             if (portReceiveType == PortReceiveType.Response || portReceiveType == PortReceiveType.Interrupt) {//等待响应or中断
                 receiveDatas = waitReceive(PortReceiveType.Response);//先等响应
                 if (receiveDatas != null && receiveDatas.length > 0) {
