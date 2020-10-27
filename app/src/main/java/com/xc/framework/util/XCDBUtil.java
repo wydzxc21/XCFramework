@@ -163,6 +163,18 @@ public class XCDBUtil {
     }
 
     /**
+     * 语句查询
+     *
+     * @param classObject 类,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param sqlStr      自定义sql语句
+     * @return 结果集
+     */
+    public static <T> List<T> query(Context context, Class<T> classObject, String sqlStr) {
+        return DBManager.getInstance(context).query(classObject, sqlStr);
+    }
+
+    /**
      * 条件查询
      *
      * @param context     上下文
@@ -175,20 +187,7 @@ public class XCDBUtil {
     }
 
     /**
-     * 模糊查询
-     *
-     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
-     *                    new空对象查询该表所有数据 )
-     * @param field       模糊查询-字段名
-     * @param like        模糊查询-包含字符串
-     * @return 结果集
-     */
-    public static <T> List<T> query(Context context, T classObject, String field, String like) {
-        return DBManager.getInstance(context).query(classObject, field, like);
-    }
-
-    /**
-     * 分页查询
+     * 分页+条件查询
      *
      * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
      *                    new空对象查询该表所有数据 )
@@ -200,17 +199,62 @@ public class XCDBUtil {
         return DBManager.getInstance(context).query(classObject, limit, offset);
     }
 
-
     /**
-     * 语句查询
+     * 模糊查询
      *
-     * @param classObject 类,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
      *                    new空对象查询该表所有数据 )
-     * @param sqlStr      自定义sql语句
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
      * @return 结果集
      */
-    public static <T> List<T> query(Context context, Class<T> classObject, String sqlStr) {
-        return DBManager.getInstance(context).query(classObject, sqlStr);
+    public static <T> List<T> query(Context context, T classObject, String field, String like) {
+        return DBManager.getInstance(context).query(classObject, -1, -1, field, like);
+    }
+
+    /**
+     * 分页+模糊查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
+     * @return 结果集
+     */
+    public static <T> List<T> query(Context context, T classObject, int limit, int offset, String field, String like) {
+        return DBManager.getInstance(context).query(classObject, limit, offset, field, like);
+    }
+
+    /**
+     * 日期查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param field       日期查询-字段名
+     * @param startDate   日期查询-起始日期(日期格式)
+     * @param endDate     日期查询-结束日期(日期格式)
+     * @return 结果集
+     */
+    public static <T> List<T> query(Context context, T classObject, String field, String startDate, String endDate) {
+        return DBManager.getInstance(context).query(classObject, -1, -1, field, startDate, endDate);
+    }
+
+    /**
+     * 分页+日期查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       日期查询-字段名
+     * @param startDate   日期查询-起始日期(日期格式)
+     * @param endDate     日期查询-结束日期(日期格式)
+     * @return 结果集
+     */
+    public static <T> List<T> query(Context context, T classObject, int limit, int offset, String field, String startDate, String endDate) {
+        return DBManager.getInstance(context).query(classObject, limit, offset, field, startDate, endDate);
     }
 
     /**

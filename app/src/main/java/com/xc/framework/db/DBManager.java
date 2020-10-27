@@ -418,7 +418,7 @@ public class DBManager {
             return null;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String querySql = getQuerySql(classObject, -1, -1, null, null);
+        String querySql = getQuerySql(classObject, -1, -1, null, null, null, null);
         if (db == null || XCStringUtil.isEmpty(querySql)) {
             return null;
         }
@@ -444,7 +444,6 @@ public class DBManager {
         return null;
     }
 
-
     /**
      * 条件查询
      *
@@ -452,33 +451,7 @@ public class DBManager {
      * @return 结果集                 new空对象查询该表所有数据 )
      */
     public synchronized <T> List<T> query(T classObject) {
-        return query(classObject, -1, -1, null, null, null);
-    }
-
-    /**
-     * 模糊查询
-     *
-     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
-     *                    new空对象查询该表所有数据 )
-     * @param field       模糊查询-字段名
-     * @param like        模糊查询-包含字符串
-     * @return 结果集
-     */
-    public synchronized <T> List<T> query(T classObject, String field, String like) {
-        return query(classObject, -1, -1, field, like, null);
-    }
-
-    /**
-     * 分页查询
-     *
-     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
-     *                    new空对象查询该表所有数据 )
-     * @param limit       分页查询-获取数量
-     * @param offset      分页查询-其实索引(从0开始)
-     * @return 结果集
-     */
-    public synchronized <T> List<T> query(T classObject, int limit, int offset) {
-        return query(classObject, limit, offset, null, null, null);
+        return query(classObject, -1, -1, null, null, null, null, null);
     }
 
     /**
@@ -491,11 +464,55 @@ public class DBManager {
      */
     public synchronized <T> List<T> query(Class<T> classObject, String sqlStr) {
         try {
-            return query(classObject.newInstance(), -1, -1, null, null, sqlStr);
+            return query(classObject.newInstance(), -1, -1, null, null, null, null, sqlStr);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 分页+条件查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-起始索引(从0开始)
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, int limit, int offset) {
+        return query(classObject, limit, offset, null, null, null, null, null);
+    }
+
+    /**
+     * 分页+模糊查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       模糊查询-字段名
+     * @param like        模糊查询-包含字符串
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like) {
+        return query(classObject, limit, offset, field, like, null, null, null);
+    }
+
+    /**
+     * 分页+日期查询
+     *
+     * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
+     *                    new空对象查询该表所有数据 )
+     * @param limit       分页查询-获取数量
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       日期查询-字段名
+     * @param startDate   日期查询-起始日期(日期格式)
+     * @param endDate     日期查询-结束日期(日期格式)
+     * @return 结果集
+     */
+    public synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String startDate, String endDate) {
+        return query(classObject, limit, offset, field, null, startDate, endDate, null);
     }
 
     /**
@@ -504,12 +521,14 @@ public class DBManager {
      * @param classObject 类对象,操作以该对象类名创建的表,反射get方法获取查询条件(条件唯一返回唯一一条数据,条件不唯一返回符合条件的所有数据,
      *                    new空对象查询该表所有数据 )
      * @param limit       分页查询-获取数量
-     * @param offset      分页查询-其实索引(从0开始)
-     * @param field       模糊查询-字段名
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       模糊/日期查询-字段名
      * @param like        模糊查询-包含字符串
+     * @param startDate   日期查询-起始日期(日期格式)
+     * @param endDate     日期查询-结束日期(日期格式)
      * @param sqlStr      自定义sql语句
      */
-    private synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like, String sqlStr) {
+    private synchronized <T> List<T> query(T classObject, int limit, int offset, String field, String like, String startDate, String endDate, String sqlStr) {
         if (classObject == null) {
             return null;
         }
@@ -517,7 +536,7 @@ public class DBManager {
             return null;
         }
         if (XCStringUtil.isEmpty(sqlStr)) {
-            sqlStr = getQuerySql(classObject, limit, offset, field, like);
+            sqlStr = getQuerySql(classObject, limit, offset, field, like, startDate, endDate);
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db == null || XCStringUtil.isEmpty(sqlStr)) {
@@ -761,7 +780,7 @@ public class DBManager {
             String querySql = "";
             if (conditionObject != null) {
                 insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
-                querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null) + " )";
+                querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null, null, null) + " )";
             } else {
                 insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
             }
@@ -826,22 +845,28 @@ public class DBManager {
      *
      * @param classObject 类对象
      * @param limit       分页查询-获取数量
-     * @param offset      分页查询-其实索引(从0开始)
-     * @param field       模糊查询-字段名
+     * @param offset      分页查询-起始索引(从0开始)
+     * @param field       模糊/日期查询-字段名
      * @param like        模糊查询-包含字符串
+     * @param startDate   日期查询-起始日期(日期格式)
+     * @param endDate     日期查询-结束日期(日期格式)
      * @return
      */
-    private String getQuerySql(Object classObject, int limit, int offset, String field, String like) {
+    private String getQuerySql(Object classObject, int limit, int offset, String field, String like, String startDate, String endDate) {
+        String pageSql = "";
         if (limit >= 0 && offset >= 0) {//分页查询
-            return "select * from " + classObject.getClass().getSimpleName() + " limit " + limit + " offset " + offset;
-        } else if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(like)) {//模糊查询
-            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + " like '%" + like + "%'";
+            pageSql = " limit " + limit + " offset " + offset;
+        }
+        if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(like)) {//模糊查询
+            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + " like '%" + like + "%'" + pageSql;
+        } else if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(startDate) && !XCStringUtil.isEmpty(endDate)) {//日期查询
+            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + ">='" + startDate + "' and " + field + "<='" + endDate + "'" + pageSql;
         } else {//条件查询
             String condition = getKeyEqualValueSql(classObject, "and");
             if (XCStringUtil.isEmpty(condition)) {
-                return "select * from " + classObject.getClass().getSimpleName();
+                return "select * from " + classObject.getClass().getSimpleName() + pageSql;
             } else {
-                return "select * from " + classObject.getClass().getSimpleName() + " where " + condition;
+                return "select * from " + classObject.getClass().getSimpleName() + " where " + condition + pageSql;
             }
         }
     }
