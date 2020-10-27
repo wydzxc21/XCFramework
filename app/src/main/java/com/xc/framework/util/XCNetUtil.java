@@ -5,13 +5,9 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.text.TextUtils;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -122,36 +118,21 @@ public class XCNetUtil {
      */
     public static String getLocalIpAddress(Context context) {
         @SuppressLint("MissingPermission") NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        if (info != null && info.isConnected()) {
-            if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//当前使用2G/3G/4G网络
-                try {
-                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                        NetworkInterface intf = en.nextElement();
-                        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                            InetAddress inetAddress = enumIpAddr.nextElement();
-                            if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
-                                return inetAddress.getHostAddress().toString();
-                            }
-                        }
+        if (info == null || !info.isConnected()) {
+            return null;
+        }
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        return inetAddress.getHostAddress();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
-                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                @SuppressLint("MissingPermission") WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                String ipAddress = intIPToStringIP(wifiInfo.getIpAddress());//得到IPV4地址
-                return ipAddress;
-            } else if (info.getType() == ConnectivityManager.TYPE_ETHERNET) {//当前使用以太网
-                try {
-                    Process cmdProcess = Runtime.getRuntime().exec("getprop dhcp.eth0.ipaddress");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(cmdProcess.getInputStream()));
-                    String ipAddress = reader.readLine();
-                    return ipAddress;
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }

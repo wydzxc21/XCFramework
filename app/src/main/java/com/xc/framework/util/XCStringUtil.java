@@ -105,6 +105,29 @@ public class XCStringUtil {
     }
 
     /**
+     * Author：ZhangXuanChen
+     * Time：2020/10/15 11:19
+     * Description：16进制字符串转字节数组
+     */
+    public static byte[] toBytes(String hexStr) {
+        if (XCStringUtil.isEmpty(hexStr)) {
+            return null;
+        }
+        if (hexStr.contains(" ")) {
+            hexStr = hexStr.replaceAll(" ", "").toUpperCase();
+        }
+        String str = "0123456789ABCDEF";
+        char[] hexChar = hexStr.toCharArray();
+        int length = hexStr.length() / 2;
+        byte[] d = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int pos = i * 2;
+            d[i] = (byte) (str.indexOf(hexChar[pos]) << 4 | str.indexOf(hexChar[pos + 1]));
+        }
+        return d;
+    }
+
+    /**
      * @param isSpace 是否加空格
      * @author ZhangXuanChen
      * @date 2020/2/8
