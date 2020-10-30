@@ -14,12 +14,16 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
+import android.util.DisplayMetrics;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -318,5 +322,25 @@ public class XCAppUtil {
      */
     public static String getAndroidId(Context context) {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/10/28 15:35
+     * Description：切换语言-需重启activity
+     * finish();
+     * Intent intent = new Intent(this, MainActivity.class);
+     * intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+     * startActivity(intent);
+     */
+    public static void switchLanguage(Context context, Locale locale) {
+        Configuration config = context.getResources().getConfiguration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            config.setLocale(locale);
+        } else {
+            config.locale = locale;
+        }
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        context.getResources().updateConfiguration(config, dm);
     }
 }
