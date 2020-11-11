@@ -56,9 +56,7 @@ public class SPManager {
      * @description 保存
      */
     public void save(String key, String value) {
-        if (!XCStringUtil.isEmpty(key) && !XCStringUtil.isEmpty(value)) {
-            sp.edit().putString(key, value).commit();
-        }
+        sp.edit().putString(key, value).commit();
     }
 
     /**
