@@ -280,7 +280,7 @@ public class DBManager {
      */
     public synchronized <T> boolean delete(T classObject) {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String condition = getKeyEqualValueSql(classObject, "and");
+        String condition = getKeyEqualValueSql(classObject, "and", false);
         String deleteSql = "delete from " + classObject.getClass().getSimpleName();
         if (!XCStringUtil.isEmpty(condition)) {
             deleteSql += " where " + condition;
@@ -831,8 +831,8 @@ public class DBManager {
      * @return
      */
     private String getUpdateSql(Object updateObject, Object conditionObject) {
-        String updateSql = getKeyEqualValueSql(updateObject, ",");
-        String conditionSql = getKeyEqualValueSql(conditionObject, "and");
+        String updateSql = getKeyEqualValueSql(updateObject, ",", true);
+        String conditionSql = getKeyEqualValueSql(conditionObject, "and", false);
         if (XCStringUtil.isEmpty(conditionSql)) {
             return "update " + conditionObject.getClass().getSimpleName() + " set " + updateSql;
         } else {
@@ -862,7 +862,7 @@ public class DBManager {
         } else if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(startDate) && !XCStringUtil.isEmpty(endDate)) {//日期查询
             return "select * from " + classObject.getClass().getSimpleName() + " where " + field + ">='" + startDate + "' and " + field + "<='" + endDate + "'" + pageSql;
         } else {//条件查询
-            String condition = getKeyEqualValueSql(classObject, "and");
+            String condition = getKeyEqualValueSql(classObject, "and", false);
             if (XCStringUtil.isEmpty(condition)) {
                 return "select * from " + classObject.getClass().getSimpleName() + pageSql;
             } else {
@@ -929,7 +929,7 @@ public class DBManager {
      * @param connectFlag ","或"and"
      * @return key = 'value' connectFlag key = 'value'
      */
-    private static String getKeyEqualValueSql(Object classObject, String connectFlag) {
+    private static String getKeyEqualValueSql(Object classObject, String connectFlag, boolean isUpdate) {
         String condition = "";
         List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
         if (fieldList != null && !fieldList.isEmpty()) {
@@ -941,8 +941,9 @@ public class DBManager {
                 // key
                 String key = name;
                 // value
-                String value = "" + XCBeanUtil.invokeGetMethod(classObject, original);
-                if (!XCStringUtil.isEmpty(value)) {
+                String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, original);
+                String value = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
+                if (!XCStringUtil.isEmpty(value) || isUpdate) {
                     condition += key + " = '" + value + "' " + connectFlag + " ";
                 }
             }
