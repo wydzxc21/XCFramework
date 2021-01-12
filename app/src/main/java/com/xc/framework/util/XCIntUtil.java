@@ -33,15 +33,7 @@ public class XCIntUtil {
         if (allocate <= 0 || byteOrder == null) {
             return null;
         }
-        byte[] bytes = null;
         ByteBuffer byteBuffer = ByteBuffer.allocate(allocate).order(byteOrder);
-        if (allocate == 2) {
-            bytes = byteBuffer.putShort((short) value).array();
-        } else if (allocate == 4) {
-            bytes = byteBuffer.putInt(value).array();
-        } else if (allocate == 8) {
-            bytes = byteBuffer.putLong(value).array();
-        }
-        return bytes;
+        return byteBuffer.putInt(value).array();
     }
 }
