@@ -136,7 +136,7 @@ public class XCByteUtil {
     public static int toInt(byte[] bytes, ByteOrder byteOrder) {
         if (bytes == null || bytes.length <= 0 || byteOrder == null) {
             return 0;
-        }//
+        }
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(byteOrder);
         return byteBuffer.asIntBuffer().get();
     }

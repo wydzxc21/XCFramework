@@ -32,7 +32,7 @@ public class XCIntUtil {
     public static byte[] toBytes(int value, int allocate, ByteOrder byteOrder) {
         if (allocate <= 0 || byteOrder == null) {
             return null;
-        }//
+        }
         ByteBuffer byteBuffer = ByteBuffer.allocate(allocate).order(byteOrder);
         return byteBuffer.putInt(value).array();
     }
