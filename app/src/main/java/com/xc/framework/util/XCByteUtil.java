@@ -137,16 +137,8 @@ public class XCByteUtil {
         if (bytes == null || bytes.length <= 0 || byteOrder == null) {
             return 0;
         }
-        int value = 0;
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(byteOrder);
-        if (bytes.length == 2) {
-            value = byteBuffer.asShortBuffer().get();
-        } else if (bytes.length == 4) {
-            value = byteBuffer.asIntBuffer().get();
-        } else if (bytes.length == 8) {
-            value = (int) byteBuffer.asLongBuffer().get();
-        }
-        return value;
+        return byteBuffer.asIntBuffer().get();
     }
 
     /**
