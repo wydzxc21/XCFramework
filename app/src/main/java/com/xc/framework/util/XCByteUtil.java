@@ -138,7 +138,7 @@ public class XCByteUtil {
             return 0;
         }
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(byteOrder);
-        return byteBuffer.asIntBuffer().get();
+        return byteBuffer.asShortBuffer().get();
     }
 
     /**
