@@ -30,10 +30,18 @@ public class XCIntUtil {
      * Param：byteOrder 高低位
      */
     public static byte[] toBytes(int value, int allocate, ByteOrder byteOrder) {
-        if (allocate <= 1 || byteOrder == null) {
+        if (allocate <= 0 || byteOrder == null) {
             return null;
         }
+        byte[] bytes = null;
         ByteBuffer byteBuffer = ByteBuffer.allocate(allocate).order(byteOrder);
-        return byteBuffer.putShort((short) value).array();
+        if (allocate == 2) {
+            bytes = byteBuffer.putShort((short) value).array();
+        } else if (allocate == 4) {
+            bytes = byteBuffer.putInt(value).array();
+        } else if (allocate == 8) {
+            bytes = byteBuffer.putLong(value).array();
+        }
+        return bytes;
     }
 }
