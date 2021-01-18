@@ -15,12 +15,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -334,6 +336,9 @@ public class XCAppUtil {
      * startActivity(intent);
      */
     public static void switchLanguage(Context context, Locale locale) {
+        if (context == null || locale == null) {
+            return;
+        }
         Configuration config = context.getResources().getConfiguration();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             config.setLocale(locale);
@@ -342,5 +347,27 @@ public class XCAppUtil {
         }
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         context.getResources().updateConfiguration(config, dm);
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/1/18 14:44
+     * Description：设置字体-在Application中使用
+     * assetsPath: fonts/SourceHanSansCN-Medium.ttf
+     */
+    public static void setTypeface(Context context, String assetsPath) {
+        if (context == null || XCStringUtil.isEmpty(assetsPath)) {
+            return;
+        }
+        Typeface mTypeface = Typeface.createFromAsset(context.getAssets(), assetsPath);
+        try {
+            Field field = Typeface.class.getDeclaredField("MONOSPACE");
+            field.setAccessible(true);
+            field.set(null, mTypeface);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }
