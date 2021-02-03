@@ -80,13 +80,10 @@ public abstract class PortReceiveThread extends XCThread {
             bufferPosition += readDatas.length;
             byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
 //            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
-            int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-            if (length > 0 && cutDatas.length >= length) {
-                if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
-                    splitData(cutDatas);
-                } else {//未设置帧头
-                    result(cutDatas);
-                }
+            if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
+                splitData(cutDatas);
+            } else {//未设置帧头
+                result(cutDatas);
             }
         }
     }
