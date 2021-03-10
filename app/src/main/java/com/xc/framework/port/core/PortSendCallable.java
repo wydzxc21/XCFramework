@@ -119,6 +119,11 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private byte[] waitReceive(PortReceiveType receiveType) throws InterruptedException {
         long currentTime = System.currentTimeMillis();
         do {
+            Thread.sleep(1);
+            if (isPauseReceive()) {
+                currentTime = System.currentTimeMillis();
+                continue;
+            }
             List<byte[]> receiveList = null;
             if (receiveType == PortReceiveType.Response) {//响应
                 receiveList = portReceiveThread.getResponseList();
@@ -135,9 +140,8 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                     }
                 }
             }
-            Thread.sleep(1);
         }
-        while (!isClearSend() && System.currentTimeMillis() - currentTime < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
+        while (!isClearSend() && (System.currentTimeMillis() - currentTime) < (receiveType == PortReceiveType.Response ? portParam.getSendTimeout() : portParam.getInterruptTimeout()));
         return null;
     }
 
@@ -175,5 +179,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Description：isClearSend
      */
     public abstract boolean isClearSend();
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/3/10 15:25
+     * Description：isPauseReceive
+     */
+    public abstract boolean isPauseReceive();
 
 }

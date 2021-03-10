@@ -13,6 +13,16 @@ public class XCIntUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/25 9:30
+     * Description：转字节
+     * Param：value int
+     */
+    public static byte toByte(int value) {
+        return toBytes(value, 4, ByteOrder.LITTLE_ENDIAN)[0];
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/7/25 9:30
      * Description：转数组
      * Param：value int
      * Param：byteOrder 高低位
