@@ -83,6 +83,7 @@ public abstract class PortReceiveThread extends XCThread {
             if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
                 splitData(cutDatas);
             } else {//未设置帧头
+                frameHeadsType = 1;
                 result(cutDatas);
             }
         }
