@@ -73,19 +73,23 @@ public abstract class PortReceiveThread extends XCThread {
      * @date 2020/3/8
      * @description readDatas
      */
+    byte[] cutDatas;//截取数据
+
     private void readDatas() {
         byte[] readDatas = iPort.readPort();
         if (readDatas != null && readDatas.length > 0) {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
-            byte[] cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
+            cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
 //            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
+        } else if (cutDatas != null) {
             if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
                 splitData(cutDatas);
             } else {//未设置帧头
                 frameHeadsType = 1;
                 result(cutDatas);
             }
+            cutDatas = null;
         }
     }
 
