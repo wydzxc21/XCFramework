@@ -6,8 +6,6 @@ import com.xc.framework.util.XCByteUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,7 +25,6 @@ public abstract class PortManager {
     private PortReceiveThread mPortReceiveThread;//接收线程
     private ExecutorService queueSendPool;//队列发送线程池
     private ExecutorService freeSendPool;//自由发送线程池
-    private CompletionService<byte[]> freeSendService;//自由发送服务
     private boolean isOpen = false;//是否打开串口
     private boolean isClearSend;//是否清空发送
     private boolean isPauseReceive;//是否暂停接收
@@ -58,8 +55,7 @@ public abstract class PortManager {
      */
     private void initPool() {
         queueSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
-        freeSendPool = Executors.newCachedThreadPool();
-        freeSendService = new ExecutorCompletionService(freeSendPool);
+        freeSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
     }
 
     /**
@@ -236,12 +232,17 @@ public abstract class PortManager {
             if (portSendType == PortSendType.Queue) {
                 mFuture = queueSendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
             } else if (portSendType == PortSendType.Free) {
-                freeSendService.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
-                mFuture = freeSendService.take();
+                mFuture = freeSendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
             }
             return mFuture != null ? mFuture.get() : null;
         } catch (Exception e) {
-            e.printStackTrace();
+            if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+                for (OnPortSendListener listener : portSendListenerList) {
+                    if (listener != null) {
+                        listener.onError(bytes, e.getMessage());
+                    }
+                }
+            }
         }
         return null;
     }
@@ -279,7 +280,7 @@ public abstract class PortManager {
         if (portSendType == PortSendType.Queue) {
             queueSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
         } else if (portSendType == PortSendType.Free) {
-            freeSendService.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+            freeSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
         }
     }
 

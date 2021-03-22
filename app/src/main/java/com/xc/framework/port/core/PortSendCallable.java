@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.xc.framework.thread.XCCallable;
 import com.xc.framework.util.XCByteUtil;
+import com.xc.framework.util.XCThreadUtil;
 
 import java.util.List;
 
@@ -50,20 +51,17 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     }
 
     @Override
-    public byte[] call() throws Exception {
-        try {
-            writeDatas();
-            if (receiveDatas != null && receiveDatas.length > 0) {
-                if (portReceiveType == PortReceiveType.Response) {//响应
-                    sendMessage(0x234, receiveDatas);
-                } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
-                    sendMessage(0x345, receiveDatas);
-                } else if (portReceiveType == PortReceiveType.NULL) {
-                }
-            } else {//超时
-                sendMessage(0x456);
+    public byte[] call() {
+        writeDatas();
+        if (receiveDatas != null && receiveDatas.length > 0) {
+            if (portReceiveType == PortReceiveType.Response) {//响应
+                sendMessage(0x234, receiveDatas);
+            } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
+                sendMessage(0x345, receiveDatas);
+            } else if (portReceiveType == PortReceiveType.NULL) {
             }
-        } catch (Exception e) {
+        } else {//超时
+            sendMessage(0x456);
         }
         return receiveDatas;
     }
@@ -92,7 +90,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @date 2020/3/8
      * @description writeDatas
      */
-    private void writeDatas() throws InterruptedException {
+    private void writeDatas() {
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
@@ -116,10 +114,10 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * Time：2020/3/9 13:05
      * Description：waitReceive
      */
-    private byte[] waitReceive(PortReceiveType receiveType) throws InterruptedException {
+    private byte[] waitReceive(PortReceiveType receiveType) {
         long currentTime = System.currentTimeMillis();
         do {
-            Thread.sleep(1);
+            XCThreadUtil.sleep(1);
             if (isPauseReceive()) {
                 currentTime = System.currentTimeMillis();
                 continue;
