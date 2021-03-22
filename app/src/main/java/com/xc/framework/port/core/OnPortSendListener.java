@@ -15,5 +15,10 @@ public interface OnPortSendListener {
      */
     void onSend(int what, byte[] sendDatas, int sendCount);
 
-
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/3/18 14:58
+     * Description：异常
+     */
+    void onError(byte[] sendDatas, String msg);
 }
