@@ -66,7 +66,7 @@ public class PortReceiveCache {
      */
     public void removeResponse(byte[] bytes) {
         synchronized (responseList) {
-            responseList.remove(bytes);
+            PortFrameUtil.remove(bytes, responseList);
         }
     }
 
@@ -110,7 +110,7 @@ public class PortReceiveCache {
      */
     public void removeInterrupt(byte[] bytes) {
         synchronized (interruptList) {
-            interruptList.remove(bytes);
+            PortFrameUtil.remove(bytes, interruptList);
         }
     }
 
