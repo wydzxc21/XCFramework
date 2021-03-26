@@ -7,9 +7,7 @@ import android.util.Log;
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCByteUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Date：2020/3/10
@@ -24,8 +22,6 @@ public abstract class PortReceiveThread extends XCThread {
     private int frameHeadsType;//帧头类型，1：响应，2：请求
     private static byte[] bufferDatas;//缓存数据
     private static int bufferPosition;//缓存索引
-    private static ArrayList<byte[]> responseList;//响应缓存
-    private static ArrayList<byte[]> interruptList;//中断缓存
 
     /**
      * @param portParam 串口参数
@@ -38,8 +34,6 @@ public abstract class PortReceiveThread extends XCThread {
         this.iPort = iPort;
         bufferDatas = new byte[1024];
         bufferPosition = 0;
-        responseList = new ArrayList<byte[]>();
-        interruptList = new ArrayList<byte[]>();
     }
 
 
@@ -162,13 +156,13 @@ public abstract class PortReceiveThread extends XCThread {
             reset();
             if (frameHeadsType == 1) {//响应
                 Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                responseList.add(cutDatas);
                 sendMessage(0x123, cutDatas);
+                PortReceiveCache.getInstance().addResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
                 if (isInterrupt) {//接收中断
                     Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                    interruptList.add(cutDatas);
+                    PortReceiveCache.getInstance().addInterrupt(cutDatas);
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 }
@@ -182,50 +176,8 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2020/3/10 14:51
      * Description：reset
      */
-    public synchronized void reset() {
+    public void reset() {
         bufferPosition = 0;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/9/7 15:47
-     * Description：remove
-     */
-    public synchronized void remove(byte[] bytes) {
-        PortFrameUtil.remove(bytes, responseList);
-        PortFrameUtil.remove(bytes, interruptList);
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/17 13:14
-     * Description：clear
-     */
-    public synchronized void clear() {
-        if (responseList != null) {
-            responseList.clear();
-        }
-        if (interruptList != null) {
-            interruptList.clear();
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/17 12:50
-     * Description：getResponseList
-     */
-    public List<byte[]> getResponseList() {
-        return responseList;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/17 12:50
-     * Description：getInterruptList
-     */
-    public List<byte[]> getInterruptList() {
-        return interruptList;
     }
 
     /**

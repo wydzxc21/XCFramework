@@ -10,7 +10,7 @@ import java.util.Hashtable;
  * Author：ZhangXuanChen
  * Description：字体工具
  */
-public class TypefaceUtil {
+public class XCTypefaceUtil {
     private static Hashtable<String, Typeface> fontCache = new Hashtable<String, Typeface>();
 
     /**

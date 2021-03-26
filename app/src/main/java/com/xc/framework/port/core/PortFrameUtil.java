@@ -1,9 +1,5 @@
 package com.xc.framework.port.core;
 
-import com.xc.framework.util.XCByteUtil;
-
-import java.util.ArrayList;
-
 /**
  * Date：2020/5/19
  * Author：ZhangXuanChen
@@ -58,21 +54,6 @@ public class PortFrameUtil {
             }
         }
         return headerPosition;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/9/7 15:47
-     * Description：remove
-     */
-    public static void remove(byte[] bytes, ArrayList<byte[]> mList) {
-        if (bytes != null && bytes.length > 0 && mList != null && !mList.isEmpty()) {
-            for (int i = mList.size() - 1; i >= 0; i--) {
-                if (XCByteUtil.equals(bytes, mList.get(i))) {
-                    mList.remove(i);
-                }
-            }
-        }
     }
 
 }

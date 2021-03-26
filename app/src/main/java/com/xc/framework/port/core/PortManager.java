@@ -120,8 +120,8 @@ public abstract class PortManager {
         }
         if (mPortReceiveThread != null) {
             mPortReceiveThread.reset();
-            mPortReceiveThread.clear();
         }
+        PortReceiveCache.getInstance().clear();
         if (isInitPool) {
             initPool();
         }
@@ -236,6 +236,7 @@ public abstract class PortManager {
             }
             return mFuture != null ? mFuture.get() : null;
         } catch (Exception e) {
+            Log.i(TAG, "指令-异常:[" + e.getMessage() + "]");
             if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
                 for (OnPortSendListener listener : portSendListenerList) {
                     if (listener != null) {
@@ -290,7 +291,7 @@ public abstract class PortManager {
      * Description：getPortSendCallable
      */
     private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        PortSendCallable mPortSendCallable = new PortSendCallable(bytes, portReceiveType, what, portFilterCallback, getIPort(), getPortParam(), mPortReceiveThread) {
+        PortSendCallable mPortSendCallable = new PortSendCallable(bytes, portReceiveType, what, portFilterCallback, getIPort(), getPortParam()) {
             @Override
             public void onResponse(int what, byte[] responseDatas) {
                 if (portReceiveCallback != null) {
