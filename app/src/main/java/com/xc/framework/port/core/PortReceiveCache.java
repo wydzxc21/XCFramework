@@ -137,7 +137,7 @@ public class PortReceiveCache {
                 for (int i = receiveList.size() - 1; i >= 0; i--) {
                     byte[] receiveDatas = receiveList.get(i);
                     if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
-                        remove(receiveDatas);
+                        PortReceiveCache.getInstance().remove(receiveDatas);
                         return receiveDatas;
                     }
                 }

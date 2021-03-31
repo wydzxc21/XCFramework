@@ -52,33 +52,20 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         writeDatas();
         if (receiveDatas != null && receiveDatas.length > 0) {
             if (portReceiveType == PortReceiveType.Response) {//响应
-                sendMessage(0x234, receiveDatas);
+                onResponse(what, receiveDatas);
             } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
-                sendMessage(0x345, receiveDatas);
+                onInterrupt(what, receiveDatas);
             } else if (portReceiveType == PortReceiveType.NULL) {
             }
         } else {//超时
-            sendMessage(0x456);
+            onTimeout(what, sendDatas);
         }
         return receiveDatas;
     }
 
     @Override
     protected void onHandler(Message msg) {
-        switch (msg.what) {
-            case 0x123://发送
-                onSend(what, sendDatas, sendCount);
-                break;
-            case 0x234://响应
-                onResponse(what, (byte[]) msg.obj);
-                break;
-            case 0x345://中断
-                onInterrupt(what, (byte[]) msg.obj);
-                break;
-            case 0x456://超时
-                onTimeout(what, sendDatas);
-                break;
-        }
+
     }
 
 
@@ -91,7 +78,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
-            sendMessage(0x123);
+            onSend(what, sendDatas, sendCount);
             iPort.writePort(sendDatas);
             if (portReceiveType == PortReceiveType.Response || portReceiveType == PortReceiveType.Interrupt) {//等待响应or中断
                 receiveDatas = waitReceive(PortReceiveType.Response);//先等响应

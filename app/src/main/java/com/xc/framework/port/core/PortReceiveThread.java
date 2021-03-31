@@ -20,8 +20,8 @@ public abstract class PortReceiveThread extends XCThread {
     private IPort iPort;//串口工具
     //
     private int frameHeadsType;//帧头类型，1：响应，2：请求
-    private static byte[] bufferDatas;//缓存数据
-    private static int bufferPosition;//缓存索引
+    private byte[] bufferDatas;//缓存数据
+    private int bufferPosition;//缓存索引
 
     /**
      * @param portParam 串口参数
@@ -52,20 +52,7 @@ public abstract class PortReceiveThread extends XCThread {
 
     @Override
     protected void onHandler(Message msg) {
-        byte[] cutDatas = (byte[]) msg.obj;
-        switch (msg.what) {
-            case 0x123://响应
-                PortReceiveCache.getInstance().addResponse(cutDatas);
-                onResponse(cutDatas);
-                break;
-            case 0x234://中断
-                PortReceiveCache.getInstance().addInterrupt(cutDatas);
-                onRequest(cutDatas, true);
-                break;
-            case 0x345://请求
-                onRequest(cutDatas, false);
-                break;
-        }
+
     }
 
     /**
@@ -162,15 +149,17 @@ public abstract class PortReceiveThread extends XCThread {
             reset();
             if (frameHeadsType == 1) {//响应
                 Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                sendMessage(0x123, cutDatas);
+                PortReceiveCache.getInstance().addResponse(cutDatas);
+                onResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
                 if (isInterrupt) {//接收中断
                     Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                    sendMessage(0x234, cutDatas);
+                    PortReceiveCache.getInstance().addInterrupt(cutDatas);
+                    onRequest(cutDatas, true);
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                    sendMessage(0x345, cutDatas);
+                    onRequest(cutDatas, false);
                 }
             }
         }
