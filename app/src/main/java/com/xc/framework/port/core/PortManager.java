@@ -164,11 +164,11 @@ public abstract class PortManager {
             }
 
             @Override
-            public void onRequest(byte[] requestDatas) {
+            public void onRequest(byte[] requestDatas, boolean isInterrupt) {
                 if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
                     for (OnPortReceiveListener listener : portReceiveListenerList) {
                         if (listener != null) {
-                            listener.onRequest(requestDatas);
+                            listener.onRequest(requestDatas, isInterrupt);
                         }
                     }
                 }

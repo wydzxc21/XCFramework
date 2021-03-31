@@ -52,12 +52,18 @@ public abstract class PortReceiveThread extends XCThread {
 
     @Override
     protected void onHandler(Message msg) {
+        byte[] cutDatas = (byte[]) msg.obj;
         switch (msg.what) {
             case 0x123://响应
-                onResponse((byte[]) msg.obj);
+                PortReceiveCache.getInstance().addResponse(cutDatas);
+                onResponse(cutDatas);
                 break;
-            case 0x234://请求
-                onRequest((byte[]) msg.obj);
+            case 0x234://中断
+                PortReceiveCache.getInstance().addInterrupt(cutDatas);
+                onRequest(cutDatas, true);
+                break;
+            case 0x345://请求
+                onRequest(cutDatas, false);
                 break;
         }
     }
@@ -157,16 +163,15 @@ public abstract class PortReceiveThread extends XCThread {
             if (frameHeadsType == 1) {//响应
                 Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 sendMessage(0x123, cutDatas);
-                PortReceiveCache.getInstance().addResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
                 if (isInterrupt) {//接收中断
                     Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                    PortReceiveCache.getInstance().addInterrupt(cutDatas);
+                    sendMessage(0x234, cutDatas);
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                    sendMessage(0x345, cutDatas);
                 }
-                sendMessage(0x234, cutDatas);
             }
         }
     }
@@ -192,5 +197,5 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2019/11/27 15:14
      * Description：onRequest
      */
-    public abstract void onRequest(byte[] requestDatas);
+    public abstract void onRequest(byte[] requestDatas, boolean isInterrupt);
 }

@@ -9,6 +9,7 @@ import java.util.List;
  * Description：串口接收缓存
  */
 public class PortReceiveCache {
+    private final String TAG = "PortReceiveCache";
     private static final Object mLock = new Object();
     public static PortReceiveCache mPostReceiveBroadcast;
     private final ArrayList<byte[]> responseList = new ArrayList<byte[]>();
@@ -66,7 +67,9 @@ public class PortReceiveCache {
      */
     public void removeResponse(byte[] bytes) {
         synchronized (responseList) {
-            PortFrameUtil.remove(bytes, responseList);
+            if (responseList.size() > 10) {
+                PortFrameUtil.remove(bytes, responseList);
+            }
         }
     }
 
@@ -110,7 +113,9 @@ public class PortReceiveCache {
      */
     public void removeInterrupt(byte[] bytes) {
         synchronized (interruptList) {
-            PortFrameUtil.remove(bytes, interruptList);
+            if (interruptList.size() > 10) {
+                PortFrameUtil.remove(bytes, interruptList);
+            }
         }
     }
 
