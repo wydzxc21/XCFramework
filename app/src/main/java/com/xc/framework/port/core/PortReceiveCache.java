@@ -67,9 +67,7 @@ public class PortReceiveCache {
      */
     public void removeResponse(byte[] bytes) {
         synchronized (responseList) {
-            if (responseList.size() > 10) {
-                PortFrameUtil.remove(bytes, responseList);
-            }
+            PortFrameUtil.remove(bytes, responseList);
         }
     }
 
@@ -113,9 +111,7 @@ public class PortReceiveCache {
      */
     public void removeInterrupt(byte[] bytes) {
         synchronized (interruptList) {
-            if (interruptList.size() > 10) {
-                PortFrameUtil.remove(bytes, interruptList);
-            }
+            PortFrameUtil.remove(bytes, interruptList);
         }
     }
 
