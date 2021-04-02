@@ -10,10 +10,10 @@ import java.util.List;
  */
 public class PortReceiveCache {
     private final String TAG = "PortReceiveCache";
+    private final ArrayList<byte[]> responseList;
+    private final ArrayList<byte[]> interruptList;
     private static final Object mLock = new Object();
-    public static PortReceiveCache mPostReceiveBroadcast;
-    private final ArrayList<byte[]> responseList = new ArrayList<byte[]>();
-    private final ArrayList<byte[]> interruptList = new ArrayList<byte[]>();
+    public static PortReceiveCache mPortReceiveCache;
 
     /**
      * Author：ZhangXuanChen
@@ -22,11 +22,11 @@ public class PortReceiveCache {
      */
     public static PortReceiveCache getInstance() {
         synchronized (mLock) {
-            if (mPostReceiveBroadcast == null) {
-                mPostReceiveBroadcast = new PortReceiveCache();
+            if (mPortReceiveCache == null) {
+                mPortReceiveCache = new PortReceiveCache();
             }
         }
-        return mPostReceiveBroadcast;
+        return mPortReceiveCache;
     }
 
     /**
@@ -35,7 +35,8 @@ public class PortReceiveCache {
      * Description：PortReceiveCache
      */
     public PortReceiveCache() {
-
+        responseList = new ArrayList<byte[]>();
+        interruptList = new ArrayList<byte[]>();
     }
 
     /**
@@ -67,7 +68,8 @@ public class PortReceiveCache {
      */
     public void removeResponse(byte[] bytes) {
         synchronized (responseList) {
-            PortFrameUtil.remove(bytes, responseList);
+//            PortFrameUtil.remove(bytes, responseList);
+            responseList.remove(bytes);
         }
     }
 
@@ -111,7 +113,8 @@ public class PortReceiveCache {
      */
     public void removeInterrupt(byte[] bytes) {
         synchronized (interruptList) {
-            PortFrameUtil.remove(bytes, interruptList);
+//            PortFrameUtil.remove(bytes, interruptList);
+            interruptList.remove(bytes);
         }
     }
 
@@ -151,7 +154,8 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:34
      * Description：remove
      */
-    public void remove(byte[] bytes) {
+
+    public void remove(final byte[] bytes) {
         removeResponse(bytes);
         removeInterrupt(bytes);
     }
