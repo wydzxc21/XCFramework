@@ -45,9 +45,7 @@ public class PortReceiveCache {
      * Description：addResponse
      */
     public void addResponse(byte[] bytes) {
-        synchronized (responseList) {
-            responseList.add(bytes);
-        }
+        responseList.add(bytes);
     }
 
     /**
@@ -56,9 +54,7 @@ public class PortReceiveCache {
      * Description：getResponseList
      */
     public ArrayList<byte[]> getResponseList() {
-        synchronized (responseList) {
-            return responseList;
-        }
+        return responseList;
     }
 
     /**
@@ -67,10 +63,7 @@ public class PortReceiveCache {
      * Description：removeResponse
      */
     public void removeResponse(byte[] bytes) {
-        synchronized (responseList) {
-//            PortFrameUtil.remove(bytes, responseList);
-            responseList.remove(bytes);
-        }
+        responseList.remove(bytes);
     }
 
     /**
@@ -79,9 +72,7 @@ public class PortReceiveCache {
      * Description：clearResponse
      */
     public void clearResponse() {
-        synchronized (responseList) {
-            responseList.clear();
-        }
+        responseList.clear();
     }
 
     /**
@@ -90,9 +81,7 @@ public class PortReceiveCache {
      * Description：addInterrupt
      */
     public void addInterrupt(byte[] bytes) {
-        synchronized (interruptList) {
-            interruptList.add(bytes);
-        }
+        interruptList.add(bytes);
     }
 
     /**
@@ -101,9 +90,7 @@ public class PortReceiveCache {
      * Description：getInterruptList
      */
     public ArrayList<byte[]> getInterruptList() {
-        synchronized (interruptList) {
-            return interruptList;
-        }
+        return interruptList;
     }
 
     /**
@@ -112,10 +99,7 @@ public class PortReceiveCache {
      * Description：removeInterrupt
      */
     public void removeInterrupt(byte[] bytes) {
-        synchronized (interruptList) {
-//            PortFrameUtil.remove(bytes, interruptList);
-            interruptList.remove(bytes);
-        }
+        interruptList.remove(bytes);
     }
 
     /**
@@ -124,9 +108,7 @@ public class PortReceiveCache {
      * Description：clearInterrupt
      */
     public void clearInterrupt() {
-        synchronized (interruptList) {
-            interruptList.clear();
-        }
+        interruptList.clear();
     }
 
     /**
@@ -135,18 +117,16 @@ public class PortReceiveCache {
      * Description：getReceiveDatas
      */
     public byte[] getReceiveDatas(List<byte[]> receiveList, byte[] sendDatas, PortFilterCallback portFilterCallback) {
-        synchronized (receiveList) {
-            if (receiveList != null && !receiveList.isEmpty()) {
-                for (int i = receiveList.size() - 1; i >= 0; i--) {
-                    byte[] receiveDatas = receiveList.get(i);
-                    if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
-                        PortReceiveCache.getInstance().remove(receiveDatas);
-                        return receiveDatas;
-                    }
+        if (receiveList != null && !receiveList.isEmpty()) {
+            for (int i = receiveList.size() - 1; i >= 0; i--) {
+                byte[] receiveDatas = receiveList.get(i);
+                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
+                    PortReceiveCache.getInstance().remove(receiveDatas);
+                    return receiveDatas;
                 }
             }
-            return null;
         }
+        return null;
     }
 
     /**
