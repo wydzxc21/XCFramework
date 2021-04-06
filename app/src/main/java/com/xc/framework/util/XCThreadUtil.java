@@ -134,6 +134,9 @@ public class XCThreadUtil {
         if (thread == null) {
             thread = Thread.currentThread();
         }
+        if (millis <= 0) {
+            return;
+        }
         try {
             thread.sleep(millis);
         } catch (InterruptedException e) {

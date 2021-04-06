@@ -224,9 +224,9 @@ public abstract class PortManager {
      */
     public byte[] sendBlock(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
         if (portSendType == PortSendType.Queue) {
-            return sendBlock(queueSendPool, bytes, portReceiveType, portFilterCallback);
+            return sendBlock(queueSendPool, 0, bytes, portReceiveType, portFilterCallback);
         } else if (portSendType == PortSendType.Free) {
-            return sendBlock(freeSendPool, bytes, portReceiveType, portFilterCallback);
+            return sendBlock(freeSendPool, 10, bytes, portReceiveType, portFilterCallback);
         }
         return null;
     }
@@ -236,17 +236,18 @@ public abstract class PortManager {
      * Time：2020/7/11 16:48
      * Description：串口发送-阻塞
      * Param：sendPool 发送线程池
+     * Param：sleepTime 沉睡时间
      * Param：bytes 发送数据
      * Param：portReceiveType 接收类型
      * Param：portFilterCallback 接收过滤回调
      */
-    private byte[] sendBlock(ExecutorService sendPool, byte[] bytes, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
+    private byte[] sendBlock(ExecutorService sendPool, long sleepTime, byte[] bytes, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
         isClearSend = false;
         if (sendPool == null || sendPool.isShutdown()) {
             return null;
         }
         try {
-            Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
+            Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback, sleepTime));
             if (mFuture == null) {
                 return null;
             }
@@ -291,9 +292,9 @@ public abstract class PortManager {
      */
     public void sendAsync(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
         if (portSendType == PortSendType.Queue) {
-            sendAsync(queueSendPool, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
+            sendAsync(queueSendPool, 0, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
         } else if (portSendType == PortSendType.Free) {
-            sendAsync(freeSendPool, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
+            sendAsync(freeSendPool, 10, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
         }
     }
 
@@ -302,18 +303,19 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送-异步
      * Param：sendPool 发送线程池
+     * Param：sleepTime 沉睡时间
      * Param：bytes 发送数据
      * Param：portReceiveType 接收类型
      * Param：what 区分消息
      * Param：portReceiveCallback 异步发送接收回调
      * Param：portFilterCallback 接收过滤回调
      */
-    private void sendAsync(ExecutorService sendPool, byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
+    private void sendAsync(ExecutorService sendPool, long sleepTime, byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
         isClearSend = false;
         if (sendPool == null || sendPool.isShutdown()) {
             return;
         }
-        sendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+        sendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback, sleepTime));
     }
 
     /**
@@ -321,8 +323,8 @@ public abstract class PortManager {
      * Time：2020/9/4 16:38
      * Description：getPortSendCallable
      */
-    private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        PortSendCallable mPortSendCallable = new PortSendCallable(bytes, portReceiveType, what, portFilterCallback, getIPort(), getPortParam()) {
+    private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback, long sleepTime) {
+        PortSendCallable mPortSendCallable = new PortSendCallable(bytes, portReceiveType, what, portFilterCallback, getIPort(), getPortParam(), sleepTime) {
             @Override
             public void onResponse(int what, byte[] responseDatas) {
                 if (portReceiveCallback != null) {

@@ -21,11 +21,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private byte[] sendDatas;//发送数据
     private PortReceiveType portReceiveType;//接收类型
     private int what;
-    private PortParam portParam;//串口参数
-    private IPort iPort;//串口工具
     private PortFilterCallback portFilterCallback;
-    private byte[] receiveDatas;
+    private IPort iPort;//串口工具
+    private PortParam portParam;//串口参数
+    private long sleepTime;//沉睡时间
     //
+    private byte[] receiveDatas;
     private int sendCount;//发送次数
 
     /**
@@ -38,13 +39,14 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback, IPort iPort, PortParam portParam) {
+    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback, IPort iPort, PortParam portParam, long sleepTime) {
         this.sendDatas = sendDatas;
         this.portReceiveType = portReceiveType;
         this.what = what;
         this.portFilterCallback = portFilterCallback;
         this.iPort = iPort;
         this.portParam = portParam;
+        this.sleepTime = sleepTime;
     }
 
     @Override
@@ -75,6 +77,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @description writeDatas
      */
     private void writeDatas() {
+        XCThreadUtil.sleep(sleepTime);
         sendCount++;
         if (sendCount <= portParam.getResendCount()) {
             Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
