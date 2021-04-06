@@ -247,7 +247,7 @@ public abstract class PortManager {
             return null;
         }
         try {
-            Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback, sleepTime));
+            Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(sleepTime, bytes, portReceiveType, -1, null, portFilterCallback));
             if (mFuture == null) {
                 return null;
             }
@@ -315,7 +315,7 @@ public abstract class PortManager {
         if (sendPool == null || sendPool.isShutdown()) {
             return;
         }
-        sendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback, sleepTime));
+        sendPool.submit(getPortSendCallable(sleepTime, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
     }
 
     /**
@@ -323,8 +323,8 @@ public abstract class PortManager {
      * Time：2020/9/4 16:38
      * Description：getPortSendCallable
      */
-    private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback, long sleepTime) {
-        PortSendCallable mPortSendCallable = new PortSendCallable(bytes, portReceiveType, what, portFilterCallback, getIPort(), getPortParam(), sleepTime) {
+    private PortSendCallable getPortSendCallable(long sleepTime, byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
+        PortSendCallable mPortSendCallable = new PortSendCallable(sleepTime, getIPort(), getPortParam(), bytes, portReceiveType, what, portFilterCallback) {
             @Override
             public void onResponse(int what, byte[] responseDatas) {
                 if (portReceiveCallback != null) {

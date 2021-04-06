@@ -18,15 +18,15 @@ import java.util.List;
  */
 public abstract class PortSendCallable extends XCCallable<byte[]> {
     private final String TAG = "PortSendRunnable";
-    private byte[] sendDatas;//发送数据
-    private PortReceiveType portReceiveType;//接收类型
-    private int what;
-    private PortFilterCallback portFilterCallback;
+    private long sleepTime;//沉睡时间
     private IPort iPort;//串口工具
     private PortParam portParam;//串口参数
-    private long sleepTime;//沉睡时间
+    private byte[] sendDatas;//发送数据
+    private PortReceiveType portReceiveType;//接收类型
+    private int what;//标识
+    private PortFilterCallback portFilterCallback;//过滤器
     //
-    private byte[] receiveDatas;
+    private byte[] receiveDatas;//接收数据
     private int sendCount;//发送次数
 
     /**
@@ -39,7 +39,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback, IPort iPort, PortParam portParam, long sleepTime) {
+    public PortSendCallable(long sleepTime, IPort iPort, PortParam portParam, byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback) {
         this.sendDatas = sendDatas;
         this.portReceiveType = portReceiveType;
         this.what = what;
