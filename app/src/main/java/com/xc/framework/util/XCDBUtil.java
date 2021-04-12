@@ -37,6 +37,17 @@ public class XCDBUtil {
     }
 
     /**
+     * 变更表结构
+     *
+     * @param context    上下文
+     * @param tableClass 以实体类名创建的表
+     * @return 是否成功
+     */
+    public static boolean alterTable(Context context, Class<?> tableClass) {
+        return DBManager.getInstance(context).alterTable(tableClass);
+    }
+
+    /**
      * 清空数据库表
      *
      * @param context    上下文
