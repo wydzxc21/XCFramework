@@ -4,8 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.xc.framework.bean.FieldBean;
-import com.xc.framework.util.XCBeanUtil;
+import com.xc.framework.util.XCArrayUtil;
 import com.xc.framework.util.XCStringUtil;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class DBManager {
     public static final String TAG = "DBManager";
     private Context context;
     public static DBManager mDBManager;
-    public static final String KEY_ID = "_id";
+
 
     public DBManager(Context context) {
         this.context = context;
@@ -46,7 +45,7 @@ public class DBManager {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db != null && tableClass != null) {
             try {
-                db.execSQL(getCreateTableSql(tableClass));
+                db.execSQL(DBUtil.getCreateTableSql(tableClass));
             } catch (Exception e) {
                 return false;
             } finally {
@@ -94,6 +93,45 @@ public class DBManager {
             }
             if (cursor != null) {
                 cursor.close();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/4/9 15:33
+     * Description：变更表结果-并复制表数据
+     */
+    public synchronized boolean alterTable(Class<?> tableClass) {
+        if (tableClass == null) {
+            return false;
+        }
+        if (!isTableExist(tableClass)) {
+            return false;
+        }
+        SQLiteDatabase db = null;
+        try {
+            db = DBHelper.getInstance(context).getReadableDatabase();
+            //将表改为临时表
+            String oldTable = tableClass.getSimpleName() + "_" + System.currentTimeMillis();
+            String renameSql = "alter table " + tableClass.getSimpleName() + " rename to " + oldTable;
+            db.execSQL(renameSql);
+            //创建新表
+            String createSql = DBUtil.getCreateTableSql(tableClass);
+            db.execSQL(createSql);
+            //导入数据
+            String importSql = DBUtil.getImportSql(db, oldTable, tableClass);
+            db.execSQL(importSql);
+            //删除临时表
+            String deleteSql = "drop table " + oldTable;
+            db.execSQL(deleteSql);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (db != null) {
+                db.close();
             }
         }
         return false;
@@ -254,12 +292,19 @@ public class DBManager {
             createTable(classObjectList.get(0).getClass());
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String insertSql = getInsertSql(classObjectList, conditionObject);
-        if (db == null || XCStringUtil.isEmpty(insertSql)) {
-            return false;
+        List<List<T>> splitObjectList = new ArrayList<List<T>>();
+        if (classObjectList.size() > 500) {//sqlite每次插入上限500
+            splitObjectList.addAll(XCArrayUtil.split(classObjectList, 500));
+        } else {
+            splitObjectList.add(classObjectList);
         }
         try {
-            db.execSQL(insertSql);
+            for (int i = 0; i < splitObjectList.size(); i++) {
+                String insertSql = DBUtil.getInsertSql(splitObjectList.get(i), conditionObject);
+                if (db != null && !XCStringUtil.isEmpty(insertSql)) {
+                    db.execSQL(insertSql);
+                }
+            }
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -280,7 +325,7 @@ public class DBManager {
      */
     public synchronized <T> boolean delete(T classObject) {
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String condition = getKeyEqualValueSql(classObject, "and", false);
+        String condition = DBUtil.getKeyEqualValueSql(classObject, "and", false);
         String deleteSql = "delete from " + classObject.getClass().getSimpleName();
         if (!XCStringUtil.isEmpty(condition)) {
             deleteSql += " where " + condition;
@@ -316,7 +361,7 @@ public class DBManager {
             return false;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String deleteSql = getDeleteSql(field, classObjectList);
+        String deleteSql = DBUtil.getDeleteSql(field, classObjectList);
         if (db == null || XCStringUtil.isEmpty(deleteSql)) {
             return false;
         }
@@ -349,7 +394,7 @@ public class DBManager {
             return false;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String updateSql = getUpdateSql(updateObject, conditionObject);
+        String updateSql = DBUtil.getUpdateSql(updateObject, conditionObject);
         if (db == null || XCStringUtil.isEmpty(updateSql)) {
             return false;
         }
@@ -418,7 +463,7 @@ public class DBManager {
             return null;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String querySql = getQuerySql(classObject, -1, -1, null, null, null, null);
+        String querySql = DBUtil.getQuerySql(classObject, -1, -1, null, null, null, null);
         if (db == null || XCStringUtil.isEmpty(querySql)) {
             return null;
         }
@@ -429,7 +474,7 @@ public class DBManager {
                 return null;
             }
             if (cursor.moveToFirst()) {
-                return cursor.getString(cursor.getColumnIndex(KEY_ID));
+                return cursor.getString(cursor.getColumnIndex(DBUtil.KEY_ID));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -536,7 +581,7 @@ public class DBManager {
             return null;
         }
         if (XCStringUtil.isEmpty(sqlStr)) {
-            sqlStr = getQuerySql(classObject, limit, offset, field, like, startDate, endDate);
+            sqlStr = DBUtil.getQuerySql(classObject, limit, offset, field, like, startDate, endDate);
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         if (db == null || XCStringUtil.isEmpty(sqlStr)) {
@@ -551,7 +596,7 @@ public class DBManager {
             List<T> mList = new ArrayList<T>();
             if (cursor.moveToFirst()) {
                 do {
-                    T newClassObject = parseClassObject(cursor, classObject, false);
+                    T newClassObject = DBUtil.parseClassObject(cursor, classObject, false);
                     if (newClassObject != null) {
                         mList.add(newClassObject);
                     }
@@ -620,7 +665,7 @@ public class DBManager {
             }
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
-        String queryJoinSql = getQueryJoinSql(joinType, masterClass, masterField, slaveMap);
+        String queryJoinSql = DBUtil.getQueryJoinSql(joinType, masterClass, masterField, slaveMap);
         if (db == null || XCStringUtil.isEmpty(queryJoinSql)) {
             return null;
         }
@@ -635,14 +680,14 @@ public class DBManager {
             Map<String, Object> slaveTempMap = new HashMap<String, Object>();
             if (cursor.moveToFirst()) {
                 do {
-                    String masterId = cursor.getString(cursor.getColumnIndex(masterClass.getSimpleName() + KEY_ID));
-                    T masterObject = parseClassObject(cursor, masterClass.newInstance(), true);
+                    String masterId = cursor.getString(cursor.getColumnIndex(masterClass.getSimpleName() + DBUtil.KEY_ID));
+                    T masterObject = DBUtil.parseClassObject(cursor, masterClass.newInstance(), true);
                     masterTempMap.put(masterId, masterObject);
                     //
                     for (Class<?> key : slaveMap.keySet()) {
-                        String salveId = cursor.getString(cursor.getColumnIndex(key.getSimpleName() + KEY_ID));
+                        String salveId = cursor.getString(cursor.getColumnIndex(key.getSimpleName() + DBUtil.KEY_ID));
                         if (!XCStringUtil.isEmpty(salveId)) {
-                            Object slaveObject = parseClassObject(cursor, key.newInstance(), true);
+                            Object slaveObject = DBUtil.parseClassObject(cursor, key.newInstance(), true);
                             slaveTempMap.put(masterId + "/" + slaveObject.getClass().getSimpleName() + salveId, slaveObject);
                         }
                     }
@@ -687,306 +732,6 @@ public class DBManager {
             }
         }
         return false;
-
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/18 16:24
-     * Description：parseClassObject
-     */
-    private <T> T parseClassObject(Cursor cursor, T classObject, boolean isAlias) {
-        try {
-            T newClassObject = (T) classObject.getClass().newInstance();
-            List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
-            if (fieldList != null && !fieldList.isEmpty()) {
-                for (FieldBean entity : fieldList) {
-                    String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                    String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                    //优先采用别名，无别名再采用原名
-                    String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                    // key
-                    String key;
-                    if (isAlias) {
-                        key = classObject.getClass().getSimpleName() + name;
-                    } else if (entity.isKeyId()) {
-                        key = KEY_ID;
-                    } else {
-                        key = name;
-                    }
-                    // value
-                    String value = cursor.getString(cursor.getColumnIndex(key));
-                    XCBeanUtil.invokeSetMethod(newClassObject, original, value);
-                }
-            }
-            return newClassObject;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    // ------------------------------------------------生成sql语句方法--------------------------------------------------
-
-    /**
-     * 根据实体类生成创建数据库表sql语句
-     *
-     * @param tableClass
-     * @return
-     */
-    private String getCreateTableSql(Class<?> tableClass) {
-        String sql = "";
-        List<FieldBean> fieldList = XCBeanUtil.getFieldList(tableClass);
-        if (fieldList != null && !fieldList.isEmpty()) {
-            for (FieldBean entity : fieldList) {
-                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                if (!name.equals(KEY_ID)) {
-                    if (entity.isUnique()) {
-                        sql += "," + name + " text unique";
-                    } else {
-                        sql += "," + name + " text";
-                    }
-                }
-            }
-        }
-        return "create table if not exists " + tableClass.getSimpleName() + "(" + KEY_ID + " integer not null primary key autoincrement" + sql + ")";
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/5/22 15:28
-     * Description：获取插入sql语句
-     */
-    private <T> String getInsertSql(List<T> classObjectList, T conditionObject) {
-        if (classObjectList != null && !classObjectList.isEmpty()) {
-            String key = "";
-            String value = "";
-            for (int i = 0; i < classObjectList.size(); i++) {
-                String[] keyAndValueSql = getKeyAndValueSql(classObjectList.get(i));
-                if (i == 0) {
-                    key = "(" + keyAndValueSql[0] + ")";
-                }
-                if (conditionObject != null) {
-                    value += "" + keyAndValueSql[1] + ",";
-                } else {
-                    value += "(" + keyAndValueSql[1] + "),";
-                }
-            }
-            value = value.substring(0, value.length() - 1);
-            String insertSql;
-            String querySql = "";
-            if (conditionObject != null) {
-                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
-                querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null, null, null) + " )";
-            } else {
-                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
-            }
-            return insertSql + querySql;
-        }
-        return "";
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/5/23 9:15
-     * Description：获取删除sql语句
-     */
-    public <T> String getDeleteSql(String field, List<T> classObjectList) {
-        if (!XCStringUtil.isEmpty(field) && classObjectList != null && !classObjectList.isEmpty()) {
-            String key = "";
-            String value = "";
-            for (int i = 0; i < classObjectList.size(); i++) {
-                List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObjectList.get(i).getClass());
-                if (fieldList != null && !fieldList.isEmpty()) {
-                    for (FieldBean entity : fieldList) {
-                        String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                        String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                        //优先采用别名，无别名再采用原名
-                        String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                        if (field.equals(original) || field.equals(alias)) {
-                            // key
-                            key = name;
-                            String tempVal = "" + XCBeanUtil.invokeGetMethod(classObjectList.get(i), original);
-                            if (!XCStringUtil.isEmpty(tempVal)) {
-                                value += "'" + tempVal + "',";
-                            }
-                        }
-                    }
-                }
-            }
-            value = value.substring(0, value.length() - 1);
-            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
-        }
-        return "";
-    }
-
-    /**
-     * 根据类对象生成-更新sql语句
-     *
-     * @param updateObject
-     * @param conditionObject
-     * @return
-     */
-    private String getUpdateSql(Object updateObject, Object conditionObject) {
-        String updateSql = getKeyEqualValueSql(updateObject, ",", true);
-        String conditionSql = getKeyEqualValueSql(conditionObject, "and", false);
-        if (XCStringUtil.isEmpty(conditionSql)) {
-            return "update " + conditionObject.getClass().getSimpleName() + " set " + updateSql;
-        } else {
-            return "update " + conditionObject.getClass().getSimpleName() + " set " + updateSql + " where " + conditionSql;
-        }
-    }
-
-    /**
-     * 根据类对象生成-查询sql语句
-     *
-     * @param classObject 类对象
-     * @param limit       分页查询-获取数量
-     * @param offset      分页查询-起始索引(从0开始)
-     * @param field       模糊/日期查询-字段名
-     * @param like        模糊查询-包含字符串
-     * @param startDate   日期查询-起始日期(日期格式)
-     * @param endDate     日期查询-结束日期(日期格式)
-     * @return
-     */
-    private String getQuerySql(Object classObject, int limit, int offset, String field, String like, String startDate, String endDate) {
-        String pageSql = "";
-        if (limit >= 0 && offset >= 0) {//分页查询
-            pageSql = " limit " + limit + " offset " + offset;
-        }
-        if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(like)) {//模糊查询
-            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + " like '%" + like + "%'" + pageSql;
-        } else if (!XCStringUtil.isEmpty(field) && !XCStringUtil.isEmpty(startDate) && !XCStringUtil.isEmpty(endDate)) {//日期查询
-            return "select * from " + classObject.getClass().getSimpleName() + " where " + field + ">='" + startDate + "' and " + field + "<='" + endDate + "'" + pageSql;
-        } else {//条件查询
-            String condition = getKeyEqualValueSql(classObject, "and", false);
-            if (XCStringUtil.isEmpty(condition)) {
-                return "select * from " + classObject.getClass().getSimpleName() + pageSql;
-            } else {
-                return "select * from " + classObject.getClass().getSimpleName() + " where " + condition + pageSql;
-            }
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2020/8/18 15:17
-     * Description：连表查sql语句
-     * Param：masterClass 主类
-     * Param：slaveObjectMap 副类集合
-     * Return：java.lang.String
-     */
-    private String getQueryJoinSql(String joinType, Class<?> masterClass, String masterField, Map<Class<?>, String> slaveMap) {
-        String joinCondition = "";
-        String joinField = getJoinFieldAliasSql(masterClass);
-        int i = 0;
-        for (Class<?> key : slaveMap.keySet()) {
-            joinField += "," + getJoinFieldAliasSql(key);
-            if (i == 0) {
-                joinCondition = masterClass.getSimpleName() + " " + joinType + " join " + key.getSimpleName() + " on " + masterClass.getSimpleName() + "." + masterField + " = " + key.getSimpleName() + "." + slaveMap.get(key);
-            } else {
-                joinCondition = "(" + joinCondition + ")" + " " + joinType + " join " + key.getSimpleName() + " on " + masterClass.getSimpleName() + "." + masterField + " = " + key.getSimpleName() + "." + slaveMap.get(key);
-            }
-            i++;
-        }
-        return "select " + joinField + " from " + joinCondition;
-    }
-
-    /**
-     * 获取连表字段别名sql语句
-     * <p>
-     * Param：masterClass 主类
-     * Param：slaveObjectMap 副类集合
-     */
-    private String getJoinFieldAliasSql(Class<?> joinClass) {
-        String condition = joinClass.getSimpleName() + "." + KEY_ID + " as " + joinClass.getSimpleName() + KEY_ID + ",";
-        List<FieldBean> fieldList = XCBeanUtil.getFieldList(joinClass);
-        if (fieldList != null && !fieldList.isEmpty()) {
-            for (FieldBean entity : fieldList) {
-                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                // key
-                String key = name;
-                //
-                condition += joinClass.getSimpleName() + "." + key + " as " + joinClass.getSimpleName() + key + ",";
-            }
-            if (!XCStringUtil.isEmpty(condition)) {
-                condition = condition.substring(0, condition.length() - 1);
-            }
-        }
-        return condition;
-    }
-
-    /**
-     * 获取key等于value的sql语句
-     *
-     * @param classObject 类对象
-     * @param connectFlag ","或"and"
-     * @return key = 'value' connectFlag key = 'value'
-     */
-    private static String getKeyEqualValueSql(Object classObject, String connectFlag, boolean isUpdate) {
-        String condition = "";
-        List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
-        if (fieldList != null && !fieldList.isEmpty()) {
-            for (FieldBean entity : fieldList) {
-                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                // key
-                String key = name;
-                // value
-                String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, original);
-                String value = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
-                if (!XCStringUtil.isEmpty(value) || isUpdate) {
-                    condition += key + " = '" + value + "' " + connectFlag + " ";
-                }
-            }
-            if (!XCStringUtil.isEmpty(condition)) {
-                if (",".equals(connectFlag)) {
-                    condition = condition.substring(0, condition.length() - 3);
-                } else if ("and".equals(connectFlag)) {
-                    condition = condition.substring(0, condition.length() - 5);
-                }
-            }
-        }
-        return condition;
-    }
-
-    /**
-     * 获取key与value的sql语句
-     *
-     * @param classObject 类对象
-     * @return key, key与value, value
-     */
-    private String[] getKeyAndValueSql(Object classObject) {
-        String key = "";
-        String value = "";
-        List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
-        if (fieldList != null && !fieldList.isEmpty()) {
-            for (FieldBean entity : fieldList) {
-                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
-                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
-                //优先采用别名，无别名再采用原名
-                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                if (!name.equals(KEY_ID)) {
-                    // key
-                    key += name + ",";
-                    // value
-                    String tempValue = "" + XCBeanUtil.invokeGetMethod(classObject, original);
-                    String getValue = !XCStringUtil.isEmpty(tempValue) ? tempValue : "";
-                    value += "'" + getValue + "',";
-                }
-            }
-            key = key.substring(0, key.length() - 1);
-            value = value.substring(0, value.length() - 1);
-        }
-        return new String[]{key, value};
     }
 
 }

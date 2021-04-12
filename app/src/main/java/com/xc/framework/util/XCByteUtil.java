@@ -7,6 +7,9 @@ import org.apache.commons.codec.binary.Base64;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author ZhangXuanChen
@@ -153,6 +156,8 @@ public class XCByteUtil {
      * Author：ZhangXuanChen
      * Time：2020/9/7 15:58
      * Description：比对
+     * Param：mainBytes 主数组
+     * Param：otherBytes 其他数组
      */
     public static boolean equals(byte[] mainBytes, byte[] otherBytes) {
         if (mainBytes == null || mainBytes.length <= 0 || otherBytes == null || otherBytes.length <= 0) {
@@ -167,5 +172,35 @@ public class XCByteUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/4/9 14:44
+     * Description：分割
+     * Param：bytes 数组
+     * Param：length 分割长度
+     */
+    public static List<byte[]> split(byte[] bytes, int length) {
+        if (bytes == null || bytes.length <= 0 || length <= 0) {
+            return null;
+        }
+        if (length >= bytes.length) {
+            return null;
+        }
+        List<byte[]> mList = new ArrayList<>();
+        if (bytes != null && bytes.length > 0) {
+            int listSize = (int) Math.ceil((float) bytes.length / (float) length);
+            int from, to;
+            for (int i = 0; i < listSize; i++) {
+                from = i * length;
+                to = from + length;
+                if (to > bytes.length) {
+                    to = bytes.length;
+                }
+                mList.add(Arrays.copyOfRange(bytes, from, to));
+            }
+        }
+        return mList;
     }
 }
