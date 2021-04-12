@@ -357,7 +357,7 @@ public class DBUtil {
                     sql += str + ",";
                 }
                 sql = sql.substring(0, sql.length() - 1);
-                return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " FROM " + oldTableName;
+                return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " from " + oldTableName;
             }
         }
         return "";
