@@ -70,13 +70,15 @@ public class XCDBUtil {
     }
 
     /**
-     * 创建数据库（非必调）
+     * 初始化数据库（非必调）
      *
-     * @param context 上下文
+     * @param context   上下文
+     * @param dbName    数据库名，test.db
+     * @param dbVersion 数据库版本，1
      * @return 是否成功
      */
-    public static void createDB(Context context, String dbName) {
-        DBManager.getInstance(context).createDB(dbName);
+    public static void initDB(Context context, String dbName, int dbVersion) {
+        DBManager.getInstance(context).initDB(dbName, dbVersion);
     }
 
     /**

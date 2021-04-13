@@ -317,15 +317,23 @@ public class DBUtil {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2021/4/12 10:11
-     * Description：修改表结构-获取导入sql语句
+     * Time：2021/4/13 12:56
+     * Description：获取变更表所有字段
      */
-    public static String getImportSql(SQLiteDatabase db, String oldTableName, Class<?> tableClass) {
+    public static synchronized List<String> getAlterTableField(SQLiteDatabase db, Class<?> tableClass) {
         Cursor c = null;
-        String[] oldData = null;
+        List<String> fieldList = new ArrayList<String>();
         try {
-            c = db.rawQuery("select * from " + oldTableName + " where 0", null);
-            oldData = c.getColumnNames();//oldTable
+            c = db.rawQuery("select * from " + tableClass.getSimpleName() + " where 0", null);
+            String[] columnNames = c.getColumnNames();
+            if (columnNames != null && columnNames.length > 0) {
+                for (int i = 0; i < columnNames.length; i++) {
+                    String field = columnNames[i];
+                    if (!field.equals(DBUtil.KEY_ID)) {
+                        fieldList.add(field);
+                    }
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -333,11 +341,18 @@ public class DBUtil {
                 c.close();
             }
         }
-        //
-        List<FieldBean> newList = XCBeanUtil.getFieldList(tableClass);//newTable
-        if (oldData != null && oldData.length > 0 && newList != null && !newList.isEmpty()) {
-            List<String> fieldList = new ArrayList<String>();
-            for (String old : oldData) {
+        return fieldList;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/4/13 10:38
+     * Description：获取变更相同字段
+     */
+    public static List<String> getAlterEqualField(List<String> oldList, List<FieldBean> newList) {
+        List<String> fieldList = new ArrayList<String>();
+        if (oldList != null && !oldList.isEmpty() && newList != null && !newList.isEmpty()) {
+            for (String old : oldList) {
                 for (FieldBean entity : newList) {
                     String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
                     String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
@@ -345,20 +360,28 @@ public class DBUtil {
                     String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                     // key
                     String key = name;
-                    if (!old.equals(KEY_ID) && !key.equals(KEY_ID) && old.equals(key)) {
+                    if (!old.equals(DBUtil.KEY_ID) && !key.equals(DBUtil.KEY_ID) && old.equals(key)) {
                         fieldList.add(key);
                     }
                 }
             }
-            //
-            if (fieldList != null && !fieldList.isEmpty()) {
-                String sql = "";
-                for (String str : fieldList) {
-                    sql += str + ",";
-                }
-                sql = sql.substring(0, sql.length() - 1);
-                return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " from " + oldTableName;
+        }
+        return fieldList;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/4/12 10:11
+     * Description：修改表结构-获取导入sql语句
+     */
+    public static String getImportSql(String oldTable, Class<?> tableClass, List<String> equalList) {
+        if (equalList != null && !equalList.isEmpty()) {
+            String sql = "";
+            for (String str : equalList) {
+                sql += str + ",";
             }
+            sql = sql.substring(0, sql.length() - 1);
+            return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " from " + oldTable;
         }
         return "";
     }

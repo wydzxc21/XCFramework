@@ -4,7 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.xc.framework.bean.FieldBean;
 import com.xc.framework.util.XCArrayUtil;
+import com.xc.framework.util.XCBeanUtil;
 import com.xc.framework.util.XCStringUtil;
 
 import java.util.ArrayList;
@@ -113,6 +115,15 @@ public class DBManager {
         SQLiteDatabase db = null;
         try {
             db = DBHelper.getInstance(context).getReadableDatabase();
+            List<String> oldList = DBUtil.getAlterTableField(db, tableClass);
+            List<FieldBean> newList = XCBeanUtil.getFieldList(tableClass);
+            if (oldList == null || oldList.isEmpty() || newList == null || newList.isEmpty()) {
+                return false;
+            }
+            List<String> equalList = DBUtil.getAlterEqualField(oldList, newList);
+            if (equalList.size() == oldList.size() && equalList.size() == newList.size()) {//未变更表结构
+                return true;
+            }
             //将表改为临时表
             String oldTable = tableClass.getSimpleName() + "_" + System.currentTimeMillis();
             String renameSql = "alter table " + tableClass.getSimpleName() + " rename to " + oldTable;
@@ -121,8 +132,10 @@ public class DBManager {
             String createSql = DBUtil.getCreateTableSql(tableClass);
             db.execSQL(createSql);
             //导入数据
-            String importSql = DBUtil.getImportSql(db, oldTable, tableClass);
-            db.execSQL(importSql);
+            String importSql = DBUtil.getImportSql(oldTable, tableClass, equalList);
+            if (!XCStringUtil.isEmpty(importSql)) {
+                db.execSQL(importSql);
+            }
             //删除临时表
             String deleteSql = "drop table " + oldTable;
             db.execSQL(deleteSql);
@@ -201,13 +214,15 @@ public class DBManager {
     }
 
     /**
+     * @param dbName    数据库名，test.db
+     * @param dbVersion 数据库版本，1
      * @author ZhangXuanChen
      * @date 2020/2/4
-     * @description 创建数据库（非必需调用）
+     * @description 初始化数据库（非必需调用）
      */
-    public synchronized void createDB(String dbName) {
-        if (!XCStringUtil.isEmpty(dbName)) {
-            DBHelper.init(context, dbName);
+    public synchronized void initDB(String dbName, int dbVersion) {
+        if (!XCStringUtil.isEmpty(dbName) && dbVersion > 0) {
+            DBHelper.initDB(context, dbName, dbVersion);
         }
     }
 
@@ -227,19 +242,16 @@ public class DBManager {
      */
     public synchronized boolean deleteDB(String dbName) {
         DBHelper dbHelper = DBHelper.getInstance(context);
-        if (dbHelper != null) {
-            try {
-                if (!XCStringUtil.isEmpty(dbName)) {
-                    return dbHelper.deleteDB(context, dbName);
-                } else {
-                    return dbHelper.deleteDB(context);
-                }
-            } catch (Exception e) {
-                return false;
+        try {
+            if (!XCStringUtil.isEmpty(dbName)) {
+                return dbHelper.deleteDB(context, dbName);
+            } else {
+                return dbHelper.deleteDB(context);
             }
-        } else {
-            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     /**
