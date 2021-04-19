@@ -2,17 +2,13 @@ package com.xc.framework.util;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.view.View;
 
 import com.xc.framework.bitmap.BitmapDisplayConfig;
 import com.xc.framework.bitmap.BitmapLoader;
@@ -22,9 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * @author ZhangXuanChen
@@ -42,7 +36,7 @@ public class XCBitmapUtil {
      * @param container 容器
      * @param url       地址
      */
-    public static <T extends View> void display(Context context, T container, String url) {
+    public static <T extends android.view.View> void display(Context context, T container, String url) {
         BitmapLoader.getInstance(context).display(container, url, null, null);
     }
 
@@ -54,7 +48,7 @@ public class XCBitmapUtil {
      * @param url           地址
      * @param diskCachePath 本地缓存路径
      */
-    public static <T extends View> void display(Context context, T container, String url, String diskCachePath) {
+    public static <T extends android.view.View> void display(Context context, T container, String url, String diskCachePath) {
         BitmapLoader.getInstance(context, diskCachePath).display(container, url, null, null);
     }
 
@@ -66,7 +60,7 @@ public class XCBitmapUtil {
      * @param url       地址
      * @param callBack  加载回调
      */
-    public static <T extends View> void display(Context context, T container, String url, BitmapLoadCallBack<T> callBack) {
+    public static <T extends android.view.View> void display(Context context, T container, String url, BitmapLoadCallBack<T> callBack) {
         BitmapLoader.getInstance(context).display(container, url, null, callBack);
     }
 
@@ -79,7 +73,7 @@ public class XCBitmapUtil {
      * @param diskCachePath 本地缓存路径
      * @param callBack      加载回调
      */
-    public static <T extends View> void display(Context context, T container, String url, String diskCachePath, BitmapLoadCallBack<T> callBack) {
+    public static <T extends android.view.View> void display(Context context, T container, String url, String diskCachePath, BitmapLoadCallBack<T> callBack) {
         BitmapLoader.getInstance(context, diskCachePath).display(container, url, null, callBack);
     }
 
@@ -92,7 +86,7 @@ public class XCBitmapUtil {
      * @param diskCachePath 本地缓存路径
      * @param displayConfig 显示配置
      */
-    public static <T extends View> void display(Context context, T container, String url, String diskCachePath, BitmapDisplayConfig displayConfig) {
+    public static <T extends android.view.View> void display(Context context, T container, String url, String diskCachePath, BitmapDisplayConfig displayConfig) {
         BitmapLoader.getInstance(context, diskCachePath).display(container, url, displayConfig, null);
     }
 
@@ -106,7 +100,7 @@ public class XCBitmapUtil {
      * @param displayConfig 显示配置
      * @param callBack      加载回调
      */
-    public static <T extends View> void display(Context context, T container, String url, String diskCachePath, BitmapDisplayConfig displayConfig, BitmapLoadCallBack<T> callBack) {
+    public static <T extends android.view.View> void display(Context context, T container, String url, String diskCachePath, BitmapDisplayConfig displayConfig, BitmapLoadCallBack<T> callBack) {
         BitmapLoader.getInstance(context, diskCachePath).display(container, url, displayConfig, callBack);
     }
 
@@ -136,11 +130,11 @@ public class XCBitmapUtil {
      * @return bitmap对象
      */
     public synchronized Bitmap getBitMap(final String url) {
-        URL fileUrl = null;
-        InputStream is = null;
+        java.net.URL fileUrl = null;
+        java.io.InputStream is = null;
         Bitmap bitmap = null;
         try {
-            fileUrl = new URL(url);
+            fileUrl = new java.net.URL(url);
             HttpURLConnection conn = (HttpURLConnection) fileUrl.openConnection();
             conn.setDoInput(true);
             conn.connect();
@@ -226,7 +220,7 @@ public class XCBitmapUtil {
      * @return drawable对象
      */
     @SuppressWarnings("deprecation")
-    public static Drawable toDrawable(Bitmap bitmap) {
+    public static android.graphics.drawable.Drawable toDrawable(Bitmap bitmap) {
         BitmapDrawable bitmapDrawable = null;
         if (bitmap != null) {
             bitmapDrawable = new BitmapDrawable(bitmap);
@@ -274,7 +268,7 @@ public class XCBitmapUtil {
         if (bitmap != null && width > 0 && height > 0) {
             int w = bitmap.getWidth();
             int h = bitmap.getHeight();
-            Matrix matrix = new Matrix();
+            android.graphics.Matrix matrix = new android.graphics.Matrix();
             float scaleWidth = ((float) width / w);
             float scaleHeight = ((float) height / h);
             matrix.postScale(scaleWidth, scaleHeight);
@@ -295,7 +289,7 @@ public class XCBitmapUtil {
     public static Bitmap zoomBitmap(Bitmap bitmap, float multiple) {
         Bitmap resizeBmp = null;
         if (bitmap != null && multiple > 0) {
-            Matrix matrix = new Matrix();
+            android.graphics.Matrix matrix = new android.graphics.Matrix();
             matrix.postScale(multiple, multiple); // 长和宽放大缩小的比例
             resizeBmp = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
         }
@@ -312,7 +306,7 @@ public class XCBitmapUtil {
     public static Bitmap rotateBitmap(Bitmap bitmap, float degrees) {
         Bitmap resizeBmp = null;
         if (bitmap != null && degrees > 0) {
-            Matrix matrix = new Matrix();
+            android.graphics.Matrix matrix = new android.graphics.Matrix();
             matrix.setRotate(degrees);
             resizeBmp = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
         }
@@ -379,7 +373,7 @@ public class XCBitmapUtil {
      */
     public static String getAbsoluteImagePath(Context context, Uri uri) {
         ContentResolver cr = context.getContentResolver();
-        Cursor cursor = cr.query(uri, null, null, null, null);
+        android.database.Cursor cursor = cr.query(uri, null, null, null, null);
         if (cursor != null) {// 相册
             try {
                 cursor.moveToFirst();
@@ -424,7 +418,7 @@ public class XCBitmapUtil {
             Canvas cv = new Canvas(bitmap);
             cv.drawBitmap(src, 0, 0, null);
             cv.drawBitmap(watermark, sWid - wWid - 5, sHei - wHei - 5, null);
-            cv.save(Canvas.ALL_SAVE_FLAG);
+            cv.save();
             cv.restore();
         } catch (Exception e) {
             bitmap = null;
