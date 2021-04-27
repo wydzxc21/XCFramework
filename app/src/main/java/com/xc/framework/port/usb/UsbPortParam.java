@@ -3,8 +3,8 @@ package com.xc.framework.port.usb;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
-import com.xc.framework.port.core.PortParamCallback;
 import com.xc.framework.port.core.PortParam;
+import com.xc.framework.port.core.PortParamCallback;
 
 /**
  * Date：2019/11/27
@@ -17,19 +17,19 @@ public class UsbPortParam extends PortParam {
      */
     private UsbDevice usbDevice;
 
-    public UsbPortParam(UsbDevice usbDevice, int baudrate) {
+    public UsbPortParam(UsbDevice usbDevice, int baudRate) {
         this.usbDevice = usbDevice;
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
     }
 
-    public UsbPortParam(Context context, int vid, int pid, int baudrate) {
+    public UsbPortParam(Context context, int vid, int pid, int baudRate) {
         this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
     }
 
-    public UsbPortParam(Context context, int vid, int pid, int baudrate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
+    public UsbPortParam(Context context, int vid, int pid, int baudRate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
         this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
         this.stopBits = stopBits >= 0 ? stopBits : this.stopBits;
         this.parity = parity >= 0 ? parity : this.parity;

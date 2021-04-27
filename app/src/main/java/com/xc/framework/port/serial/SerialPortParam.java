@@ -25,20 +25,20 @@ public class SerialPortParam extends PortParam {
      */
     private int flowCon = 0;
 
-    public SerialPortParam(File serialDevice, int baudrate) {
+    public SerialPortParam(File serialDevice, int baudRate) {
         this.serialDevice = serialDevice;
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
     }
 
-    public SerialPortParam(String serialDevicePath, int baudrate) {
+    public SerialPortParam(String serialDevicePath, int baudRate) {
         this.serialDevice = new File(serialDevicePath);
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudRate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
-        this.baudrate = baudrate;
+        this.baudRate = baudRate;
         this.dataBits = dataBits > 0 ? dataBits : this.dataBits;
         this.stopBits = stopBits > 0 ? stopBits : this.stopBits;
         this.parity = parity > 0 ? parity : this.parity;

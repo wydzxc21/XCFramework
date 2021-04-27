@@ -9,7 +9,7 @@ public class PortParam {
     /**
      * 波特率
      */
-    protected int baudrate;
+    protected int baudRate;
     /**
      * 数据位，默认8，可选值为5~8
      */
@@ -31,7 +31,7 @@ public class PortParam {
      */
     protected int sendTimeout = 1000;
     /**
-     * 中断超时(毫秒)，默认30*1000
+     * 中断超时(毫秒)，默认10*1000
      */
     protected int interruptTimeout = 10 * 1000;
     /**
@@ -48,12 +48,12 @@ public class PortParam {
     protected PortParamCallback portParamCallback;
 
 
-    public int getBaudrate() {
-        return baudrate;
+    public int getBaudRate() {
+        return baudRate;
     }
 
-    public void setBaudrate(int baudrate) {
-        this.baudrate = baudrate;
+    public void setBaudRate(int baudRate) {
+        this.baudRate = baudRate;
     }
 
     public int getDataBits() {

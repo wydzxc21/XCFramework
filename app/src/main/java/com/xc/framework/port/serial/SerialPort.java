@@ -82,7 +82,7 @@ public final class SerialPort implements IPort {
         return openPort(
                 serialPortParam.getSuPath(),//su路径，默认：/system/bin/su
                 serialPortParam.getSerialDevice(),//串口设备文件
-                serialPortParam.getBaudrate(),//波特率
+                serialPortParam.getBaudRate(),//波特率
                 serialPortParam.getDataBits(),//数据位，默认8
                 serialPortParam.getStopBits(),//停止位，默认1
                 serialPortParam.getParity(),//奇偶校验位，默认0（无校验）
@@ -96,17 +96,17 @@ public final class SerialPort implements IPort {
      *
      * @param suPath   su路径，默认：/system/bin/su
      * @param device   串口设备文件
-     * @param baudrate 波特率
+     * @param baudRate 波特率
      * @param dataBits 数据位，默认8
      * @param stopBits 停止位，默认1
      * @param parity   奇偶校验位，默认0（无校验）
      * @param flowCon  流控，默认0（不使用）
      */
-    public boolean openPort(String suPath, File device, int baudrate, int dataBits, int stopBits, int parity, int flowCon) {
+    public boolean openPort(String suPath, File device, int baudRate, int dataBits, int stopBits, int parity, int flowCon) {
         if (!isPermission(suPath, device)) {
             return false;
         }
-        mFd = open(device.getAbsolutePath(), baudrate, dataBits, stopBits, parity, flowCon);
+        mFd = open(device.getAbsolutePath(), baudRate, dataBits, stopBits, parity, flowCon);
         if (mFd == null) {
             return false;
         }
@@ -220,13 +220,13 @@ public final class SerialPort implements IPort {
      * Description：打开串口
      *
      * @param absolutePath 串口路径
-     * @param baudrate     波特率
+     * @param baudRate     波特率
      * @param dataBits     数据位，默认8
      * @param stopBits     停止位，默认1
      * @param parity       奇偶校验位，默认0（无校验）
      * @param flowCon      流控，默认0（不使用）
      */
-    private native FileDescriptor open(String absolutePath, int baudrate, int dataBits, int stopBits, int parity, int flowCon);
+    private native FileDescriptor open(String absolutePath, int baudRate, int dataBits, int stopBits, int parity, int flowCon);
 
     /**
      * Author：ZhangXuanChen

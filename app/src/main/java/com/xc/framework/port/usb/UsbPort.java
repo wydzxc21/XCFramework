@@ -6,18 +6,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
 import com.xc.framework.port.core.IPort;
 import com.xc.framework.port.core.PortParam;
-
-import java.io.IOException;
-import java.util.Arrays;
+import com.xc.framework.port.usb.driver.UsbBaseDriver;
+import com.xc.framework.port.usb.driver.UsbCdcAcmDriver;
+import com.xc.framework.port.usb.driver.UsbCh34xDriver;
+import com.xc.framework.port.usb.driver.UsbCp21xDriver;
+import com.xc.framework.port.usb.driver.UsbFtdiDriver;
+import com.xc.framework.port.usb.driver.UsbProlificDriver;
+import com.xc.framework.port.usb.driver.UsbType;
 
 /**
  * Date：2019/12/3
@@ -26,120 +27,33 @@ import java.util.Arrays;
  */
 public class UsbPort implements IPort {
     private static final String ACTION_USB_PERMISSION = "com.xc.framework.USB_PERMISSION";
-    /**
-     * timeout
-     */
-    private static final int READ_AND_WRITE_MAX_SIZE = 16 * 1024;//16384
-    /**
-     * Configuration Request Types
-     */
-    private static final int REQTYPE_HOST_TO_DEVICE = 0x41;
-    /**
-     * Configuration Request Codes
-     */
-    private static final int SILABSER_IFC_ENABLE_REQUEST_CODE = 0x00;
-    private static final int SILABSER_SET_BAUDDIV_REQUEST_CODE = 0x01;
-    private static final int SILABSER_SET_LINE_CTL_REQUEST_CODE = 0x03;
-    private static final int SILABSER_SET_MHS_REQUEST_CODE = 0x07;
-    private static final int SILABSER_SET_BAUDRATE = 0x1E;
-    /**
-     * SILABSER_IFC_ENABLE_REQUEST_CODE
-     */
-    private static final int UART_ENABLE = 0x0001;
-    /**
-     * SILABSER_SET_BAUDDIV_REQUEST_CODE
-     */
-    private static final int BAUD_RATE_GEN_FREQ = 0x384000;
-    /**
-     * SILABSER_SET_MHS_REQUEST_CODE
-     */
-    private static final int MCR_ALL = 0x0003;
-    private static final int CONTROL_WRITE_DTR = 0x0100;
-    private static final int CONTROL_WRITE_RTS = 0x0200;
-    /**
-     * 5 data bits.
-     */
-    private static final int DATABITS_5 = 5;
-    /**
-     * 6 data bits.
-     */
-    private static final int DATABITS_6 = 6;
-    /**
-     * 7 data bits.
-     */
-    private static final int DATABITS_7 = 7;
-    /**
-     * 8 data bits.
-     */
-    private static final int DATABITS_8 = 8;
-    /**
-     * No parity.
-     */
-    private static final int PARITY_NONE = 0;
-    /**
-     * Odd parity.
-     */
-    private static final int PARITY_ODD = 1;
-    /**
-     * Even parity.
-     */
-    private static final int PARITY_EVEN = 2;
-    /**
-     * Mark parity.
-     */
-    private static final int PARITY_MARK = 3;
-    /**
-     * Space parity.
-     */
-    private static final int PARITY_SPACE = 4;
-    /**
-     * 1 stop bit.
-     */
-    private static final int STOPBITS_1 = 1;
-    /**
-     * 1.5 stop bits.
-     */
-    private static final int STOPBITS_1_5 = 3;
-    /**
-     * 2 stop bits.
-     */
-    private static final int STOPBITS_2 = 2;
-    //
     private Context mContext;
     private UsbManager mUsbManager;
     //
+    private UsbBaseDriver mDriver;
     private UsbDeviceConnection mUc;
-    private UsbEndpoint mReadEndpoint;
-    private UsbEndpoint mWriteEndpoint;
+    private int sendTimeout;//发送超时，默认1000
 
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 8:53
      * Description：UsbPort
      */
-    public UsbPort(Context context) {
+    public UsbPort(Context context, UsbType usbType) {
         this.mContext = context;
         mUsbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+        if (usbType == UsbType.Ch34x) {
+            mDriver = new UsbCh34xDriver();
+        } else if (usbType == UsbType.Ftdi) {
+            mDriver = new UsbFtdiDriver();
+        } else if (usbType == UsbType.Cp21x) {
+            mDriver = new UsbCp21xDriver();
+        } else if (usbType == usbType.Prolific) {
+            mDriver = new UsbProlificDriver();
+        } else if (usbType == UsbType.CdcAcm) {
+            mDriver = new UsbCdcAcmDriver();
+        }
     }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/4 10:08
-     * Description：getReadEndpoint
-     */
-    public UsbEndpoint getReadEndpoint() {
-        return mReadEndpoint;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/4 10:08
-     * Description：getWriteEndpoint
-     */
-    public UsbEndpoint getWriteEndpoint() {
-        return mWriteEndpoint;
-    }
-
 
     /**
      * Author：ZhangXuanChen
@@ -156,10 +70,11 @@ public class UsbPort implements IPort {
         }
         return openPort(
                 usbPortParam.getUsbDevice(),//usb设备
-                usbPortParam.getBaudrate(),//波特率
+                usbPortParam.getBaudRate(),//波特率
                 usbPortParam.getDataBits(),//数据位，默认8
                 usbPortParam.getStopBits(),//停止位，默认1
-                usbPortParam.getParity());//奇偶校验位，默认0（无校验）
+                usbPortParam.getParity(),//奇偶校验位，默认0（无校验）
+                usbPortParam.getSendTimeout());//发送超时
     }
 
     /**
@@ -167,18 +82,20 @@ public class UsbPort implements IPort {
      * Time：2019/12/4 10:56
      * Description：打开串口
      *
-     * @param usbDevice usb设备
-     * @param baudrate  波特率
-     * @param dataBits  数据位，默认8
-     * @param stopBits  停止位，默认1
-     * @param parity    奇偶校验位，默认0（无校验）
+     * @param usbDevice   usb设备
+     * @param baudRate    波特率
+     * @param dataBits    数据位，默认8
+     * @param stopBits    停止位，默认1
+     * @param parity      奇偶校验位，默认0（无校验）
+     * @param sendTimeout 发送超时，默认1000
      */
-    public boolean openPort(UsbDevice usbDevice, int baudrate, int dataBits, int stopBits, int parity) {
-        if (!isPermission(mUsbManager, usbDevice)) {
-            getUsbPermission(usbDevice);
-            return false;
-        }
+    public boolean openPort(UsbDevice usbDevice, int baudRate, int dataBits, int stopBits, int parity, int sendTimeout) {
+        this.sendTimeout = sendTimeout;
         try {
+            if (!isPermission(mUsbManager, usbDevice)) {
+                getUsbPermission(usbDevice);
+                return false;
+            }
             mUc = mUsbManager.openDevice(usbDevice);
             if (mUc == null) {
                 return false;
@@ -186,32 +103,10 @@ public class UsbPort implements IPort {
             if (usbDevice.getInterfaceCount() <= 0) {
                 return false;
             }
-            UsbInterface usbInterface = usbDevice.getInterface(0);
-            if (usbInterface == null) {
+            if (mDriver == null) {
                 return false;
             }
-            if (!mUc.claimInterface(usbInterface, true)) {
-                return false;
-            }
-            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
-                UsbEndpoint ep = usbInterface.getEndpoint(i);
-                if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-                    if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
-                        mReadEndpoint = ep;
-                    } else if (ep.getDirection() == UsbConstants.USB_DIR_OUT) {
-                        mWriteEndpoint = ep;
-                    }
-                }
-            }
-            if (mReadEndpoint == null || mWriteEndpoint == null) {
-                return false;
-            }
-            //setConfigSingle
-            setConfigSingle(mUc, SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
-            setConfigSingle(mUc, SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
-            setConfigSingle(mUc, SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / baudrate);
-            //setParameters
-            setParameters(mUc, baudrate, dataBits, stopBits, parity);
+            mDriver.open(usbDevice, mUc, baudRate, dataBits, stopBits, parity);
         } catch (Exception e) {
             return false;
         }
@@ -226,11 +121,9 @@ public class UsbPort implements IPort {
     @Override
     public boolean closePort() {
         try {
-            if (mReadEndpoint != null) {
-                mReadEndpoint = null;
-            }
-            if (mWriteEndpoint != null) {
-                mWriteEndpoint = null;
+            if (mDriver != null) {
+                mDriver.close();
+                mDriver = null;
             }
             if (mUc != null) {
                 mUc.close();
@@ -249,22 +142,15 @@ public class UsbPort implements IPort {
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 14:40
-     * Description：readUsbPort
-     * Param：buffer readUsbPort
-     * Return：int
+     * Description：readPort
      */
     @Override
     public synchronized byte[] readPort() {
         byte[] bytes = null;
         try {
-            if (mReadEndpoint != null && mUc != null) {
-                byte[] bufferDatas = new byte[1024];
-                int readSize = mUc.bulkTransfer(mReadEndpoint, bufferDatas, getMaxPacketSize(), 1);
-                if (readSize > 0) {
-                    bytes = Arrays.copyOf(bufferDatas, readSize);
-                }
+            if (mDriver != null) {
+                mDriver.read(sendTimeout);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -274,16 +160,13 @@ public class UsbPort implements IPort {
     /**
      * Author：ZhangXuanChen
      * Time：2019/12/4 14:40
-     * Description：writeUsbPort
-     * Param：buffer writeUsbPort
-     * Return：boolean
+     * Description：writePort
      */
     @Override
     public synchronized boolean writePort(byte[] bytes) {
         try {
-            if (mWriteEndpoint != null && mUc != null && bytes != null && bytes.length > 0) {
-                int writeSize = mUc.bulkTransfer(mWriteEndpoint, bytes, getMaxPacketSize(), 1);
-                return writeSize > 0 ? true : false;
+            if (mDriver != null) {
+                return mDriver.write(bytes, sendTimeout);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -312,7 +195,7 @@ public class UsbPort implements IPort {
      * Description：获取usb权限
      */
     private void getUsbPermission(UsbDevice usbDevice) {
-        if (mContext == null || mUsbManager == null) {
+        if (mContext == null || mUsbManager == null || usbDevice == null) {
             return;
         }
         try {
@@ -350,111 +233,5 @@ public class UsbPort implements IPort {
             }
         }
     };
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/4 10:47
-     * Description：setParameters
-     */
-    public void setParameters(UsbDeviceConnection connection, int baudrate, int dataBits, int stopBits, int parity) throws IOException {
-        if (baudrate <= 0) {
-            throw new IllegalArgumentException("Invalid baud rate: " + baudrate);
-        }
-        //baudrate
-        setBaudRate(connection, baudrate);
-        int configDataBits = 0;
-        //dataBits
-        switch (dataBits) {
-            case DATABITS_5:
-                configDataBits |= 0x0500;
-                break;
-            case DATABITS_6:
-                configDataBits |= 0x0600;
-                break;
-            case DATABITS_7:
-                configDataBits |= 0x0700;
-                break;
-            case DATABITS_8:
-                configDataBits |= 0x0800;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid data bits: " + dataBits);
-        }
-        //parity
-        switch (parity) {
-            case PARITY_NONE:
-                break;
-            case PARITY_ODD:
-                configDataBits |= 0x0010;
-                break;
-            case PARITY_EVEN:
-                configDataBits |= 0x0020;
-                break;
-            case PARITY_MARK:
-                configDataBits |= 0x0030;
-                break;
-            case PARITY_SPACE:
-                configDataBits |= 0x0040;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid parity: " + parity);
-        }
-        //stopBits
-        switch (stopBits) {
-            case STOPBITS_1:
-                break;
-            case STOPBITS_1_5:
-                throw new UnsupportedOperationException("Unsupported stop bits: 1.5");
-            case STOPBITS_2:
-                configDataBits |= 2;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid stop bits: " + stopBits);
-        }
-        setConfigSingle(connection, SILABSER_SET_LINE_CTL_REQUEST_CODE, configDataBits);
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/4 10:44
-     * Description：setBaudRate
-     */
-    private void setBaudRate(UsbDeviceConnection connection, int baudRate) throws IOException {
-        byte[] data = new byte[]{
-                (byte) (baudRate & 0xff),
-                (byte) ((baudRate >> 8) & 0xff),
-                (byte) ((baudRate >> 16) & 0xff),
-                (byte) ((baudRate >> 24) & 0xff)
-        };
-        int ret = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, SILABSER_SET_BAUDRATE, 0, 0, data, 4, 1);
-        if (ret < 0) {
-            throw new IOException("Error setting baud rate");
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/4 10:39
-     * Description：
-     * Param：null
-     * Return：
-     */
-    private int setConfigSingle(UsbDeviceConnection connection, int request, int value) throws IOException {
-        int result = connection.controlTransfer(REQTYPE_HOST_TO_DEVICE, request, value, 0, null, 0, 1);
-        if (result != 0) {
-            throw new IOException("Setting baudrate failed: result=" + result);
-        }
-        return result;
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/12/5 10:05
-     * Description：获取最大读写包大小
-     */
-    public int getMaxPacketSize() {
-        return READ_AND_WRITE_MAX_SIZE;
-    }
-
 
 }
