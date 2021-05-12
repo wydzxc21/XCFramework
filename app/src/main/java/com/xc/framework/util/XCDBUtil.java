@@ -2,7 +2,9 @@ package com.xc.framework.util;
 
 import android.content.Context;
 
+import com.xc.framework.db.DBHelper;
 import com.xc.framework.db.DBManager;
+import com.xc.framework.db.OnDBListener;
 
 import java.util.List;
 import java.util.Map;
@@ -323,5 +325,16 @@ public class XCDBUtil {
      */
     public static <T> boolean isExist(Context context, T classObject) {
         return DBManager.getInstance(context).isExist(classObject);
+    }
+
+    /**
+     * 设置数据库监听
+     *
+     * @param context      上下文
+     * @param onDBListener 监听,数据库创建、更新回调
+     * @return 是否存在
+     */
+    public static void setOnDBListener(Context context, OnDBListener onDBListener) {
+        DBHelper.getInstance(context).setOnDBListener(onDBListener);
     }
 }
