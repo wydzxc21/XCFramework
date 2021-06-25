@@ -6,6 +6,7 @@ import com.xc.framework.util.XCByteUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -190,13 +191,7 @@ public abstract class PortManager {
             public void run() {
                 getIPort().writePort(bytes);
                 Log.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
-                if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
-                    for (OnPortSendListener listener : portSendListenerList) {
-                        if (listener != null) {
-                            listener.onSend(-1, bytes, 1);
-                        }
-                    }
-                }
+                doSend(-1, bytes, 1);
             }
         }).start();
     }
@@ -246,21 +241,16 @@ public abstract class PortManager {
         if (sendPool == null || sendPool.isShutdown()) {
             return null;
         }
+        Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(sleepTime, bytes, portReceiveType, -1, null, portFilterCallback));
         try {
-            Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(sleepTime, bytes, portReceiveType, -1, null, portFilterCallback));
             if (mFuture == null) {
                 return null;
             }
             return mFuture.get();
-        } catch (Exception e) {
-            Log.i(TAG, "指令-异常:[" + e.getMessage() + "]");
-            if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
-                for (OnPortSendListener listener : portSendListenerList) {
-                    if (listener != null) {
-                        listener.onError(bytes, e.getMessage());
-                    }
-                }
-            }
+        } catch (InterruptedException e) {
+            doError(bytes, "Interrupted-" + e.getCause().getMessage());
+        } catch (ExecutionException e) {
+            doError(bytes, "Execution-" + e.getCause().getMessage());
         }
         return null;
     }
@@ -348,13 +338,7 @@ public abstract class PortManager {
 
             @Override
             public void onSend(int what, byte[] sendDatas, int sendCount) {
-                if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
-                    for (OnPortSendListener listener : portSendListenerList) {
-                        if (listener != null) {
-                            listener.onSend(what, sendDatas, sendCount);
-                        }
-                    }
-                }
+                doSend(what, sendDatas, sendCount);
             }
 
             @Override
@@ -368,6 +352,37 @@ public abstract class PortManager {
             }
         };
         return mPortSendCallable;
+    }
+
+    /**
+     * @Date：2021/5/28
+     * @Author：ZhangXuanChen
+     * @Description：doException
+     */
+    private void doError(byte[] bytes, String msg) {
+        Log.i(TAG, "指令-异常:[" + msg + "]");
+        if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+            for (OnPortSendListener listener : portSendListenerList) {
+                if (listener != null) {
+                    listener.onError(bytes, msg);
+                }
+            }
+        }
+    }
+
+    /**
+     * @Date：2021/5/31
+     * @Author：ZhangXuanChen
+     * @Description：doSend
+     */
+    private void doSend(int what, byte[] sendDatas, int sendCount) {
+        if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
+            for (OnPortSendListener listener : portSendListenerList) {
+                if (listener != null) {
+                    listener.onSend(what, sendDatas, sendCount);
+                }
+            }
+        }
     }
 
     /**

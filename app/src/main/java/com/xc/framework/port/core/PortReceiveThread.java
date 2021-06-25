@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCByteUtil;
+import com.xc.framework.util.XCThreadUtil;
 
 import java.util.Arrays;
 
@@ -42,10 +43,10 @@ public abstract class PortReceiveThread extends XCThread {
         try {
             while (isRun()) {
                 readDatas();
-                Thread.sleep(1);
+                XCThreadUtil.sleep(1);
             }
         } catch (Exception e) {
-            setRun(false);
+            e.printStackTrace();
         }
         return null;
     }

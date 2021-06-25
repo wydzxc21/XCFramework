@@ -51,17 +51,21 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     }
 
     @Override
-    public byte[] call() {
-        writeDatas();
-        if (receiveDatas != null && receiveDatas.length > 0) {
-            if (portReceiveType == PortReceiveType.Response) {//响应
-                onResponse(what, receiveDatas);
-            } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
-                onInterrupt(what, receiveDatas);
-            } else if (portReceiveType == PortReceiveType.NULL) {
+    public byte[] call() throws Exception {
+        try {
+            writeDatas();
+            if (receiveDatas != null && receiveDatas.length > 0) {
+                if (portReceiveType == PortReceiveType.Response) {//响应
+                    onResponse(what, receiveDatas);
+                } else if (portReceiveType == PortReceiveType.Interrupt) {//中断
+                    onInterrupt(what, receiveDatas);
+                } else if (portReceiveType == PortReceiveType.NULL) {
+                }
+            } else {//超时
+                onTimeout(what, sendDatas);
             }
-        } else {//超时
-            onTimeout(what, sendDatas);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return receiveDatas;
     }
