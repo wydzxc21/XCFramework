@@ -47,7 +47,7 @@ public class XCFileUtil {
      *
      * @return 例:/storage/emulated/0
      */
-    public static java.lang.String getSDCardDir() {
+    public static String getSDCardDir() {
         if (isSDCardExist()) {
             String path = Environment.getExternalStorageDirectory().getAbsolutePath();
             if (!XCStringUtil.isEmpty(path)) {
@@ -63,7 +63,7 @@ public class XCFileUtil {
      * @param context 上下文
      * @return 内存少时会被自动清除，例:/data/data/com.xc.sample/cache
      */
-    public static java.lang.String getCacheDir(Context context) {
+    public static String getCacheDir(Context context) {
         File cacheDir = context.getCacheDir();
         if (cacheDir != null) {
             return cacheDir.getPath();
@@ -77,7 +77,7 @@ public class XCFileUtil {
      * @param context 上下文
      * @return 内存少时不会被自动清除，例:/storage/emulated/0/Android/data/com.xc.sample/cache
      */
-    public static java.lang.String getExternalCacheDir(Context context) {
+    public static String getExternalCacheDir(Context context) {
         File externalCacheDir = context.getExternalCacheDir();
         if (externalCacheDir != null) {
             return externalCacheDir.getPath();
@@ -90,7 +90,7 @@ public class XCFileUtil {
      *
      * @return
      */
-    public static java.lang.String getUsbDir(Context context) {
+    public static String getUsbDir(Context context) {
         List<String> usbDirs = XCFileUtil.getUsbDirList(context);
         if (usbDirs == null || usbDirs.size() == 0) {
             return null;
@@ -103,7 +103,7 @@ public class XCFileUtil {
      *
      * @return
      */
-    public static List<java.lang.String> getUsbDirList(Context context) {
+    public static List<String> getUsbDirList(Context context) {
         List<String> usbDirs = new ArrayList<>();
         try {
             StorageManager srgMgr = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
@@ -127,7 +127,7 @@ public class XCFileUtil {
      * @param downloadUrl 下载地址
      * @return 文件名
      */
-    public static java.lang.String getDownloadFileName(java.lang.String downloadUrl) {
+    public static String getDownloadFileName(String downloadUrl) {
         try {
             if (!XCStringUtil.isEmpty(downloadUrl)) {
                 if (downloadUrl.contains("/")) {
@@ -152,7 +152,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 创建文件夹
      */
-    public static boolean createFolder(java.lang.String folderPath) {
+    public static boolean createFolder(String folderPath) {
         try {
             if (!XCStringUtil.isEmpty(folderPath)) {
                 File dirFile = new File(folderPath);
@@ -172,10 +172,19 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 删除文件夹(含其根目录文件)
      */
-    public static boolean deleteFolder(java.lang.String folderPath) {
+    public static boolean deleteFolder(String folderPath) {
+        return deleteFolder(new File(folderPath));
+    }
+
+    /**
+     * @param dirFile 文件
+     * @author ZhangXuanChen
+     * @date 2020/2/19
+     * @description 删除文件夹(含其根目录文件)
+     */
+    public static boolean deleteFolder(File dirFile) {
         try {
-            if (!XCStringUtil.isEmpty(folderPath)) {
-                File dirFile = new File(folderPath);
+            if (dirFile != null) {
                 if (dirFile.exists() && dirFile.isDirectory()) {
                     File[] files = dirFile.listFiles();
                     if (files != null && files.length > 0) {
@@ -201,7 +210,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 文件是否存在
      */
-    public static boolean isFileExist(java.lang.String filePath) {
+    public static boolean isFileExist(String filePath) {
         try {
             if (!XCStringUtil.isEmpty(filePath)) {
                 return new File(filePath).exists();
@@ -218,7 +227,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 创建文件（含后缀名）
      */
-    public static boolean createFile(java.lang.String filePath) {
+    public static boolean createFile(String filePath) {
         try {
             if (!XCStringUtil.isEmpty(filePath)) {
                 File file = new File(filePath);
@@ -238,7 +247,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 删除文件（含后缀名）
      */
-    public static boolean deleteFile(java.lang.String filePath) {
+    public static boolean deleteFile(String filePath) {
         return deleteFile(new File(filePath));
     }
 
@@ -269,7 +278,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 写入字节数组
      */
-    public static boolean writeBytes(byte[] bytes, java.lang.String filePath) {
+    public static boolean writeBytes(byte[] bytes, String filePath) {
         return writeBytes(bytes, new File(filePath));
     }
 
@@ -307,7 +316,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 读取字节数组
      */
-    public static byte[] readBytes(java.lang.String filePath) {
+    public static byte[] readBytes(String filePath) {
         return readBytes(new File(filePath));
     }
 
@@ -349,7 +358,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 写入文本
      */
-    public static boolean writeText(java.lang.String content, java.lang.String filePath) {
+    public static boolean writeText(String content, String filePath) {
         return writeText(content, new File(filePath));
     }
 
@@ -361,7 +370,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 写入文本
      */
-    public static boolean writeText(java.lang.String content, File file) {
+    public static boolean writeText(String content, File file) {
         try {
             if (!XCStringUtil.isEmpty(content) && file != null) {
                 if (file.exists() && file.isFile()) {
@@ -388,7 +397,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 读取文本
      */
-    public static java.lang.String readText(java.lang.String filePath) {
+    public static String readText(String filePath) {
         return readText(new File(filePath));
     }
 
@@ -399,7 +408,7 @@ public class XCFileUtil {
      * @date 2020/2/19
      * @description 读取文本
      */
-    public static java.lang.String readText(File file) {
+    public static String readText(File file) {
         try {
             if (file != null) {
                 if (file.exists() && file.isFile()) {
@@ -428,7 +437,7 @@ public class XCFileUtil {
      * @date 2020/2/20
      * @description 获取文件list
      */
-    public static List<File> getFileList(java.lang.String folderPath) {
+    public static List<File> getFileList(String folderPath) {
         List<File> fileList = new ArrayList<File>();
         if (!XCStringUtil.isEmpty(folderPath)) {
             File dirFile = new File(folderPath);
@@ -447,7 +456,7 @@ public class XCFileUtil {
      * Time：2020/5/11 9:02
      * Description：获取文件大小字符串
      */
-    public static java.lang.String getFileSizeStr(long fileSize) {
+    public static String getFileSizeStr(long fileSize) {
         DecimalFormat df = new DecimalFormat("#.00");
         String fileSizeStr;
         if (fileSize == 0) {
@@ -510,7 +519,7 @@ public class XCFileUtil {
      * Param：outFile 输出文件
      * Return：boolean
      */
-    public static boolean copyAssetsFile(Context context, java.lang.String fileName, File outFile) {
+    public static boolean copyAssetsFile(Context context, String fileName, File outFile) {
         if (context == null || XCStringUtil.isEmpty(fileName) || outFile == null) {
             return false;
         }
