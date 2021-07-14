@@ -1,9 +1,6 @@
 package com.xc.framework.port.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Date：2021/3/26
@@ -12,8 +9,8 @@ import java.util.List;
  */
 public class PortReceiveCache {
     private final String TAG = "PortReceiveCache";
-    private final List<byte[]> responseList;
-    private final List<byte[]> resultList;
+    private final CopyOnWriteArrayList<byte[]> responseList;
+    private final CopyOnWriteArrayList<byte[]> resultList;
     public static PortReceiveCache mPortReceiveCache;
 
     /**
@@ -34,8 +31,8 @@ public class PortReceiveCache {
      * Description：PortReceiveCache
      */
     public PortReceiveCache() {
-        responseList = Collections.synchronizedList(new ArrayList<byte[]>());
-        resultList = Collections.synchronizedList(new ArrayList<byte[]>());
+        responseList = new CopyOnWriteArrayList<byte[]>();
+        resultList = new CopyOnWriteArrayList<byte[]>();
     }
 
     /**
@@ -49,17 +46,26 @@ public class PortReceiveCache {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2021/3/26 13:35
+     * Description：removeResponse
+     */
+    public void removeResponse(byte[] bytes) {
+        responseList.remove(bytes);
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2021/3/26 13:18
      * Description：getResponseList
      */
-    public List<byte[]> getResponseList() {
+    public CopyOnWriteArrayList<byte[]> getResponseList() {
         return responseList;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2021/3/26 13:35
-     * Description：clearResponse
+     * Description：clearResponseList
      */
     public void clearResponseList() {
         responseList.clear();
@@ -76,10 +82,19 @@ public class PortReceiveCache {
 
     /**
      * Author：ZhangXuanChen
+     * Time：2021/3/26 11:21
+     * Description：addResult
+     */
+    public void removeResult(byte[] bytes) {
+        resultList.remove(bytes);
+    }
+
+    /**
+     * Author：ZhangXuanChen
      * Time：2021/3/26 13:19
      * Description：getResultList
      */
-    public List<byte[]> getResultList() {
+    public CopyOnWriteArrayList<byte[]> getResultList() {
         return resultList;
     }
 
@@ -94,19 +109,25 @@ public class PortReceiveCache {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2021/3/26 13:47
-     * Description：getReceiveDatas
+     * Time：2021/3/26 13:34
+     * Description：clear
      */
-    public synchronized byte[] getReceiveDatas(List<byte[]> receiveList, byte[] sendDatas, PortFilterCallback portFilterCallback) {
-        synchronized (receiveList) {
-            if (receiveList != null && !receiveList.isEmpty()) {
-                Iterator<byte[]> iterator = receiveList.iterator();
-                while (iterator.hasNext()) {
-                    byte[] receiveDatas = iterator.next();
-                    if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
-                        iterator.remove();
-                        return receiveDatas;
-                    }
+    public void clear() {
+        clearResponseList();
+        clearResultList();
+    }
+
+    public byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
+        CopyOnWriteArrayList<byte[]> receiveList = null;
+        if (receiveType == PortReceiveType.Response) {//响应
+            receiveList = getResponseList();
+        } else if (receiveType == PortReceiveType.Result) {//结果
+            receiveList = getResultList();
+        }
+        if (receiveList != null && !receiveList.isEmpty()) {
+            for (byte[] receiveDatas : receiveList) {
+                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
+                    return receiveDatas;
                 }
             }
         }
@@ -115,11 +136,17 @@ public class PortReceiveCache {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2021/3/26 13:34
-     * Description：clear
+     * Time：2021/3/26 13:47
+     * Description：removeReceiveDatas
      */
-    public void clear() {
-        clearResponseList();
-        clearResultList();
+    public void removeReceiveDatas(PortReceiveType receiveType, byte[] receiveDatas) {
+        if (receiveDatas != null && receiveDatas.length > 0) {
+            if (receiveType == PortReceiveType.Response) {//响应
+                removeResponse(receiveDatas);
+            } else if (receiveType == PortReceiveType.Result) {//结果
+                removeResult(receiveDatas);
+            }
+        }
     }
+
 }

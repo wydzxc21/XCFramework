@@ -144,14 +144,14 @@ public abstract class PortReceiveThread extends XCThread {
         if (length > 0 && length == cutDatas.length) {
             reset();
             if (frameHeadsType == 1) {//响应
-                Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 PortReceiveCache.getInstance().addResponse(cutDatas);
+                Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 onResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isResult = portParam.portParamCallback != null ? portParam.portParamCallback.onResult(cutDatas) : false;
                 if (isResult) {//接收结果
-                    Log.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                     PortReceiveCache.getInstance().addResult(cutDatas);
+                    Log.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                     onRequest(cutDatas, true);
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
