@@ -17,9 +17,9 @@ public interface PortReceiveCallback {
     /**
      * @author ZhangXuanChen
      * @date 2020/3/7
-     * @description 中断
+     * @description 结果
      */
-    void onInterrupt(int what, byte[] interruptDatas);
+    void onResult(int what, byte[] resultDatas);
 
     /**
      * @author ZhangXuanChen

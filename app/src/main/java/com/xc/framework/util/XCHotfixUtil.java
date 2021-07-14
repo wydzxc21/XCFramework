@@ -2,8 +2,6 @@ package com.xc.framework.util;
 
 import android.content.Context;
 
-import com.xc.framework.util.XCFileUtil;
-
 import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;

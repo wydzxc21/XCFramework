@@ -15,9 +15,9 @@ public enum PortReceiveType {
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/29 9:04
-     * Description：中断
+     * Description：结果
      */
-    Interrupt,
+    Result,
     /**
      * Author：ZhangXuanChen
      * Time：2020/7/29 9:04

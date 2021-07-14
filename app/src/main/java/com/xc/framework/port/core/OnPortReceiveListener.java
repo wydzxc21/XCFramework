@@ -20,6 +20,6 @@ public interface OnPortReceiveListener {
      * Time：2020/4/29 11:35
      * Description：请求
      */
-    void onRequest(byte[] requestDatas, boolean isInterrupt);
+    void onRequest(byte[] requestDatas, boolean isResult);
 
 }

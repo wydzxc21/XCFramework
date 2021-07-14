@@ -40,13 +40,13 @@ public abstract class PortReceiveThread extends XCThread {
 
     @Override
     protected Object onRun(Handler handler) {
-        try {
-            while (isRun()) {
+        while (isRun()) {
+            try {
                 readDatas();
                 XCThreadUtil.sleep(1);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -92,22 +92,12 @@ public abstract class PortReceiveThread extends XCThread {
         //获取最前一组请求帧头索引
         int requestFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
         //返回最前一组帧头
-        if (responseFrameHeadPosition < 0 || requestFrameHeadPosition < 0) {
-            if (responseFrameHeadPosition > requestFrameHeadPosition) {
-                frameHeadsType = 1;//响应
-                return responseFrameHeadPosition;
-            } else {
-                frameHeadsType = 2;//请求
-                return requestFrameHeadPosition;
-            }
+        if (Math.abs(responseFrameHeadPosition) < Math.abs(requestFrameHeadPosition)) {
+            frameHeadsType = 1;//响应
+            return responseFrameHeadPosition;
         } else {
-            if (responseFrameHeadPosition < requestFrameHeadPosition) {
-                frameHeadsType = 1;//响应
-                return responseFrameHeadPosition;
-            } else {
-                frameHeadsType = 2;//请求
-                return requestFrameHeadPosition;
-            }
+            frameHeadsType = 2;//请求
+            return requestFrameHeadPosition;
         }
     }
 
@@ -122,15 +112,20 @@ public abstract class PortReceiveThread extends XCThread {
         }
         int firstFrameHeadPosition = getFirstFrameHeadPosition(cutDatas);
         if (firstFrameHeadPosition >= 0) {
-            cutDatas = PortFrameUtil.splitDataByFirstFrameHead(firstFrameHeadPosition, 0, cutDatas)[0];
-            int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
-            if (length > 0) {
-                if (cutDatas.length > length) {
-                    byte[][] splitData = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
-                    result(splitData[0]);
-                    splitData(splitData[1]);
-                } else if (length == cutDatas.length) {
-                    result(cutDatas);
+            byte[][] splitFirsts = PortFrameUtil.splitDataByFirstFrameHead(firstFrameHeadPosition, 0, cutDatas);
+            if (splitFirsts != null && splitFirsts.length > 0) {
+                cutDatas = splitFirsts[0];
+                int length = portParam.portParamCallback != null ? portParam.portParamCallback.onLength(cutDatas) : 0;//判断指令长度
+                if (length > 0) {
+                    if (cutDatas.length > length) {
+                        byte[][] splitAgains = PortFrameUtil.splitDataByFirstFrameHead(getFirstFrameHeadPosition(cutDatas), length, cutDatas);
+                        if (splitAgains != null && splitAgains.length > 0) {
+                            result(splitAgains[0]);
+                            splitData(splitAgains[1]);
+                        }
+                    } else if (length == cutDatas.length) {
+                        result(cutDatas);
+                    }
                 }
             }
         }
@@ -153,10 +148,10 @@ public abstract class PortReceiveThread extends XCThread {
                 PortReceiveCache.getInstance().addResponse(cutDatas);
                 onResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
-                boolean isInterrupt = portParam.portParamCallback != null ? portParam.portParamCallback.onInterrupt(cutDatas) : false;
-                if (isInterrupt) {//接收中断
-                    Log.i(TAG, "指令-接收中断:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
-                    PortReceiveCache.getInstance().addInterrupt(cutDatas);
+                boolean isResult = portParam.portParamCallback != null ? portParam.portParamCallback.onResult(cutDatas) : false;
+                if (isResult) {//接收结果
+                    Log.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                    PortReceiveCache.getInstance().addResult(cutDatas);
                     onRequest(cutDatas, true);
                 } else {//接收请求
                     Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
@@ -187,5 +182,5 @@ public abstract class PortReceiveThread extends XCThread {
      * Time：2019/11/27 15:14
      * Description：onRequest
      */
-    public abstract void onRequest(byte[] requestDatas, boolean isInterrupt);
+    public abstract void onRequest(byte[] requestDatas, boolean isResult);
 }

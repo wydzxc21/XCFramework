@@ -27,7 +27,7 @@ public abstract class PortManager {
     private ExecutorService queueSendPool;//队列发送线程池
     private ExecutorService freeSendPool;//自由发送线程池
     private boolean isOpen = false;//是否打开串口
-    private boolean isClearSend;//是否清空发送
+    private boolean isStopSend;//是否停止发送
     private boolean isPauseReceive;//是否暂停接收
 
     public PortManager() {
@@ -69,7 +69,7 @@ public abstract class PortManager {
         if (getIPort() != null && getPortParam() != null) {
             isOpen = getIPort().openPort(getPortParam());
             if (isOpen) {
-                clearSend(true);
+                stopSend(true);
                 startReceivedThread();
             }
         }
@@ -83,7 +83,7 @@ public abstract class PortManager {
      */
     public boolean close() {
         boolean isClose = false;
-        clearSend(false);
+        stopSend(false);
         if (mPortReceiveThread != null) {
             mPortReceiveThread.stopThread();
             mPortReceiveThread = null;
@@ -98,19 +98,19 @@ public abstract class PortManager {
     /**
      * Author：ZhangXuanChen
      * Time：2020/8/5 8:42
-     * Description：清空发送
+     * Description：停止发送
      */
-    public void clearSend() {
-        clearSend(true);
+    public void stopSend() {
+        stopSend(true);
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/8/5 8:42
-     * Description：清空发送
+     * Description：停止发送
      */
-    private void clearSend(boolean isInitPool) {
-        isClearSend = true;
+    private void stopSend(boolean isInitPool) {
+        isStopSend = true;
         if (queueSendPool != null) {
             queueSendPool.shutdownNow();
             queueSendPool = null;
@@ -165,11 +165,11 @@ public abstract class PortManager {
             }
 
             @Override
-            public void onRequest(byte[] requestDatas, boolean isInterrupt) {
+            public void onRequest(byte[] requestDatas, boolean isResult) {
                 if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
                     for (OnPortReceiveListener listener : portReceiveListenerList) {
                         if (listener != null) {
-                            listener.onRequest(requestDatas, isInterrupt);
+                            listener.onRequest(requestDatas, isResult);
                         }
                     }
                 }
@@ -219,9 +219,9 @@ public abstract class PortManager {
      */
     public byte[] sendBlock(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
         if (portSendType == PortSendType.Queue) {
-            return sendBlock(queueSendPool, 0, bytes, portReceiveType, portFilterCallback);
+            return sendBlock(queueSendPool, 1, bytes, portReceiveType, portFilterCallback);
         } else if (portSendType == PortSendType.Free) {
-            return sendBlock(freeSendPool, 10, bytes, portReceiveType, portFilterCallback);
+            return sendBlock(freeSendPool, 20, bytes, portReceiveType, portFilterCallback);
         }
         return null;
     }
@@ -237,7 +237,7 @@ public abstract class PortManager {
      * Param：portFilterCallback 接收过滤回调
      */
     private byte[] sendBlock(ExecutorService sendPool, long sleepTime, byte[] bytes, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
-        isClearSend = false;
+        isStopSend = false;
         if (sendPool == null || sendPool.isShutdown()) {
             return null;
         }
@@ -282,9 +282,9 @@ public abstract class PortManager {
      */
     public void sendAsync(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
         if (portSendType == PortSendType.Queue) {
-            sendAsync(queueSendPool, 0, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
+            sendAsync(queueSendPool, 1, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
         } else if (portSendType == PortSendType.Free) {
-            sendAsync(freeSendPool, 10, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
+            sendAsync(freeSendPool, 20, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
         }
     }
 
@@ -301,7 +301,7 @@ public abstract class PortManager {
      * Param：portFilterCallback 接收过滤回调
      */
     private void sendAsync(ExecutorService sendPool, long sleepTime, byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        isClearSend = false;
+        isStopSend = false;
         if (sendPool == null || sendPool.isShutdown()) {
             return;
         }
@@ -323,9 +323,9 @@ public abstract class PortManager {
             }
 
             @Override
-            public void onInterrupt(int what, byte[] interruptDatas) {
+            public void onResult(int what, byte[] resultDatas) {
                 if (portReceiveCallback != null) {
-                    portReceiveCallback.onInterrupt(what, interruptDatas);
+                    portReceiveCallback.onResult(what, resultDatas);
                 }
             }
 
@@ -342,8 +342,8 @@ public abstract class PortManager {
             }
 
             @Override
-            public boolean isClearSend() {
-                return isClearSend;
+            public boolean isStopSend() {
+                return isStopSend;
             }
 
             @Override

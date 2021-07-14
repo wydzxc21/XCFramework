@@ -18,7 +18,7 @@ public interface PortParamCallback {
     /**
      * @author ZhangXuanChen
      * @date 2020/3/7
-     * @description 返回是否为中断
+     * @description 返回是否为结果
      */
-    boolean onInterrupt(byte[] receiveDatas);
+    boolean onResult(byte[] receiveDatas);
 }

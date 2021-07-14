@@ -31,9 +31,9 @@ public class PortParam {
      */
     protected int sendTimeout = 1000;
     /**
-     * 中断超时(毫秒)，默认10*1000
+     * 运行超时(毫秒)，默认10*1000
      */
-    protected int interruptTimeout = 10 * 1000;
+    protected int runTimeout = 10 * 1000;
     /**
      * 接收响应帧头，默认null，处理丢包粘包
      */
@@ -96,12 +96,12 @@ public class PortParam {
         this.sendTimeout = sendTimeout;
     }
 
-    public int getInterruptTimeout() {
-        return interruptTimeout;
+    public int getRunTimeout() {
+        return runTimeout;
     }
 
-    public void setInterruptTimeout(int interruptTimeout) {
-        this.interruptTimeout = interruptTimeout;
+    public void setRunTimeout(int runTimeout) {
+        this.runTimeout = runTimeout;
     }
 
     public byte[] getReceiveResponseFrameHeads() {
