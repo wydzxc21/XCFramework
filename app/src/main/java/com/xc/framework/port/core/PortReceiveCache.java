@@ -126,7 +126,7 @@ public class PortReceiveCache {
         }
         if (receiveList != null && !receiveList.isEmpty()) {
             for (byte[] receiveDatas : receiveList) {
-                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas) : true) {//判断指令正确性
+                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
                     return receiveDatas;
                 }
             }
