@@ -27,13 +27,13 @@ public class PortParam {
      */
     protected int resendCount = 0;
     /**
-     * 发送超时(毫秒)，默认1000
+     * 发送超时(毫秒)，默认2000
      */
-    protected int sendTimeout = 1000;
+    protected int sendTimeout = 2000;
     /**
-     * 运行超时(毫秒)，默认10*1000
+     * 运行超时(毫秒)，默认5000
      */
-    protected int runTimeout = 10 * 1000;
+    protected int runTimeout = 5000;
     /**
      * 接收响应帧头，默认null，处理丢包粘包
      */

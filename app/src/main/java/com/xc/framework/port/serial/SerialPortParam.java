@@ -35,7 +35,7 @@ public class SerialPortParam extends PortParam {
         this.baudRate = baudRate;
     }
 
-    public SerialPortParam(String suPath, String serialDevicePath, int baudRate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
+    public SerialPortParam(String suPath, String serialDevicePath, int baudRate, int dataBits, int stopBits, int parity, int flowCon, int resendCount, int sendTimeout, int runTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.suPath = !XCStringUtil.isEmpty(suPath) ? suPath : this.suPath;
         this.serialDevice = new File(serialDevicePath);
         this.baudRate = baudRate;
@@ -45,7 +45,7 @@ public class SerialPortParam extends PortParam {
         this.flowCon = flowCon > 0 ? flowCon : this.flowCon;
         this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
         this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
-        this.interruptTimeout = interruptTimeout > 0 ? interruptTimeout : this.interruptTimeout;
+        this.runTimeout = runTimeout > 0 ? runTimeout : this.runTimeout;
         this.receiveResponseFrameHeads = receiveResponseFrameHeads;
         this.receiveRequestFrameHeads = receiveRequestFrameHeads;
         this.portParamCallback = portParamCallback;

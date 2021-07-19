@@ -27,7 +27,7 @@ public class UsbPortParam extends PortParam {
         this.baudRate = baudRate;
     }
 
-    public UsbPortParam(Context context, int vid, int pid, int baudRate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
+    public UsbPortParam(Context context, int vid, int pid, int baudRate, int dataBits, int stopBits, int parity, int resendCount, int sendTimeout, int runTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.usbDevice = UsbPortFinder.getInstance().getUsbDevice(context, vid, pid);
         this.baudRate = baudRate;
         this.dataBits = dataBits >= 0 ? dataBits : this.dataBits;
@@ -35,7 +35,7 @@ public class UsbPortParam extends PortParam {
         this.parity = parity >= 0 ? parity : this.parity;
         this.resendCount = resendCount > 0 ? resendCount : this.resendCount;
         this.sendTimeout = sendTimeout > 0 ? sendTimeout : this.sendTimeout;
-        this.interruptTimeout = interruptTimeout > 0 ? interruptTimeout : this.interruptTimeout;
+        this.runTimeout = runTimeout > 0 ? runTimeout : this.runTimeout;
         this.receiveResponseFrameHeads = receiveResponseFrameHeads;
         this.receiveRequestFrameHeads = receiveRequestFrameHeads;
         this.portParamCallback = portParamCallback;

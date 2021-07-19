@@ -76,18 +76,18 @@ public class UsbPortManager extends PortManager {
      * Param：vid 厂商id
      * Param：pid 设备id
      * Param：baudRate 波特率
-     * Param：resendCount 重发次数，默认0
-     * Param：sendTimeout 发送超时(毫秒)，默认1000
-     * Param：interruptTimeout 中断超时(毫秒)，默认10*1000
+     * Param：resendCount 重发次数，默认0，不重发
+     * Param：sendTimeout 发送超时(毫秒)，默认2000
+     * Param：runTimeout 运行超时(毫秒)，默认5000
      * Param：receiveResponseFrameHeads 接收响应帧头，默认null
      * Param：receiveRequestFrameHeads 接收请求帧头，默认null
      * Param：portParamCallback 设置串口参数回调，默认null
      */
-    public void init(int vid, int pid, int baudRate, int resendCount, int sendTimeout, int interruptTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
+    public void init(int vid, int pid, int baudRate, int resendCount, int sendTimeout, int runTimeout, byte[] receiveResponseFrameHeads, byte[] receiveRequestFrameHeads, PortParamCallback portParamCallback) {
         this.mUsbPortParam = new UsbPortParam(mContext, vid, pid, baudRate);
         this.mUsbPortParam.setResendCount(resendCount);
         this.mUsbPortParam.setSendTimeout(sendTimeout);
-        this.mUsbPortParam.setInterruptTimeout(interruptTimeout);
+        this.mUsbPortParam.setRunTimeout(runTimeout);
         this.mUsbPortParam.setReceiveResponseFrameHeads(receiveResponseFrameHeads);
         this.mUsbPortParam.setReceiveRequestFrameHeads(receiveRequestFrameHeads);
         this.mUsbPortParam.setPortParamCallback(portParamCallback);
