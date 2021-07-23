@@ -16,33 +16,34 @@ import com.xc.framework.util.XCThreadUtil;
  */
 public abstract class PortSendCallable extends XCCallable<byte[]> {
     private final String TAG = "PortSendRunnable";
-    private Object poolLock;//线程池锁
     private IPort iPort;//串口工具
     private PortParam portParam;//串口参数
     private byte[] sendDatas;//发送数据
     private PortReceiveType portReceiveType;//接收类型
+    private PortReceiveCache portReceiveCache;//接收缓存
     private int what;//区分消息
     private PortFilterCallback portFilterCallback;//过滤回调
     //
+    private static Object poolLock = new Object();//线程池锁
     private int sendCount;//发送次数
 
     /**
-     * @param poolLock           线程池锁
      * @param iPort              串口工具
      * @param portParam          串口参数
      * @param sendDatas          发送数据
      * @param portReceiveType    接收类型
+     * @param portReceiveCache   接收缓存
      * @param what               区分消息
      * @param portFilterCallback 过滤回调
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(Object poolLock, IPort iPort, PortParam portParam, byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback) {
-        this.poolLock = poolLock;
+    public PortSendCallable(IPort iPort, PortParam portParam, byte[] sendDatas, PortReceiveType portReceiveType, PortReceiveCache portReceiveCache, int what, PortFilterCallback portFilterCallback) {
         this.iPort = iPort;
         this.portParam = portParam;
         this.sendDatas = sendDatas;
         this.portReceiveType = portReceiveType;
+        this.portReceiveCache = portReceiveCache;
         this.what = what;
         this.portFilterCallback = portFilterCallback;
     }
@@ -121,12 +122,11 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                     currentTime = System.currentTimeMillis();
                     continue;
                 }
-                receiveDatas = PortReceiveCache.getInstance().getReceiveDatas(receiveType, sendDatas, portFilterCallback);
+                receiveDatas = portReceiveCache.getReceiveDatas(receiveType, sendDatas, portFilterCallback);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        PortReceiveCache.getInstance().removeReceiveDatas(receiveType, receiveDatas);
         return receiveDatas;
     }
 

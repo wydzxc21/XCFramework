@@ -11,19 +11,7 @@ public class PortReceiveCache {
     private final String TAG = "PortReceiveCache";
     private final CopyOnWriteArrayList<byte[]> responseList;
     private final CopyOnWriteArrayList<byte[]> resultList;
-    public static PortReceiveCache mPortReceiveCache;
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2021/3/26 11:10
-     * Description：getInstance
-     */
-    public static PortReceiveCache getInstance() {
-        if (mPortReceiveCache == null) {
-            mPortReceiveCache = new PortReceiveCache();
-        }
-        return mPortReceiveCache;
-    }
+    private static Object poolLock = new Object();
 
     /**
      * Author：ZhangXuanChen
@@ -117,35 +105,44 @@ public class PortReceiveCache {
         clearResultList();
     }
 
-    public byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
-        CopyOnWriteArrayList<byte[]> receiveList = null;
-        if (receiveType == PortReceiveType.Response) {//响应
-            receiveList = getResponseList();
-        } else if (receiveType == PortReceiveType.Result) {//结果
-            receiveList = getResultList();
-        }
-        if (receiveList != null && !receiveList.isEmpty()) {
-            for (byte[] receiveDatas : receiveList) {
-                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
-                    return receiveDatas;
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * Author：ZhangXuanChen
      * Time：2021/3/26 13:47
-     * Description：removeReceiveDatas
+     * Description：remove
      */
-    public void removeReceiveDatas(PortReceiveType receiveType, byte[] receiveDatas) {
-        if (receiveDatas != null && receiveDatas.length > 0) {
+    public void remove(byte[] bytes, PortReceiveType receiveType) {
+        if (bytes != null && bytes.length > 0) {
             if (receiveType == PortReceiveType.Response) {//响应
-                removeResponse(receiveDatas);
+                removeResponse(bytes);
             } else if (receiveType == PortReceiveType.Result) {//结果
-                removeResult(receiveDatas);
+                removeResult(bytes);
             }
+        }
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2021/7/23
+     * @package com.xc.framework.port.core
+     * @description getReceiveDatas
+     */
+    public byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
+        synchronized (poolLock) {
+            CopyOnWriteArrayList<byte[]> receiveList = null;
+            if (receiveType == PortReceiveType.Response) {//响应
+                receiveList = getResponseList();
+            } else if (receiveType == PortReceiveType.Result) {//结果
+                receiveList = getResultList();
+            }
+            if (receiveList != null && !receiveList.isEmpty()) {
+                for (byte[] receiveDatas : receiveList) {
+                    if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
+                        remove(receiveDatas, receiveType);
+                        return receiveDatas;
+                    }
+                }
+            }
+            return null;
         }
     }
 

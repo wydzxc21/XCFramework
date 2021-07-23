@@ -17,22 +17,25 @@ import java.util.Arrays;
  */
 public abstract class PortReceiveThread extends XCThread {
     private final String TAG = "PortReceiveThread";
-    private PortParam portParam;//串口参数
     private IPort iPort;//串口工具
+    private PortParam portParam;//串口参数
+    private PortReceiveCache portReceiveCache;//接收缓存
     //
     private int frameHeadsType;//帧头类型，1：响应，2：请求
     private byte[] bufferDatas;//缓存数据
     private int bufferPosition;//缓存索引
 
     /**
-     * @param portParam 串口参数
-     * @param iPort     串口工具
+     * @param iPort            串口工具
+     * @param portParam        串口参数
+     * @param portReceiveCache 接收缓存
      * @author ZhangXuanChen
      * @date 2020/3/15
      */
-    public PortReceiveThread(PortParam portParam, IPort iPort) {
-        this.portParam = portParam;
+    public PortReceiveThread(IPort iPort, PortParam portParam, PortReceiveCache portReceiveCache) {
         this.iPort = iPort;
+        this.portParam = portParam;
+        this.portReceiveCache = portReceiveCache;
         bufferDatas = new byte[1024];
         bufferPosition = 0;
     }
@@ -144,13 +147,13 @@ public abstract class PortReceiveThread extends XCThread {
         if (length > 0 && length == cutDatas.length) {
             reset();
             if (frameHeadsType == 1) {//响应
-                PortReceiveCache.getInstance().addResponse(cutDatas);
+                portReceiveCache.addResponse(cutDatas);
                 Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 onResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isResult = portParam.portParamCallback != null ? portParam.portParamCallback.onResult(cutDatas) : false;
                 if (isResult) {//接收结果
-                    PortReceiveCache.getInstance().addResult(cutDatas);
+                    portReceiveCache.addResult(cutDatas);
                     Log.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                     onRequest(cutDatas, true);
                 } else {//接收请求

@@ -23,18 +23,18 @@ public abstract class PortManager {
     private final String TAG = "PortManager";
     private List<OnPortSendListener> portSendListenerList;//发送监听集合
     private List<OnPortReceiveListener> portReceiveListenerList;//接收监听集合
-    private PortReceiveThread mPortReceiveThread;//接收线程
+    private PortReceiveCache portReceiveCache;//接收缓存
+    private PortReceiveThread portReceiveThread;//接收线程
     private ExecutorService queueSendPool;//队列发送线程池
     private ExecutorService freeSendPool;//自由发送线程池
     private boolean isOpen = false;//是否打开串口
     private boolean isStopSend;//是否停止发送
     private boolean isPauseReceive;//是否暂停接收
-    private Object poolLock;//线程池锁
 
     public PortManager() {
         portSendListenerList = new ArrayList<OnPortSendListener>();
         portReceiveListenerList = new ArrayList<OnPortReceiveListener>();
-        poolLock = new Object();
+        portReceiveCache = new PortReceiveCache();
     }
 
     /**
@@ -86,9 +86,9 @@ public abstract class PortManager {
     public boolean close() {
         boolean isClose = false;
         stopSend(false);
-        if (mPortReceiveThread != null) {
-            mPortReceiveThread.stopThread();
-            mPortReceiveThread = null;
+        if (portReceiveThread != null) {
+            portReceiveThread.stopThread();
+            portReceiveThread = null;
         }
         if (getIPort() != null) {
             isClose = getIPort().closePort();
@@ -121,10 +121,12 @@ public abstract class PortManager {
             freeSendPool.shutdownNow();
             freeSendPool = null;
         }
-        if (mPortReceiveThread != null) {
-            mPortReceiveThread.reset();
+        if (portReceiveThread != null) {
+            portReceiveThread.reset();
         }
-        PortReceiveCache.getInstance().clear();
+        if (portReceiveCache != null) {
+            portReceiveCache.clear();
+        }
         if (isInitPool) {
             initPool();
         }
@@ -154,7 +156,7 @@ public abstract class PortManager {
      * Description：startReceivedTask
      */
     private void startReceivedThread() {
-        mPortReceiveThread = new PortReceiveThread(getPortParam(), getIPort()) {
+        portReceiveThread = new PortReceiveThread(getIPort(), getPortParam(), portReceiveCache) {
             @Override
             public void onResponse(byte[] responseDatas) {
                 if (portReceiveListenerList != null && !portReceiveListenerList.isEmpty()) {
@@ -177,8 +179,8 @@ public abstract class PortManager {
                 }
             }
         };
-        mPortReceiveThread.setDaemon(true);
-        mPortReceiveThread.startThread();
+        portReceiveThread.setDaemon(true);
+        portReceiveThread.startThread();
     }
 
     /**
@@ -314,7 +316,7 @@ public abstract class PortManager {
      * Description：getPortSendCallable
      */
     private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        PortSendCallable mPortSendCallable = new PortSendCallable(poolLock, getIPort(), getPortParam(), bytes, portReceiveType, what, portFilterCallback) {
+        PortSendCallable mPortSendCallable = new PortSendCallable(getIPort(), getPortParam(), bytes, portReceiveType, portReceiveCache, what, portFilterCallback) {
             @Override
             public void onResponse(int what, byte[] responseDatas) {
                 if (portReceiveCallback != null) {
