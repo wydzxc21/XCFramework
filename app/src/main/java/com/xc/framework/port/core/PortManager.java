@@ -10,9 +10,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Date：2019/11/25
@@ -25,8 +22,7 @@ public abstract class PortManager {
     private List<OnPortReceiveListener> portReceiveListenerList;//接收监听集合
     private PortReceiveCache portReceiveCache;//接收缓存
     private PortReceiveThread portReceiveThread;//接收线程
-    private ExecutorService queueSendPool;//队列发送线程池
-    private ExecutorService freeSendPool;//自由发送线程池
+    private ExecutorService portSendPool;//发送线程池
     private boolean isOpen = false;//是否打开串口
     private boolean isStopSend;//是否停止发送
     private boolean isPauseReceive;//是否暂停接收
@@ -57,8 +53,7 @@ public abstract class PortManager {
      * Description：initPool
      */
     private void initPool() {
-        queueSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
-        freeSendPool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardPolicy());
+        portSendPool = Executors.newFixedThreadPool(2);
     }
 
     /**
@@ -113,13 +108,9 @@ public abstract class PortManager {
      */
     private void stopSend(boolean isInitPool) {
         isStopSend = true;
-        if (queueSendPool != null) {
-            queueSendPool.shutdownNow();
-            queueSendPool = null;
-        }
-        if (freeSendPool != null) {
-            freeSendPool.shutdownNow();
-            freeSendPool = null;
+        if (portSendPool != null) {
+            portSendPool.shutdownNow();
+            portSendPool = null;
         }
         if (portReceiveThread != null) {
             portReceiveThread.reset();
@@ -205,11 +196,10 @@ public abstract class PortManager {
      * Time：2020/7/11 16:48
      * Description：串口发送-阻塞
      * Param：bytes 发送数据
-     * Param：portSendType 发送类型
      * Param：portReceiveType 接收类型
      */
-    public byte[] sendBlock(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType) {
-        return sendBlock(bytes, portSendType, portReceiveType, null);
+    public byte[] sendBlock(byte[] bytes, PortReceiveType portReceiveType) {
+        return sendBlock(bytes, portReceiveType, null);
     }
 
     /**
@@ -217,34 +207,15 @@ public abstract class PortManager {
      * Time：2020/7/11 16:48
      * Description：串口发送-阻塞
      * Param：bytes 发送数据
-     * Param：portSendType 发送类型
      * Param：portReceiveType 接收类型
      * Param：portFilterCallback 接收过滤回调
      */
-    public byte[] sendBlock(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
-        if (portSendType == PortSendType.Queue) {
-            return sendBlock(queueSendPool, bytes, portReceiveType, portFilterCallback);
-        } else if (portSendType == PortSendType.Free) {
-            return sendBlock(freeSendPool, bytes, portReceiveType, portFilterCallback);
-        }
-        return null;
-    }
-
-    /**
-     * Author：ZhangXuanChena
-     * Time：2020/7/11 16:48
-     * Description：串口发送-阻塞
-     * Param：sendPool 发送线程池
-     * Param：bytes 发送数据
-     * Param：portReceiveType 接收类型
-     * Param：portFilterCallback 接收过滤回调
-     */
-    private byte[] sendBlock(ExecutorService sendPool, byte[] bytes, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
+    public byte[] sendBlock(byte[] bytes, PortReceiveType portReceiveType, PortFilterCallback portFilterCallback) {
         isStopSend = false;
-        if (sendPool == null || sendPool.isShutdown()) {
+        if (portSendPool == null || portSendPool.isShutdown()) {
             return null;
         }
-        Future<byte[]> mFuture = sendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
+        Future<byte[]> mFuture = portSendPool.submit(getPortSendCallable(bytes, portReceiveType, -1, null, portFilterCallback));
         try {
             if (mFuture == null) {
                 return null;
@@ -263,13 +234,12 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送-异步
      * Param：bytes 发送数据
-     * Param：portSendType 发送类型
      * Param：portReceiveType 接收类型
      * Param：what 区分消息
      * Param：portReceiveCallback 异步发送接收回调
      */
-    public void sendAsync(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback) {
-        sendAsync(bytes, portSendType, portReceiveType, what, portReceiveCallback, null);
+    public void sendAsync(byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback) {
+        sendAsync(bytes, portReceiveType, what, portReceiveCallback, null);
     }
 
     /**
@@ -277,37 +247,17 @@ public abstract class PortManager {
      * Time：2019/11/27 16:15
      * Description：串口发送-异步
      * Param：bytes 发送数据
-     * Param：portSendType 发送类型
      * Param：portReceiveType 接收类型
      * Param：what 区分消息
      * Param：portReceiveCallback 异步发送接收回调
      * Param：portFilterCallback 接收过滤回调
      */
-    public void sendAsync(byte[] bytes, PortSendType portSendType, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        if (portSendType == PortSendType.Queue) {
-            sendAsync(queueSendPool, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
-        } else if (portSendType == PortSendType.Free) {
-            sendAsync(freeSendPool, bytes, portReceiveType, what, portReceiveCallback, portFilterCallback);
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
-     * Time：2019/11/27 16:15
-     * Description：串口发送-异步
-     * Param：sendPool 发送线程池
-     * Param：bytes 发送数据
-     * Param：portReceiveType 接收类型
-     * Param：what 区分消息
-     * Param：portReceiveCallback 异步发送接收回调
-     * Param：portFilterCallback 接收过滤回调
-     */
-    private void sendAsync(ExecutorService sendPool, byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
+    public void sendAsync(byte[] bytes, PortReceiveType portReceiveType, int what, PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
         isStopSend = false;
-        if (sendPool == null || sendPool.isShutdown()) {
+        if (portSendPool == null || portSendPool.isShutdown()) {
             return;
         }
-        sendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
+        portSendPool.submit(getPortSendCallable(bytes, portReceiveType, what, portReceiveCallback, portFilterCallback));
     }
 
     /**
