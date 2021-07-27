@@ -20,11 +20,11 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private PortParam portParam;//串口参数
     private byte[] sendDatas;//发送数据
     private PortReceiveType portReceiveType;//接收类型
-    private PortReceiveCache portReceiveCache;//接收缓存
     private int what;//区分消息
     private PortFilterCallback portFilterCallback;//过滤回调
+    private Object poolLock;//线程池锁
+    private PortReceiveCache portReceiveCache;//接收缓存
     //
-    private static Object poolLock = new Object();//线程池锁
     private int sendCount;//发送次数
 
     /**
@@ -32,20 +32,22 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @param portParam          串口参数
      * @param sendDatas          发送数据
      * @param portReceiveType    接收类型
-     * @param portReceiveCache   接收缓存
      * @param what               区分消息
      * @param portFilterCallback 过滤回调
+     * @param poolLock           线程池锁
+     * @param portReceiveCache   接收缓存
      * @author ZhangXuanChen
      * @date 2020/3/8
      */
-    public PortSendCallable(IPort iPort, PortParam portParam, byte[] sendDatas, PortReceiveType portReceiveType, PortReceiveCache portReceiveCache, int what, PortFilterCallback portFilterCallback) {
+    public PortSendCallable(IPort iPort, PortParam portParam, byte[] sendDatas, PortReceiveType portReceiveType, int what, PortFilterCallback portFilterCallback, Object poolLock, PortReceiveCache portReceiveCache) {
         this.iPort = iPort;
         this.portParam = portParam;
         this.sendDatas = sendDatas;
         this.portReceiveType = portReceiveType;
-        this.portReceiveCache = portReceiveCache;
         this.what = what;
         this.portFilterCallback = portFilterCallback;
+        this.poolLock = poolLock;
+        this.portReceiveCache = portReceiveCache;
     }
 
     @Override

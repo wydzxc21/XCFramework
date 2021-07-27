@@ -9,16 +9,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class PortReceiveCache {
     private final String TAG = "PortReceiveCache";
+    private Object cacheLock;
     private final CopyOnWriteArrayList<byte[]> responseList;
     private final CopyOnWriteArrayList<byte[]> resultList;
-    private static Object poolLock = new Object();
 
     /**
      * Author：ZhangXuanChen
      * Time：2021/3/26 11:10
      * Description：PortReceiveCache
      */
-    public PortReceiveCache() {
+    public PortReceiveCache(Object cacheLock) {
+        this.cacheLock = cacheLock;
         responseList = new CopyOnWriteArrayList<byte[]>();
         resultList = new CopyOnWriteArrayList<byte[]>();
     }
@@ -127,7 +128,7 @@ public class PortReceiveCache {
      * @description getReceiveDatas
      */
     public byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
-        synchronized (poolLock) {
+        synchronized (cacheLock) {
             CopyOnWriteArrayList<byte[]> receiveList = null;
             if (receiveType == PortReceiveType.Response) {//响应
                 receiveList = getResponseList();
