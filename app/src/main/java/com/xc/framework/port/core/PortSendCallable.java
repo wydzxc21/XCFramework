@@ -58,7 +58,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                 onResponse(what, receiveDatas);
             } else if (portReceiveType == PortReceiveType.Result) {//结果
                 onResult(what, receiveDatas);
-            } else if (portReceiveType == PortReceiveType.NULL) {
             }
         } else {//超时
             onTimeout(what, sendDatas);
@@ -82,15 +81,13 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         while (receiveDatas == null && sendCount <= portParam.getResendCount() && !isStopSend()) {
             try {
                 XCThreadUtil.sleep(1);
-                byte[] responseDatas = null;
+                byte[] responseDatas;
                 synchronized (poolLock) {
                     sendCount++;
                     iPort.writePort(sendDatas);
                     Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
                     onSend(what, sendDatas, sendCount);
-                    if (portReceiveType == PortReceiveType.Response || portReceiveType == PortReceiveType.Result) {//等待响应or结果
-                        responseDatas = waitReceive(PortReceiveType.Response);//先等响应
-                    }
+                    responseDatas = waitReceive(PortReceiveType.Response);//先等响应
                 }
                 if (responseDatas != null && responseDatas.length > 0) {
                     if (portReceiveType == PortReceiveType.Result) {//结果请求
