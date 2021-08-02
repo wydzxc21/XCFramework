@@ -51,7 +51,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     }
 
     @Override
-    public byte[] call() {
+    public byte[] call() throws Exception {
         byte[] receiveDatas = writeDatas();
         if (receiveDatas != null && receiveDatas.length > 0) {
             if (portReceiveType == PortReceiveType.Response) {//响应

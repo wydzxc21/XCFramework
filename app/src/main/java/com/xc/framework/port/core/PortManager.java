@@ -224,9 +224,9 @@ public abstract class PortManager {
             }
             return mFuture.get();
         } catch (InterruptedException e) {
-            doError(bytes, "Interrupted-" + e.getCause().getMessage());
+            doError(bytes, "Interrupted-" + e.getMessage());
         } catch (ExecutionException e) {
-            doError(bytes, "Execution-" + e.getCause().getMessage());
+            doError(bytes, "Execution-" + e.getMessage());
         }
         return null;
     }
