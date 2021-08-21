@@ -347,4 +347,17 @@ public class XCAppUtil {
         context.getResources().updateConfiguration(config, dm);
     }
 
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/10/10 13:48
+     * Description：关机
+     */
+    public static void shutdown() {
+        try {
+            Runtime.getRuntime().exec(new String[]{"su", "-c", "reboot -p"});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

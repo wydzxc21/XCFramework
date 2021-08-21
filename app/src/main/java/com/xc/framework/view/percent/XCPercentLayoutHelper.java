@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.xc.framework.layout;
+package com.xc.framework.view.percent;
 
 import android.content.Context;
 import android.content.res.TypedArray;

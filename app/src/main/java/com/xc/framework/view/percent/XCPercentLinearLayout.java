@@ -1,4 +1,4 @@
-package com.xc.framework.layout;
+package com.xc.framework.view.percent;
 
 import android.app.Activity;
 import android.content.Context;

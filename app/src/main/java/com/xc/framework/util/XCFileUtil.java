@@ -173,18 +173,9 @@ public class XCFileUtil {
      * @description 删除文件夹(含其根目录文件)
      */
     public static boolean deleteFolder(String folderPath) {
-        return deleteFolder(new File(folderPath));
-    }
-
-    /**
-     * @param dirFile 文件
-     * @author ZhangXuanChen
-     * @date 2020/2/19
-     * @description 删除文件夹(含其根目录文件)
-     */
-    public static boolean deleteFolder(File dirFile) {
         try {
-            if (dirFile != null) {
+            if (!XCStringUtil.isEmpty(folderPath)) {
+                File dirFile = new File(folderPath);
                 if (dirFile.exists() && dirFile.isDirectory()) {
                     File[] files = dirFile.listFiles();
                     if (files != null && files.length > 0) {
@@ -422,6 +413,38 @@ public class XCFileUtil {
                     br.close();
                     isr.close();
                     return sb.toString();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/3/17 17:22
+     * Description：readLine
+     */
+    public static String readLine(String filePath) {
+        return readLine(new File(filePath));
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2021/3/17 17:22
+     * Description：readLine
+     */
+    public static String readLine(File file) {
+        try {
+            if (file != null) {
+                if (file.exists() && file.isFile()) {
+                    InputStreamReader isr = new InputStreamReader(new FileInputStream(file), "UTF-8");
+                    BufferedReader br = new BufferedReader(isr);
+                    String line = br.readLine();
+                    br.close();
+                    isr.close();
+                    return line;
                 }
             }
         } catch (Exception e) {

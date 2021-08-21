@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 百分比布局 -->
+    <!-- XCPercentLayout -->
     <declare-styleable name="XCPercentLayout">
         <!-- width/height -->
         <attr name="layout_widthPercentXC" format="string"/>
@@ -26,5 +26,33 @@
         <attr name="layout_paddingBottomPercentXC" format="string"/>
         <attr name="layout_paddingLeftPercentXC" format="string"/>
         <attr name="layout_paddingRightPercentXC" format="string"/>
+    </declare-styleable>
+    <!-- XCLayout -->
+    <declare-styleable name="XCLayout">
+        <!-- shadow -->
+        <attr name="shadowColor" format="color"/>
+        <attr name="shadowRadius" format="dimension"/>
+        <attr name="shadowLeftRadius" format="dimension"/>
+        <attr name="shadowTopRadius" format="dimension"/>
+        <attr name="shadowRightRadius" format="dimension"/>
+        <attr name="shadowBottomRadius" format="dimension"/>
+        <!-- background -->
+        <attr name="backgroundColor" format="color"/>
+        <!-- stroke -->
+        <attr name="strokeColor" format="color"/>
+        <attr name="strokeWidth" format="dimension"/>
+        <!-- round -->
+        <attr name="roundRadius" format="dimension"/>
+        <attr name="roundTopLeftRadius" format="dimension"/>
+        <attr name="roundTopRightRadius" format="dimension"/>
+        <attr name="roundBottomLeftRadius" format="dimension"/>
+        <attr name="roundBottomRightRadius" format="dimension"/>
+    </declare-styleable>
+    <!-- XCButton -->
+    <declare-styleable name="XCButton">
+        <attr name="text" format="string"/>
+        <attr name="textColor" format="color"/>
+        <attr name="textSize" format="dimension"/>
+        <attr name="padding" format="dimension"/>
     </declare-styleable>
 </resources>

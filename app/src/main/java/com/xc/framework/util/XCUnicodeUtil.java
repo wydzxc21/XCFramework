@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /**
  * Date：2020/12/11
  * Author：ZhangXuanChen
- * Description：Unicode工具类
+ * Description：
  */
 public class XCUnicodeUtil {
 
@@ -17,26 +17,26 @@ public class XCUnicodeUtil {
      * Time：2020/12/11 17:54
      * Description：toStr
      */
-    public static String toStr(String unicode) {
-        List<String> list = new ArrayList<String>();
-        String zz = "\\\\u[0-9,a-f,A-F]{4}";
-        Pattern p = Pattern.compile(zz);
-        Matcher m = p.matcher(unicode);
+    public static String toStr(String ascii) {
+        List<String> ascii_s = new ArrayList<String>();
+        String zhengz = "\\\\u[0-9,a-f,A-F]{4}";
+        Pattern p = Pattern.compile(zhengz);
+        Matcher m = p.matcher(ascii);
         while (m.find()) {
-            list.add(m.group());
+            ascii_s.add(m.group());
         }
-        for (int i = 0, j = 2; i < list.size(); i++) {
-            String code = list.get(i).substring(j, j + 4);
+        for (int i = 0, j = 2; i < ascii_s.size(); i++) {
+            String code = ascii_s.get(i).substring(j, j + 4);
             char ch = (char) Integer.parseInt(code, 16);
-            unicode = unicode.replace(list.get(i), String.valueOf(ch));
+            ascii = ascii.replace(ascii_s.get(i), String.valueOf(ch));
         }
-        return unicode;
+        return ascii;
     }
 
     /**
      * Author：ZhangXuanChen
      * Time：2020/12/11 17:34
-     * Description：toUnicode
+     * Description：
      */
     public static String toUnicode(String str) {
         if (XCStringUtil.isEmpty(str)) {
@@ -57,7 +57,7 @@ public class XCUnicodeUtil {
     /**
      * Author：ZhangXuanChen
      * Time：2020/12/11 17:36
-     * Description：isChinese
+     * Description：isContainChinese
      */
     public static boolean isChinese(char c) {
         Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
