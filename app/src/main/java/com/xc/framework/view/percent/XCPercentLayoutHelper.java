@@ -18,9 +18,6 @@ package com.xc.framework.view.percent;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.annotation.NonNull;
-import android.support.v4.view.MarginLayoutParamsCompat;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -29,6 +26,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.view.MarginLayoutParamsCompat;
+import androidx.core.view.ViewCompat;
 
 import com.xc.framework.R;
 
@@ -65,7 +66,7 @@ public class XCPercentLayoutHelper {
 
 
     /**
-     * Helper method to be called from {@link ViewGroup.LayoutParams#setBaseAttributes} override
+     * Helper method to be called from  override
      * that reads layout_width and layout_height attribute values without throwing an exception if
      * they aren't present.
      */
@@ -785,7 +786,7 @@ public class XCPercentLayoutHelper {
         /**
          * Restores original dimensions and margins after they were changed for percentage based
          * values. Calling this method only makes sense if you previously called
-         * {@link XCPercentLayoutHelper.PercentLayoutInfo#fillMarginLayoutParams}.
+         * {@link PercentLayoutInfo#fillMarginLayoutParams}.
          */
         public void restoreMarginLayoutParams(ViewGroup.MarginLayoutParams params) {
             restoreLayoutParams(params);
@@ -802,7 +803,7 @@ public class XCPercentLayoutHelper {
         /**
          * Restores original dimensions after they were changed for percentage based values. Calling
          * this method only makes sense if you previously called
-         * {@link XCPercentLayoutHelper.PercentLayoutInfo#fillLayoutParams}.
+         * {@link PercentLayoutInfo#fillLayoutParams}.
          */
         public void restoreLayoutParams(ViewGroup.LayoutParams params) {
             params.width = mPreservedParams.width;

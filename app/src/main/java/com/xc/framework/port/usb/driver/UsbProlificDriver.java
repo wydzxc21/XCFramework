@@ -3,7 +3,6 @@ package com.xc.framework.port.usb.driver;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
-import android.support.compat.BuildConfig;
 import android.util.Log;
 
 import java.io.IOException;
@@ -279,9 +278,6 @@ public class UsbProlificDriver extends UsbBaseDriver {
      * @Description：filterBaudRate
      */
     private int filterBaudRate(int baudRate) {
-        if (BuildConfig.DEBUG && (baudRate & (3 << 29)) == (1 << 29)) {
-            return baudRate & ~(1 << 29); // for testing purposes accept without further checks
-        }
         if (baudRate <= 0) {
             throw new IllegalArgumentException("Invalid baud rate: " + baudRate);
         }
@@ -290,16 +286,16 @@ public class UsbProlificDriver extends UsbBaseDriver {
                 return baudRate;
             }
         }
-            /*
-             * Formula taken from Linux + FreeBSD.
-             *   baudrate = baseline / (mantissa * 4^exponent)
-             * where
-             *   mantissa = buf[8:0]
-             *   exponent = buf[11:9]
-             *
-             * Note: The formula does not work for all PL2303 variants.
-             *       Ok for PL2303HX. Not ok for PL2303TA. Other variants unknown.
-             */
+        /*
+         * Formula taken from Linux + FreeBSD.
+         *   baudrate = baseline / (mantissa * 4^exponent)
+         * where
+         *   mantissa = buf[8:0]
+         *   exponent = buf[11:9]
+         *
+         * Note: The formula does not work for all PL2303 variants.
+         *       Ok for PL2303HX. Not ok for PL2303TA. Other variants unknown.
+         */
         int baseline, mantissa, exponent;
         baseline = 12000000 * 32;
         mantissa = baseline / baudRate;
@@ -309,7 +305,7 @@ public class UsbProlificDriver extends UsbBaseDriver {
         exponent = 0;
         while (mantissa >= 512) {
             if (exponent < 7) {
-                mantissa >>= 2;	/* divide by 4 */
+                mantissa >>= 2;    /* divide by 4 */
                 exponent++;
             } else { // < 45.8 baud
                 throw new UnsupportedOperationException("Baud rate to low");

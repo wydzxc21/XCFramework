@@ -66,16 +66,18 @@ public class DBUtil {
                     value += "(" + keyAndValueSql[1] + "),";
                 }
             }
-            value = value.substring(0, value.length() - 1);
-            String insertSql;
-            String querySql = "";
-            if (conditionObject != null) {
-                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
-                querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null, null, null) + " )";
-            } else {
-                insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
+            if (!XCStringUtil.isEmpty(value)) {
+                value = value.substring(0, value.length() - 1);
+                String insertSql;
+                String querySql = "";
+                if (conditionObject != null) {
+                    insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " select " + value;
+                    querySql = " where not exists ( " + getQuerySql(conditionObject, -1, -1, null, null, null, null) + " )";
+                } else {
+                    insertSql = "insert or replace into " + classObjectList.get(0).getClass().getSimpleName() + " " + key + " values " + value;
+                }
+                return insertSql + querySql;
             }
-            return insertSql + querySql;
         }
         return "";
     }
@@ -105,8 +107,12 @@ public class DBUtil {
                     value += "'" + getValue + "',";
                 }
             }
-            key = key.substring(0, key.length() - 1);
-            value = value.substring(0, value.length() - 1);
+            if (!XCStringUtil.isEmpty(key)) {
+                key = key.substring(0, key.length() - 1);
+            }
+            if (!XCStringUtil.isEmpty(value)) {
+                value = value.substring(0, value.length() - 1);
+            }
         }
         return new String[]{key, value};
     }
@@ -168,9 +174,9 @@ public class DBUtil {
                 }
             }
             if (!XCStringUtil.isEmpty(condition)) {
-                if (",".equals(connectFlag)) {
+                if (",".equals(connectFlag) && condition.length() >= 3) {
                     condition = condition.substring(0, condition.length() - 3);
-                } else if ("and".equals(connectFlag)) {
+                } else if ("and".equals(connectFlag) && condition.length() >= 5) {
                     condition = condition.substring(0, condition.length() - 5);
                 }
             }
@@ -206,8 +212,10 @@ public class DBUtil {
                     }
                 }
             }
-            value = value.substring(0, value.length() - 1);
-            return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
+            if (!XCStringUtil.isEmpty(value)) {
+                value = value.substring(0, value.length() - 1);
+                return "delete from " + classObjectList.get(0).getClass().getSimpleName() + " where " + key + " in (" + value + ")";
+            }
         }
         return "";
     }
@@ -380,8 +388,10 @@ public class DBUtil {
             for (String str : equalList) {
                 sql += str + ",";
             }
-            sql = sql.substring(0, sql.length() - 1);
-            return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " from " + oldTable;
+            if (!XCStringUtil.isEmpty(sql)) {
+                sql = sql.substring(0, sql.length() - 1);
+                return "insert into " + tableClass.getSimpleName() + "(" + sql + ") select " + sql + " from " + oldTable;
+            }
         }
         return "";
     }
