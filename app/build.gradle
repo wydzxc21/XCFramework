@@ -40,4 +40,5 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:30+'
+    implementation 'com.android.support:multidex:1.0.3'
 }
