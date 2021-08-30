@@ -13,7 +13,7 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.xc.framework.R;
 
@@ -24,7 +24,7 @@ import com.xc.framework.R;
  * @description 帧布局-阴影，圆角，边框，点击效果
  */
 @SuppressLint("NewApi")
-public class XCLayout extends FrameLayout {
+public class XCLayout extends LinearLayout {
     final String TAG = "XCLayout";
     //shadow
     Paint shadowPaint;
