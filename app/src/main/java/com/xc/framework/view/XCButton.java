@@ -21,6 +21,7 @@ import com.xc.framework.util.XCStringUtil;
  * @description 按钮-阴影，圆角，边框，点击效果
  */
 public class XCButton extends XCLayout {
+    Context context;
     //text
     TextPaint textPaint;
     String text;
@@ -49,6 +50,7 @@ public class XCButton extends XCLayout {
      * @description initView
      */
     private void initView(Context context, AttributeSet attrs) {
+        this.context = context;
         initAttrs(context, attrs);
         initPaint();
     }
@@ -86,20 +88,83 @@ public class XCButton extends XCLayout {
 
     /**
      * @author ZhangXuanChen
+     * @date 2021/9/13 16:14
+     * @description setText
+     */
+    public void setText(int strId) {
+        if (context == null) {
+            return;
+        }
+        String str = context.getResources().getString(strId);
+        setText(str);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2021/9/13 16:14
+     * @description setText
+     */
+    public void setText(String str) {
+        text = str;
+        postInvalidate();
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2021/9/13 16:19
+     * @description setTextSize
+     */
+    public void setTextSize(float size) {
+        if (textPaint == null) {
+            return;
+        }
+        textSize = size;
+        textPaint.setTextSize(textSize);
+        postInvalidate();
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2021/9/13 16:22
+     * @description setTextColor
+     */
+    public void setTextColor(int color) {
+        if (textPaint == null) {
+            return;
+        }
+        textColor = color;
+        textPaint.setColor(textColor);
+        postInvalidate();
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2021/9/13 16:24
+     * @description setTextTypeface
+     */
+    public void setTextTypeface(Typeface typeface) {
+        if (textPaint == null) {
+            return;
+        }
+        textPaint.setTypeface(typeface);
+        postInvalidate();
+    }
+
+    /**
+     * @author ZhangXuanChen
      * @date 2021/8/20
      * @description dispatchDraw
      */
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        if (!XCStringUtil.isEmpty(text)) {
-            int width = (int) (canvas.getWidth() - shadowRightRadius * 2 - padding * 2);
-            StaticLayout layout = new StaticLayout(text, textPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, false);
-            canvas.save();
-            canvas.translate(getWidth() / 2f, getHeight() / 2f - layout.getHeight() / 2f);
-            layout.draw(canvas);
-            canvas.restore();
-        }
+        text = XCStringUtil.toStr(text);
+        int width = (int) (canvas.getWidth() - shadowRightRadius * 2 - padding * 2);
+        StaticLayout layout = new StaticLayout(text, textPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, false);
+        canvas.save();
+        canvas.translate(getWidth() / 2f, getHeight() / 2f - layout.getHeight() / 2f);
+        layout.draw(canvas);
+        canvas.restore();
     }
 
 }
