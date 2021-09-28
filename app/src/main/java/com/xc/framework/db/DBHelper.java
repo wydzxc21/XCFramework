@@ -64,6 +64,16 @@ public class DBHelper extends SQLiteOpenHelper {
      * 初始化数据库
      *
      * @param context
+     * @param dbVersion 数据库版本，1
+     */
+    public static void initDB(Context context, int dbVersion) {
+        initDB(context, DBHelper.DB_NAME, dbVersion);
+    }
+
+    /**
+     * 初始化数据库
+     *
+     * @param context
      * @param dbName    数据库名，test.db
      * @param dbVersion 数据库版本，1
      */
