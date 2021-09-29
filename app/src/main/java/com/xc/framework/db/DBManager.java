@@ -7,9 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.xc.framework.bean.FieldBean;
 import com.xc.framework.util.XCArrayUtil;
 import com.xc.framework.util.XCBeanUtil;
-import com.xc.framework.util.XCLogUtil;
 import com.xc.framework.util.XCStringUtil;
-import com.xc.framework.util.XCTimeUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +89,6 @@ public class DBManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库表是否存在抛异常：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -130,29 +127,21 @@ public class DBManager {
             //将表改为临时表
             String oldTable = tableClass.getSimpleName() + "_" + System.currentTimeMillis();
             String renameSql = "alter table " + tableClass.getSimpleName() + " rename to " + oldTable;
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + renameSql);
             db.execSQL(renameSql);
             //创建新表
             String createSql = DBUtil.getCreateTableSql(tableClass);
-            //吴呈呈 增加sql语句日志
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + createSql);
             db.execSQL(createSql);
             //导入数据
             String importSql = DBUtil.getImportSql(oldTable, tableClass, equalList);
             if (!XCStringUtil.isEmpty(importSql)) {
-                //吴呈呈 增加sql语句日志
-                XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + importSql);
                 db.execSQL(importSql);
             }
             //删除临时表
             String deleteSql = "drop table " + oldTable;
-            //吴呈呈 增加sql语句日志
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + deleteSql);
             db.execSQL(deleteSql);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",变更表结果异常：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -216,7 +205,6 @@ public class DBManager {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",清空数据库表异常：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -321,12 +309,9 @@ public class DBManager {
      * @return
      */
     private synchronized <T> boolean insert(List<T> classObjectList, T conditionObject) {
-        XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",classObjectList：" + (classObjectList != null ? classObjectList.size() : "集合为空，数据库删除操作返回false"));
         if (classObjectList == null || classObjectList.isEmpty()) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",classObjectList：" + (classObjectList != null ? classObjectList.size() : "集合为空，数据库删除操作返回false"));
             return false;
         }
-        XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",表是否存在：" + isTableExist(classObjectList.get(0).getClass()));
         if (!isTableExist(classObjectList.get(0).getClass())) {
             createTable(classObjectList.get(0).getClass());
         }
@@ -337,21 +322,15 @@ public class DBManager {
         } else {
             splitObjectList.add(classObjectList);
         }
-        XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",splitObjectList：" + splitObjectList.size());
         try {
             for (int i = 0; i < splitObjectList.size(); i++) {
                 String insertSql = DBUtil.getInsertSql(splitObjectList.get(i), conditionObject);
                 if (db != null && !XCStringUtil.isEmpty(insertSql)) {
-                    //吴呈呈 增加sql语句日志
-                    XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + insertSql);
                     db.execSQL(insertSql);
-                } else {
-                    XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",inset语句-313 为空");
                 }
             }
             return true;
         } catch (Exception e) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库插入抛异常-339：" + e.getMessage());
             e.printStackTrace();
         } finally {
             if (db != null) {
@@ -377,11 +356,8 @@ public class DBManager {
         }
         if (db != null && !XCStringUtil.isEmpty(deleteSql)) {
             try {
-                //吴呈呈 增加sql语句日志
-                XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + deleteSql);
                 db.execSQL(deleteSql);
             } catch (Exception e) {
-                XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库删除异常-369：" + e.getMessage());
                 return false;
             } finally {
                 if (db != null) {
@@ -389,7 +365,6 @@ public class DBManager {
                 }
             }
         } else {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",删除语句为空-382");
             return false;
         }
         return true;
@@ -403,30 +378,23 @@ public class DBManager {
      * @return
      */
     public synchronized <T> boolean delete(String field, List<T> classObjectList) {
-        XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",classObjectList：" + (classObjectList != null ? classObjectList.size() : "集合为空，数据库删除操作返回false"));
         if (XCStringUtil.isEmpty(field) || classObjectList == null || classObjectList.isEmpty()) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",classObjectList：" + (classObjectList != null ? classObjectList.size() : "集合为空，数据库删除操作返回false"));
             return false;
         }
         if (!isTableExist(classObjectList.get(0).getClass())) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",表是否存在：" + isTableExist(classObjectList.get(0).getClass()));
             return false;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         String deleteSql = DBUtil.getDeleteSql(field, classObjectList);
-        XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + "," + deleteSql);
         if (db == null || XCStringUtil.isEmpty(deleteSql)) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",删除语句为空");
             return false;
         }
         try {
             db.execSQL(deleteSql);
             return true;
         } catch (Exception e) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库删除抛异常-410：" + e.getMessage());
             e.printStackTrace();
         } finally {
-//            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",classObjectList长度：" + classObjectList.size());
             if (db != null) {
                 db.close();
             }
@@ -444,27 +412,21 @@ public class DBManager {
      */
     public synchronized <T> boolean update(T updateObject, T conditionObject) {
         if (updateObject == null || conditionObject == null) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",conditionObject是否为空：" + conditionObject + " updateObject是否为空：" + updateObject);
             return false;
         }
         if (!isTableExist(updateObject.getClass())) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",表是否存在：" + isTableExist(updateObject.getClass()));
             return false;
         }
         SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
         String updateSql = DBUtil.getUpdateSql(updateObject, conditionObject);
         if (db == null || XCStringUtil.isEmpty(updateSql)) {
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",update语句为空：" + updateSql + "----db为：" + (db == null ? 0 : 1));
             return false;
         }
         try {
-            //吴呈呈 增加sql语句日志
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",updateSqlite:" + updateSql);
             db.execSQL(updateSql);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库更新异常-448：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -501,7 +463,6 @@ public class DBManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",查询总条数异常：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -575,7 +536,6 @@ public class DBManager {
             return query(classObject.newInstance(), -1, -1, null, null, null, null, sqlStr);
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库语句查询异常：" + e.getMessage());
         }
         return null;
     }
@@ -669,7 +629,6 @@ public class DBManager {
             return mList;
         } catch (Exception e) {
             e.printStackTrace();
-            XCLogUtil.writeSqlLog(XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE_SECOND) + ",数据库查询异常：" + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
