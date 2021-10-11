@@ -1,0 +1,3 @@
+ninja: Entering directory `/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/r623l6u4/x86_64'
+[1/2] Building CXX object CMakeFiles/SerialPort.dir/src/main/cpp/SerialPort.cpp.o
+[2/2] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/r623l6u4/obj/x86_64/libSerialPort.so

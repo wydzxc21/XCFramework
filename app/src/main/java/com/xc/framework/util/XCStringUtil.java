@@ -4,6 +4,8 @@ import org.apache.commons.codec.binary.Base64;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -73,9 +75,7 @@ public class XCStringUtil {
     public static int toInt(String intStr) {
         int number = 0;
         if (!XCStringUtil.isEmpty(intStr)) {
-            if (isFloat(intStr)) {
-                number = (int) Float.parseFloat(intStr);
-            }
+            number = (int) Float.parseFloat(intStr);
         }
         return number;
     }
@@ -88,9 +88,7 @@ public class XCStringUtil {
     public static float toFloat(String floatStr) {
         float number = 0;
         if (!XCStringUtil.isEmpty(floatStr)) {
-            if (isFloat(floatStr)) {
-                number = Float.parseFloat(floatStr);
-            }
+            number = Float.parseFloat(floatStr);
         }
         return number;
     }
@@ -274,5 +272,48 @@ public class XCStringUtil {
             }
         }
         return uncompressStr;
+    }
+
+    /**
+     * @author wuchengcheng
+     * @time 2021/2/4 14:39
+     * @Description: 半角转全角 防止UDI标签自动换行
+     */
+    public static String isToDBC(String input) {
+        char[] c = input.toCharArray();
+        for (int i = 0; i < c.length; i++) {
+            if (c[i] == 12288) {
+                c[i] = (char) 32;
+                continue;
+            }
+            if (c[i] > 65280 && c[i] < 65375)
+                c[i] = (char) (c[i] - 65248);
+        }
+        return new String(c);
+    }
+
+    /**
+     * @param str   需要被获取的字符串
+     * @param regex 正则表达式
+     * @return 所有满足正则表达式的字符串
+     * @author ChenGuiLin
+     * @date 2021/9/24
+     * @decription * 获取所有满足正则表达式的字符串
+     */
+    public static ArrayList<String> getAllSatisfyStr(String str, String regex) {
+        ArrayList<String> allSatisfyStr = new ArrayList<>();
+        if (isEmpty(str)) {
+            return allSatisfyStr;
+        }
+        if (isEmpty(regex)) {
+            allSatisfyStr.add(str);
+            return allSatisfyStr;
+        }
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            allSatisfyStr.add(matcher.group());
+        }
+        return allSatisfyStr;
     }
 }

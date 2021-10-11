@@ -1,0 +1,6 @@
+# ninja log v5
+0	9	0	clean	88f154bb1777d385
+0	8	0	clean	88f154bb1777d385
+0	420	1629953917	CMakeFiles/SerialPort.dir/src/main/cpp/SerialPort.cpp.o	1fa488c53ee86e0d
+421	481	1629953917	../../../../build/intermediates/cxx/Debug/r623l6u4/obj/x86/libSerialPort.so	440a447b6c6ebba5
+0	7	0	clean	88f154bb1777d385

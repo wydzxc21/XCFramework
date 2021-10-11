@@ -1,0 +1,23 @@
+                    Executable : /Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake
+arguments : 
+-H/Users/c/Desktop/androidSpace/XCFramework/app
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=19
+-DANDROID_PLATFORM=android-19
+-DANDROID_ABI=x86
+-DCMAKE_ANDROID_ARCH_ABI=x86
+-DANDROID_NDK=/Users/c/Library/Android/sdk/ndk-bundle
+-DCMAKE_ANDROID_NDK=/Users/c/Library/Android/sdk/ndk-bundle
+-DCMAKE_TOOLCHAIN_FILE=/Users/c/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/c/Desktop/androidSpace/XCFramework/app/build/intermediates/cxx/Debug/3c134a60/obj/x86
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/c/Desktop/androidSpace/XCFramework/app/build/intermediates/cxx/Debug/3c134a60/obj/x86
+-DCMAKE_BUILD_TYPE=Debug
+-B/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/3c134a60/x86
+-GNinja
+jvmArgs : 
+
+
+                    Build command args: []
+                    Version: 2

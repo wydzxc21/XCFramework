@@ -1,0 +1,7 @@
+Executable : /Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+arguments : 
+-C
+/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/r623l6u4/armeabi-v7a
+SerialPort
+jvmArgs : 
+

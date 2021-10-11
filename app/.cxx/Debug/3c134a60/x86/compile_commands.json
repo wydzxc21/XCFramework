@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/3c134a60/x86",
+  "command": "/Users/c/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android19 --gcc-toolchain=/Users/c/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/c/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  -DSerialPort_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles/SerialPort.dir/src/main/cpp/SerialPort.cpp.o -c /Users/c/Desktop/androidSpace/XCFramework/app/src/main/cpp/SerialPort.cpp",
+  "file": "/Users/c/Desktop/androidSpace/XCFramework/app/src/main/cpp/SerialPort.cpp"
+}
+]

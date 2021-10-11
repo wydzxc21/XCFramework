@@ -1,0 +1,4 @@
+# ninja log v5
+1	560	1629953916	CMakeFiles/SerialPort.dir/src/main/cpp/SerialPort.cpp.o	100548283af92cf4
+561	597	1629953916	../../../../build/intermediates/cxx/Debug/r623l6u4/obj/armeabi-v7a/libSerialPort.so	23f1d693776569d8
+0	7	0	clean	88f154bb1777d385

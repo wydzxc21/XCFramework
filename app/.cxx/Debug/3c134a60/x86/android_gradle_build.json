@@ -1,0 +1,40 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/Users/c/Desktop/androidSpace/XCFramework/app/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/3c134a60/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/3c134a60/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "SerialPort-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/c/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/3c134a60/x86",
+        "SerialPort"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "SerialPort",
+      "output": "/Users/c/Desktop/androidSpace/XCFramework/app/build/intermediates/cxx/Debug/3c134a60/obj/x86/libSerialPort.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

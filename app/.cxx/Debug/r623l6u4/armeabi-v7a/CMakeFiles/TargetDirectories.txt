@@ -1,0 +1,3 @@
+/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/r623l6u4/armeabi-v7a/CMakeFiles/rebuild_cache.dir
+/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/r623l6u4/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/c/Desktop/androidSpace/XCFramework/app/.cxx/Debug/r623l6u4/armeabi-v7a/CMakeFiles/SerialPort.dir
