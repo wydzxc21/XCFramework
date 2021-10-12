@@ -2,7 +2,6 @@ package com.xc.framework.port.serial;
 
 import com.xc.framework.port.core.IPort;
 import com.xc.framework.port.core.PortManager;
-import com.xc.framework.port.core.PortParam;
 import com.xc.framework.port.core.PortParamCallback;
 
 /**
@@ -24,7 +23,7 @@ public class SerialPortManager extends PortManager {
     }
 
     @Override
-    public PortParam getPortParam() {
+    public SerialPortParam getPortParam() {
         return mSerialPortParam;
     }
 

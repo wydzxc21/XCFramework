@@ -5,7 +5,6 @@ import android.hardware.usb.UsbDevice;
 
 import com.xc.framework.port.core.IPort;
 import com.xc.framework.port.core.PortManager;
-import com.xc.framework.port.core.PortParam;
 import com.xc.framework.port.core.PortParamCallback;
 import com.xc.framework.port.usb.driver.UsbType;
 
@@ -30,7 +29,7 @@ public class UsbPortManager extends PortManager {
     }
 
     @Override
-    public PortParam getPortParam() {
+    public UsbPortParam getPortParam() {
         return mUsbPortParam;
     }
 
