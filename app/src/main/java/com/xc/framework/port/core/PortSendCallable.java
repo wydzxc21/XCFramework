@@ -88,11 +88,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                         receiveDatas = writeResponse();
                     }
                 } else {
-                    synchronized (responseLock) {
-                        synchronized (resultLock) {
-                            byte[] responseDatas = writeResponse();//先等响应
-                            receiveDatas = writeResult(responseDatas);//再等结果
+                    synchronized (resultLock) {
+                        byte[] responseDatas;
+                        synchronized (responseLock) {
+                            responseDatas = writeResponse();//先等响应
                         }
+                        receiveDatas = writeResult(responseDatas);//再等结果
                     }
                 }
             } catch (Exception e) {
