@@ -1,5 +1,6 @@
 package com.xc.framework.port.usb;
 
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -31,7 +32,7 @@ public class UsbPort implements IPort {
     //
     private UsbBaseDriver mDriver;
     private UsbDeviceConnection mUc;
-    private int sendTimeout;//发送超时，默认1000
+    private int sendTimeout;//发送超时，默认2000
 
     /**
      * Author：ZhangXuanChen
@@ -86,7 +87,7 @@ public class UsbPort implements IPort {
      * @param dataBits    数据位，默认8
      * @param stopBits    停止位，默认1
      * @param parity      奇偶校验位，默认0（无校验）
-     * @param sendTimeout 发送超时，默认1000
+     * @param sendTimeout 发送超时，默认2000
      */
     public boolean openPort(UsbDevice usbDevice, int baudRate, int dataBits, int stopBits, int parity, int sendTimeout) {
         this.sendTimeout = sendTimeout;
@@ -148,7 +149,7 @@ public class UsbPort implements IPort {
         byte[] bytes = null;
         try {
             if (mDriver != null) {
-                mDriver.read(sendTimeout);
+                bytes = mDriver.read(sendTimeout);
             }
         } catch (Exception e) {
             e.printStackTrace();

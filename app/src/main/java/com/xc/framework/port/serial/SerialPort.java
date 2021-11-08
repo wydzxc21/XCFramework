@@ -162,6 +162,7 @@ public final class SerialPort implements IPort {
                 if (readSize > 0) {
                     bytes = Arrays.copyOf(bufferDatas, readSize);
                 }
+                bufferDatas = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
