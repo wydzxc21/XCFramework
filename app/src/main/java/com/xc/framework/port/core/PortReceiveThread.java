@@ -164,6 +164,14 @@ public abstract class PortReceiveThread extends XCThread {
         }
     }
 
+    @Override
+    public void stopThread() {
+        super.stopThread();
+        if (bufferDatas != null) {
+            bufferDatas = null;
+        }
+    }
+
     /**
      * Author：ZhangXuanChen
      * Time：2020/3/10 14:51

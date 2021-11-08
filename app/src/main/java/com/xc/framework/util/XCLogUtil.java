@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -197,10 +198,11 @@ public class XCLogUtil {
         boolean isSucceed = false;
         List<File> fileList = getFileList(context, folderPath);
         if (fileList != null && !fileList.isEmpty()) {
+            SimpleDateFormat simpleDateFormat = XCTimeUtil.getSimpleDateFormat(XCTimeUtil.FORMAT_DATE);
             for (int i = fileList.size() - 1; i >= 0; i--) {
                 File file = fileList.get(i);
                 if (file != null) {
-                    int tempDay = XCTimeUtil.compareDay(file.getName().replaceAll(".txt", ""), XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE), XCTimeUtil.FORMAT_DATE);
+                    int tempDay = XCTimeUtil.compareDay(file.getName().replaceAll(".txt", ""), XCTimeUtil.getCurrentTime(simpleDateFormat), simpleDateFormat);
                     if (tempDay > compareDay) {
                         isSucceed = XCFileUtil.deleteFile(file.getAbsolutePath());
                     }

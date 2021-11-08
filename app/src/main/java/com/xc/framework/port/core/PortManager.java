@@ -22,8 +22,8 @@ public abstract class PortManager {
     private PortReceiveThread portReceiveThread;//接收线程
     private List<OnPortSendListener> portSendListenerList;//发送监听集合
     private List<OnPortReceiveListener> portReceiveListenerList;//接收监听集合
-    private Object poolLock;//线程池锁
     private PortReceiveCache portReceiveCache;//接收缓存
+    private Object responseLock, resultLock;//响应锁,结果锁
     private boolean isOpen = false;//是否打开串口
     private boolean isStopSend;//是否停止发送
     private boolean isPauseReceive;//是否暂停接收
@@ -31,8 +31,9 @@ public abstract class PortManager {
     public PortManager() {
         portSendListenerList = new ArrayList<OnPortSendListener>();
         portReceiveListenerList = new ArrayList<OnPortReceiveListener>();
-        poolLock = new Object();
         portReceiveCache = new PortReceiveCache(new Object());
+        responseLock = new Object();
+        resultLock = new Object();
     }
 
     /**
@@ -83,6 +84,7 @@ public abstract class PortManager {
     public boolean close() {
         boolean isClose = false;
         stopSend(false);
+        clearOnPortSendListener();
         if (portReceiveThread != null) {
             portReceiveThread.stopThread();
             portReceiveThread = null;
@@ -268,7 +270,7 @@ public abstract class PortManager {
      * Description：getPortSendCallable
      */
     private PortSendCallable getPortSendCallable(byte[] bytes, PortReceiveType portReceiveType, int what, final PortReceiveCallback portReceiveCallback, PortFilterCallback portFilterCallback) {
-        PortSendCallable mPortSendCallable = new PortSendCallable(getIPort(), getPortParam(), bytes, portReceiveType, what, portFilterCallback, poolLock, portReceiveCache) {
+        PortSendCallable mPortSendCallable = new PortSendCallable(getIPort(), getPortParam(), bytes, portReceiveType, what, portFilterCallback, responseLock, resultLock, portReceiveCache) {
             @Override
             public void onResponse(int what, byte[] responseDatas) {
                 if (portReceiveCallback != null) {
