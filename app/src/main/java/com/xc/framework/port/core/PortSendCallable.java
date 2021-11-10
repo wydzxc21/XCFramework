@@ -82,7 +82,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         byte[] receiveDatas = null;
         while (receiveDatas == null && sendCount <= portParam.getResendCount() && !isStopSend()) {
             try {
-                XCThreadUtil.sleep(1);
                 if (portReceiveType == PortReceiveType.Response) {
                     synchronized (responseLock) {
                         receiveDatas = waitResponse();
@@ -96,6 +95,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
                         receiveDatas = waitResult(responseDatas);//再等结果
                     }
                 }
+                XCThreadUtil.sleep(1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -109,6 +109,7 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
      * @description waitResponse
      */
     private byte[] waitResponse() {
+        XCThreadUtil.sleep(10);
         sendCount++;
         iPort.writePort(sendDatas);
         Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
@@ -141,12 +142,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         byte[] receiveDatas = null;
         while (receiveDatas == null && !isStopSend() && isTimeout(currentTime, receiveType)) {
             try {
-                XCThreadUtil.sleep(1);
                 if (isPauseReceive()) {
                     currentTime = System.currentTimeMillis();
                     continue;
                 }
                 receiveDatas = portReceiveCache.getReceiveDatas(receiveType, sendDatas, portFilterCallback);
+                XCThreadUtil.sleep(1);
             } catch (Exception e) {
                 e.printStackTrace();
             }

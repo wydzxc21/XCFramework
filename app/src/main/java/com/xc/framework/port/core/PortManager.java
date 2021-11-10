@@ -31,7 +31,7 @@ public abstract class PortManager {
     public PortManager() {
         portSendListenerList = new ArrayList<OnPortSendListener>();
         portReceiveListenerList = new ArrayList<OnPortReceiveListener>();
-        portReceiveCache = new PortReceiveCache(new Object());
+        portReceiveCache = new PortReceiveCache();
         responseLock = new Object();
         resultLock = new Object();
     }

@@ -9,7 +9,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class PortReceiveCache {
     private final String TAG = "PortReceiveCache";
-    private Object cacheLock;
     private final CopyOnWriteArrayList<byte[]> responseList;
     private final CopyOnWriteArrayList<byte[]> resultList;
 
@@ -18,8 +17,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:10
      * Description：PortReceiveCache
      */
-    public PortReceiveCache(Object cacheLock) {
-        this.cacheLock = cacheLock;
+    public PortReceiveCache() {
         responseList = new CopyOnWriteArrayList<byte[]>();
         resultList = new CopyOnWriteArrayList<byte[]>();
     }
@@ -29,7 +27,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResponse
      */
-    public void addResponse(byte[] bytes) {
+    public synchronized void addResponse(byte[] bytes) {
         responseList.add(bytes);
     }
 
@@ -38,7 +36,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:35
      * Description：removeResponse
      */
-    public void removeResponse(byte[] bytes) {
+    public synchronized void removeResponse(byte[] bytes) {
         responseList.remove(bytes);
     }
 
@@ -47,7 +45,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:18
      * Description：getResponseList
      */
-    public CopyOnWriteArrayList<byte[]> getResponseList() {
+    public synchronized CopyOnWriteArrayList<byte[]> getResponseList() {
         return responseList;
     }
 
@@ -56,7 +54,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:35
      * Description：clearResponseList
      */
-    public void clearResponseList() {
+    public synchronized void clearResponseList() {
         responseList.clear();
     }
 
@@ -65,7 +63,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResult
      */
-    public void addResult(byte[] bytes) {
+    public synchronized void addResult(byte[] bytes) {
         resultList.add(bytes);
     }
 
@@ -74,7 +72,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResult
      */
-    public void removeResult(byte[] bytes) {
+    public synchronized void removeResult(byte[] bytes) {
         resultList.remove(bytes);
     }
 
@@ -83,7 +81,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:19
      * Description：getResultList
      */
-    public CopyOnWriteArrayList<byte[]> getResultList() {
+    public synchronized CopyOnWriteArrayList<byte[]> getResultList() {
         return resultList;
     }
 
@@ -92,7 +90,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:34
      * Description：clearResultList
      */
-    public void clearResultList() {
+    public synchronized void clearResultList() {
         resultList.clear();
     }
 
@@ -101,7 +99,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:34
      * Description：clear
      */
-    public void clear() {
+    public synchronized void clear() {
         clearResponseList();
         clearResultList();
     }
@@ -111,7 +109,7 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:47
      * Description：remove
      */
-    public void remove(byte[] bytes, PortReceiveType receiveType) {
+    public synchronized void remove(byte[] bytes, PortReceiveType receiveType) {
         if (bytes != null && bytes.length > 0) {
             if (receiveType == PortReceiveType.Response) {//响应
                 removeResponse(bytes);
@@ -127,24 +125,22 @@ public class PortReceiveCache {
      * @package com.xc.framework.port.core
      * @description getReceiveDatas
      */
-    public byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
-        synchronized (cacheLock) {
-            CopyOnWriteArrayList<byte[]> receiveList = null;
-            if (receiveType == PortReceiveType.Response) {//响应
-                receiveList = getResponseList();
-            } else if (receiveType == PortReceiveType.Result) {//结果
-                receiveList = getResultList();
-            }
-            if (receiveList != null && !receiveList.isEmpty()) {
-                for (byte[] receiveDatas : receiveList) {
-                    if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
-                        remove(receiveDatas, receiveType);
-                        return receiveDatas;
-                    }
+    public synchronized byte[] getReceiveDatas(PortReceiveType receiveType, byte[] sendDatas, PortFilterCallback portFilterCallback) {
+        CopyOnWriteArrayList<byte[]> receiveList = null;
+        if (receiveType == PortReceiveType.Response) {//响应
+            receiveList = getResponseList();
+        } else if (receiveType == PortReceiveType.Result) {//结果
+            receiveList = getResultList();
+        }
+        if (receiveList != null && !receiveList.isEmpty()) {
+            for (byte[] receiveDatas : receiveList) {
+                if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
+                    remove(receiveDatas, receiveType);
+                    return receiveDatas;
                 }
             }
-            return null;
         }
+        return null;
     }
 
 }
