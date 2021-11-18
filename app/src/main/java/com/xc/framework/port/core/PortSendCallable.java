@@ -1,12 +1,11 @@
 package com.xc.framework.port.core;
 
-
-import android.os.Message;
 import android.util.Log;
 
-import com.xc.framework.thread.XCCallable;
 import com.xc.framework.util.XCByteUtil;
 import com.xc.framework.util.XCThreadUtil;
+
+import java.util.concurrent.Callable;
 
 
 /**
@@ -14,7 +13,7 @@ import com.xc.framework.util.XCThreadUtil;
  * Author：ZhangXuanChen
  * Description：串口发送基类
  */
-public abstract class PortSendCallable extends XCCallable<byte[]> {
+public abstract class PortSendCallable implements Callable<byte[]> {
     private final String TAG = "PortSendRunnable";
     private IPort iPort;//串口工具
     private PortParam portParam;//串口参数
@@ -65,12 +64,6 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
             onTimeout(what, sendDatas);
         }
         return receiveDatas;
-
-    }
-
-    @Override
-    protected void onHandler(Message msg) {
-
     }
 
     /**
@@ -81,24 +74,20 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
     private byte[] writeDatas() {
         byte[] receiveDatas = null;
         while (receiveDatas == null && sendCount <= portParam.getResendCount() && !isStopSend()) {
-            try {
-                if (portReceiveType == PortReceiveType.Response) {
-                    synchronized (responseLock) {
-                        receiveDatas = waitResponse();
-                    }
-                } else {
-                    synchronized (resultLock) {
-                        byte[] responseDatas;
-                        synchronized (responseLock) {
-                            responseDatas = waitResponse();//先等响应
-                        }
-                        receiveDatas = waitResult(responseDatas);//再等结果
-                    }
+            if (portReceiveType == PortReceiveType.Response) {
+                synchronized (responseLock) {
+                    receiveDatas = waitResponse();
                 }
-                XCThreadUtil.sleep(1);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } else {
+                synchronized (resultLock) {
+                    byte[] responseDatas;
+                    synchronized (responseLock) {
+                        responseDatas = waitResponse();//先等响应
+                    }
+                    receiveDatas = waitResult(responseDatas);//再等结果
+                }
             }
+            XCThreadUtil.sleep(1);
         }
         return receiveDatas;
     }
@@ -141,16 +130,12 @@ public abstract class PortSendCallable extends XCCallable<byte[]> {
         long currentTime = System.currentTimeMillis();
         byte[] receiveDatas = null;
         while (receiveDatas == null && !isStopSend() && isTimeout(currentTime, receiveType)) {
-            try {
-                if (isPauseReceive()) {
-                    currentTime = System.currentTimeMillis();
-                    continue;
-                }
-                receiveDatas = portReceiveCache.getReceiveDatas(receiveType, sendDatas, portFilterCallback);
-                XCThreadUtil.sleep(1);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (isPauseReceive()) {
+                currentTime = System.currentTimeMillis();
+                continue;
             }
+            receiveDatas = portReceiveCache.getReceiveDatas(receiveType, sendDatas, portFilterCallback);
+            XCThreadUtil.sleep(1);
         }
         return receiveDatas;
     }

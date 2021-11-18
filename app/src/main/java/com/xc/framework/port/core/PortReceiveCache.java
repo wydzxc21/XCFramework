@@ -27,8 +27,8 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResponse
      */
-    public synchronized void addResponse(byte[] bytes) {
-        responseList.add(bytes);
+    public synchronized boolean addResponse(byte[] bytes) {
+        return responseList.add(bytes);
     }
 
     /**
@@ -36,8 +36,8 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:35
      * Description：removeResponse
      */
-    public synchronized void removeResponse(byte[] bytes) {
-        responseList.remove(bytes);
+    public synchronized boolean removeResponse(byte[] bytes) {
+        return responseList.remove(bytes);
     }
 
     /**
@@ -63,8 +63,8 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResult
      */
-    public synchronized void addResult(byte[] bytes) {
-        resultList.add(bytes);
+    public synchronized boolean addResult(byte[] bytes) {
+        return resultList.add(bytes);
     }
 
     /**
@@ -72,8 +72,8 @@ public class PortReceiveCache {
      * Time：2021/3/26 11:21
      * Description：addResult
      */
-    public synchronized void removeResult(byte[] bytes) {
-        resultList.remove(bytes);
+    public synchronized boolean removeResult(byte[] bytes) {
+        return resultList.remove(bytes);
     }
 
     /**
@@ -109,14 +109,16 @@ public class PortReceiveCache {
      * Time：2021/3/26 13:47
      * Description：remove
      */
-    public synchronized void remove(byte[] bytes, PortReceiveType receiveType) {
+    public synchronized boolean remove(byte[] bytes, PortReceiveType receiveType) {
+        boolean isSucceed = false;
         if (bytes != null && bytes.length > 0) {
             if (receiveType == PortReceiveType.Response) {//响应
-                removeResponse(bytes);
+                isSucceed = removeResponse(bytes);
             } else if (receiveType == PortReceiveType.Result) {//结果
-                removeResult(bytes);
+                isSucceed = removeResult(bytes);
             }
         }
+        return isSucceed;
     }
 
     /**
