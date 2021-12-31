@@ -51,6 +51,15 @@ public abstract class PortManager {
     public abstract PortParam getPortParam();
 
     /**
+     * @author ZhangXuanChen
+     * @date 2021/12/28 14:27
+     * @description getPortReceiveCache
+     */
+    public PortReceiveCache getPortReceiveCache() {
+        return portReceiveCache;
+    }
+
+    /**
      * Author：ZhangXuanChen
      * Time：2020/3/27 13:25
      * Description：initPool

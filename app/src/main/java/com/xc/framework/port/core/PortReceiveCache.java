@@ -1,5 +1,9 @@
 package com.xc.framework.port.core;
 
+import android.util.Log;
+
+import com.xc.framework.util.XCByteUtil;
+
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -137,6 +141,7 @@ public class PortReceiveCache {
         if (receiveList != null && !receiveList.isEmpty()) {
             for (byte[] receiveDatas : receiveList) {
                 if (portFilterCallback != null ? portFilterCallback.onFilter(sendDatas, receiveDatas, receiveType) : true) {//判断指令正确性
+                    Log.i(TAG, "指令-匹配接收:[" + XCByteUtil.toHexStr(sendDatas, true) + " , " + XCByteUtil.toHexStr(receiveDatas, true) + "]");
                     remove(receiveDatas, receiveType);
                     return receiveDatas;
                 }
