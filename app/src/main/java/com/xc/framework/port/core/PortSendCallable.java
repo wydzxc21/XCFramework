@@ -72,22 +72,19 @@ public abstract class PortSendCallable implements Callable<byte[]> {
      * @description writeDatas
      */
     private byte[] writeDatas() {
-        byte[] receiveDatas = null;
-        while (receiveDatas == null && sendCount <= portParam.getResendCount() && !isStopSend()) {
-            if (portReceiveType == PortReceiveType.Response) {
-                synchronized (responseLock) {
-                    receiveDatas = waitResponse();
-                }
-            } else {
-                synchronized (resultLock) {
-                    byte[] responseDatas;
-                    synchronized (responseLock) {
-                        responseDatas = waitResponse();//先等响应
-                    }
-                    receiveDatas = waitResult(responseDatas);//再等结果
-                }
+        byte[] receiveDatas;
+        if (portReceiveType == PortReceiveType.Response) {
+            synchronized (responseLock) {
+                receiveDatas = waitResponse();
             }
-            XCThreadUtil.sleep(1);
+        } else {
+            synchronized (resultLock) {
+                byte[] responseDatas;
+                synchronized (responseLock) {
+                    responseDatas = waitResponse();//先等响应
+                }
+                receiveDatas = waitResult(responseDatas);//再等结果
+            }
         }
         return receiveDatas;
     }
@@ -98,12 +95,17 @@ public abstract class PortSendCallable implements Callable<byte[]> {
      * @description waitResponse
      */
     private byte[] waitResponse() {
-        XCThreadUtil.sleep(10);
-        sendCount++;
-        iPort.writePort(sendDatas);
-        Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
-        onSend(what, sendDatas, sendCount);
-        return waitReceive(PortReceiveType.Response);
+        byte[] responseDatas = null;
+        while (responseDatas == null && sendCount <= portParam.getResendCount() && !isStopSend()) {
+            XCThreadUtil.sleep(10);
+            sendCount++;
+            iPort.writePort(sendDatas);
+            Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            onSend(what, sendDatas, sendCount);
+            responseDatas = waitReceive(PortReceiveType.Response);
+            XCThreadUtil.sleep(1);
+        }
+        return responseDatas;
     }
 
     /**
