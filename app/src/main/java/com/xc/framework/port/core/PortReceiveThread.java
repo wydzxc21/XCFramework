@@ -86,26 +86,6 @@ public abstract class PortReceiveThread extends XCThread {
 
     /**
      * Author：ZhangXuanChen
-     * Time：2020/8/13 10:54
-     * Description：最前一组接收帧头索引
-     */
-    private int getFirstFrameHeadPosition(byte[] cutDatas) {
-        //获取最前一组接收帧头索引
-        int responseFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
-        //获取最前一组请求帧头索引
-        int requestFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
-        //返回最前一组帧头
-        if (Math.abs(responseFrameHeadPosition) < Math.abs(requestFrameHeadPosition)) {
-            frameHeadsType = 1;//响应
-            return responseFrameHeadPosition;
-        } else {
-            frameHeadsType = 2;//请求
-            return requestFrameHeadPosition;
-        }
-    }
-
-    /**
-     * Author：ZhangXuanChen
      * Time：2020/8/13 10:59
      * Description：截取数据
      */
@@ -131,6 +111,37 @@ public abstract class PortReceiveThread extends XCThread {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2020/8/13 10:54
+     * Description：最前一组接收帧头索引
+     */
+    private int getFirstFrameHeadPosition(byte[] cutDatas) {
+        //获取最前一组接收帧头索引
+        int responseFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveResponseFrameHeads(), cutDatas);
+        //获取最前一组请求帧头索引
+        int requestFrameHeadPosition = PortFrameUtil.getFirstFrameHeadPosition(portParam.getReceiveRequestFrameHeads(), cutDatas);
+        //返回最前一组帧头
+        if (responseFrameHeadPosition > -1 && requestFrameHeadPosition == -1) {
+            frameHeadsType = 1;//响应
+            return responseFrameHeadPosition;
+        } else if (responseFrameHeadPosition == -1 && requestFrameHeadPosition > -1) {
+            frameHeadsType = 2;//请求
+            return requestFrameHeadPosition;
+        } else if (responseFrameHeadPosition > -1 && requestFrameHeadPosition > -1) {
+            if (responseFrameHeadPosition < requestFrameHeadPosition) {
+                frameHeadsType = 1;//响应
+                return responseFrameHeadPosition;
+            } else {
+                frameHeadsType = 2;//请求
+                return requestFrameHeadPosition;
+            }
+        } else {
+            frameHeadsType = 1;
+            return -1;
         }
     }
 
