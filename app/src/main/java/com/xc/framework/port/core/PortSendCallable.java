@@ -1,8 +1,7 @@
 package com.xc.framework.port.core;
 
-import android.util.Log;
-
 import com.xc.framework.util.XCByteUtil;
+import com.xc.framework.util.XCLogUtil;
 import com.xc.framework.util.XCThreadUtil;
 
 import java.util.concurrent.Callable;
@@ -100,7 +99,7 @@ public abstract class PortSendCallable implements Callable<byte[]> {
             XCThreadUtil.sleep(10);
             sendCount++;
             iPort.writePort(sendDatas);
-            Log.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
+            XCLogUtil.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             onSend(what, sendDatas, sendCount);
             responseDatas = waitReceive(PortReceiveType.Response);
             XCThreadUtil.sleep(1);

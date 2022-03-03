@@ -2,10 +2,10 @@ package com.xc.framework.port.core;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.xc.framework.thread.XCThread;
 import com.xc.framework.util.XCByteUtil;
+import com.xc.framework.util.XCLogUtil;
 import com.xc.framework.util.XCThreadUtil;
 
 import java.util.Arrays;
@@ -72,7 +72,7 @@ public abstract class PortReceiveThread extends XCThread {
             System.arraycopy(readDatas, 0, bufferDatas, bufferPosition, readDatas.length);
             bufferPosition += readDatas.length;
             cutDatas = Arrays.copyOf(bufferDatas, bufferPosition);
-//            Log.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
+//            XCLogUtil.i(TAG, "readDatas: " + XCByteUtil.toHexStr(cutDatas, true));
         } else if (cutDatas != null) {
             if (portParam.getReceiveResponseFrameHeads() != null && portParam.getReceiveResponseFrameHeads().length > 0 || portParam.getReceiveRequestFrameHeads() != null && portParam.getReceiveRequestFrameHeads().length > 0) {//设置了帧头
                 splitData(cutDatas);
@@ -159,16 +159,16 @@ public abstract class PortReceiveThread extends XCThread {
             reset();
             if (frameHeadsType == 1) {//响应
                 portReceiveCache.addResponse(cutDatas);
-                Log.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                XCLogUtil.i(TAG, "指令-接收响应:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                 onResponse(cutDatas);
             } else if (frameHeadsType == 2) {//请求
                 boolean isResult = portParam.portParamCallback != null ? portParam.portParamCallback.onResult(cutDatas) : false;
                 if (isResult) {//接收结果
                     portReceiveCache.addResult(cutDatas);
-                    Log.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                    XCLogUtil.i(TAG, "指令-接收结果:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                     onRequest(cutDatas, true);
                 } else {//接收请求
-                    Log.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
+                    XCLogUtil.i(TAG, "指令-接收请求:[" + XCByteUtil.toHexStr(cutDatas, true) + "]");
                     onRequest(cutDatas, false);
                 }
             }
