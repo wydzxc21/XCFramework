@@ -3,6 +3,8 @@ package com.xc.framework.util;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.multidex.BuildConfig;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -14,7 +16,8 @@ import java.util.List;
  * @description Log日志工具类
  */
 public class XCLogUtil {
-    private static java.lang.String FOLDER_NAME = "xcFramework";//文件夹名称
+    private static String FOLDER_NAME = "xcFramework";//文件夹名称
+    private static final boolean IS_LOG = BuildConfig.DEBUG;
 
     /**
      * Log.i
@@ -22,9 +25,11 @@ public class XCLogUtil {
      * @param log 打印信息
      * @deprecated tag为当前类名
      */
-    public static void i(Context context, java.lang.String log) {
+    public static void i(Context context, String log) {
         try {
-            Log.i("" + context.getClass().getSimpleName(), log);
+            if (IS_LOG) {
+                Log.i("" + context.getClass().getSimpleName(), log);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,9 +41,11 @@ public class XCLogUtil {
      * @param log 打印信息
      * @deprecated tag为当前类名
      */
-    public static void d(Context context, java.lang.String log) {
+    public static void d(Context context, String log) {
         try {
-            Log.d("" + context.getClass().getSimpleName(), log);
+            if (IS_LOG) {
+                Log.d("" + context.getClass().getSimpleName(), log);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -50,9 +57,11 @@ public class XCLogUtil {
      * @param log 打印信息
      * @deprecated tag为当前类名
      */
-    public static void e(Context context, java.lang.String log) {
+    public static void e(Context context, String log) {
         try {
-            Log.e("" + context.getClass().getSimpleName(), log);
+            if (IS_LOG) {
+                Log.e("" + context.getClass().getSimpleName(), log);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,7 +75,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 保存log到缓存目录下txt文件（例：2020-02-20.txt）
      */
-    public static boolean writeLog(Context context, java.lang.String log) {
+    public static boolean writeLog(Context context, String log) {
         return writeLog(context, log, null);
     }
 
@@ -78,7 +87,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 保存log到指定txt文件
      */
-    public static boolean writeLog(java.lang.String log, java.lang.String filePath) {
+    public static boolean writeLog(String log, String filePath) {
         return writeLog(null, log, filePath);
     }
 
@@ -90,7 +99,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 保存log
      */
-    private synchronized static boolean writeLog(Context context, java.lang.String log, java.lang.String filePath) {
+    private synchronized static boolean writeLog(Context context, String log, String filePath) {
         if (context != null && XCStringUtil.isEmpty(filePath)) {
             String folderPath = XCFileUtil.getExternalCacheDir(context) + File.separator + FOLDER_NAME;
             String fileName = XCTimeUtil.getCurrentTime(XCTimeUtil.FORMAT_DATE) + ".txt";
@@ -112,7 +121,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 读取log
      */
-    public synchronized static java.lang.String readLog(java.lang.String filePath) {
+    public synchronized static String readLog(String filePath) {
         return XCFileUtil.readText(filePath);
     }
 
@@ -122,7 +131,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 读取log
      */
-    public synchronized static java.lang.String readLog(File file) {
+    public synchronized static String readLog(File file) {
         return XCFileUtil.readText(file);
     }
 
@@ -141,7 +150,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 获取文件list
      */
-    public static List<File> getFileList(java.lang.String folderPath) {
+    public static List<File> getFileList(String folderPath) {
         return getFileList(null, folderPath);
     }
 
@@ -151,7 +160,7 @@ public class XCLogUtil {
      * @date 2020/2/19
      * @description 获取文件list
      */
-    private static List<File> getFileList(Context context, java.lang.String folderPath) {
+    private static List<File> getFileList(Context context, String folderPath) {
         if (context != null && XCStringUtil.isEmpty(folderPath)) {
             folderPath = XCFileUtil.getExternalCacheDir(context) + File.separator + FOLDER_NAME;
         }
@@ -183,7 +192,7 @@ public class XCLogUtil {
      * @date 2020/2/20
      * @description 删除log
      */
-    public synchronized static boolean deleteLog(java.lang.String folderPath, int compareDay) {
+    public synchronized static boolean deleteLog(String folderPath, int compareDay) {
         return deleteLog(null, folderPath, compareDay);
     }
 
@@ -194,7 +203,7 @@ public class XCLogUtil {
      * @date 2020/2/20
      * @description 删除log
      */
-    private synchronized static boolean deleteLog(Context context, java.lang.String folderPath, int compareDay) {
+    private synchronized static boolean deleteLog(Context context, String folderPath, int compareDay) {
         boolean isSucceed = false;
         List<File> fileList = getFileList(context, folderPath);
         if (fileList != null && !fileList.isEmpty()) {
