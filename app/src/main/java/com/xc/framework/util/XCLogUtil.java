@@ -26,9 +26,19 @@ public class XCLogUtil {
      * @deprecated tag为当前类名
      */
     public static void i(Context context, String log) {
+        i(context.getClass().getSimpleName(), log);
+    }
+
+    /**
+     * Log.i
+     *
+     * @param tag 打印tag
+     * @param log 打印信息
+     */
+    public static void i(String tag, String log) {
         try {
             if (IS_LOG) {
-                Log.i("" + context.getClass().getSimpleName(), log);
+                Log.i("" + tag, log);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -42,9 +52,19 @@ public class XCLogUtil {
      * @deprecated tag为当前类名
      */
     public static void d(Context context, String log) {
+        d(context.getClass().getSimpleName(), log);
+    }
+
+    /**
+     * Log.d
+     *
+     * @param tag 打印tag
+     * @param log 打印信息
+     */
+    public static void d(String tag, String log) {
         try {
             if (IS_LOG) {
-                Log.d("" + context.getClass().getSimpleName(), log);
+                Log.d("" + tag, log);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,9 +78,19 @@ public class XCLogUtil {
      * @deprecated tag为当前类名
      */
     public static void e(Context context, String log) {
+        e(context.getClass().getSimpleName(), log);
+    }
+
+    /**
+     * Log.e
+     *
+     * @param tag 打印tag
+     * @param log 打印信息
+     */
+    public static void e(String tag, String log) {
         try {
             if (IS_LOG) {
-                Log.e("" + context.getClass().getSimpleName(), log);
+                Log.e("" + tag, log);
             }
         } catch (Exception e) {
             e.printStackTrace();
