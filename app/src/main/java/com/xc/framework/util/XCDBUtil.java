@@ -16,6 +16,18 @@ import java.util.Map;
  * @description 数据库操作工具类
  */
 public class XCDBUtil {
+
+    /**
+     * 执行sql语句
+     *
+     * @param context 上下文
+     * @param sql     sql语句
+     * @return 是否成功
+     */
+    public static boolean execSQL(Context context, String sql) {
+        return DBManager.getInstance(context).execSQL(sql);
+    }
+
     /**
      * 创建数据库表
      *
@@ -36,6 +48,18 @@ public class XCDBUtil {
      */
     public static boolean isTableExist(Context context, Class<?> tableClass) {
         return DBManager.getInstance(context).isTableExist(tableClass);
+    }
+
+    /**
+     * 重命名表名
+     *
+     * @param context      上下文
+     * @param oldTableName 旧表名
+     * @param newTableName 新表名
+     * @return 是否成功
+     */
+    public static boolean renameTable(Context context, String oldTableName, String newTableName) {
+        return DBManager.getInstance(context).renameTable(oldTableName, newTableName);
     }
 
     /**
@@ -79,7 +103,7 @@ public class XCDBUtil {
      * @return 是否成功
      */
     public static void initDB(Context context, int dbVersion) {
-        DBManager.getInstance(context).initDB( dbVersion);
+        DBManager.getInstance(context).initDB(dbVersion);
     }
 
     /**

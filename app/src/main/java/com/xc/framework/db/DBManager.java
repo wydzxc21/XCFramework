@@ -38,6 +38,29 @@ public class DBManager {
     }
 
     /**
+     * @param sql sql语句
+     * @author ZhangXuanChen
+     * @date 2022/3/11 09:03
+     * @description 执行sql语句
+     */
+    public synchronized boolean execSQL(String sql) {
+        SQLiteDatabase db = DBHelper.getInstance(context).getReadableDatabase();
+        if (db != null && !XCStringUtil.isEmpty(sql)) {
+            try {
+                db.execSQL(sql);
+                return true;
+            } catch (Exception e) {
+                return false;
+            } finally {
+                if (db != null) {
+                    db.close();
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 创建数据库表
      *
      * @param tableClass 以实体类名创建表名,成员变量创建字段(只支持String类型变量,相同类名不会重复创建表)
@@ -95,6 +118,31 @@ public class DBManager {
             }
             if (cursor != null) {
                 cursor.close();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Author：ZhangXuanChen
+     * Time：2022/3/11 9:20
+     * Description：重命名表名
+     */
+    public synchronized boolean renameTable(String oldTableName, String newTableName) {
+        if (XCStringUtil.isEmpty(oldTableName) || XCStringUtil.isEmpty(oldTableName)) {
+            return false;
+        }
+        SQLiteDatabase db = null;
+        try {
+            db = DBHelper.getInstance(context).getReadableDatabase();
+            String renameSql = "alter table " + oldTableName + " rename to " + newTableName;
+            db.execSQL(renameSql);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (db != null) {
+                db.close();
             }
         }
         return false;
