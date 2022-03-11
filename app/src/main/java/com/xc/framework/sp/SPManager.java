@@ -1,5 +1,6 @@
 package com.xc.framework.sp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * @package com.xc.framework.sp
  * @description xml管理类
  */
+@SuppressLint("ApplySharedPref")
 public class SPManager {
     private static SPManager spManager;
     private static String SP_NAME = "xcFramework";
@@ -52,6 +54,37 @@ public class SPManager {
 
     /**
      * @author ZhangXuanChen
+     * @date 2022/3/11 14:34
+     * @description 重命名
+     */
+    public void rename(String oldKey, String newKey) {
+        String value = get(oldKey);
+        save(newKey, value);
+        remove(oldKey);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2022/3/11 15:06
+     * @description 重命名
+     */
+    public <T> void rename(String oldClassName, Class<T> objectClass) {
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
+        if (!XCStringUtil.isEmpty(oldClassName) && fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
+                //优先采用别名，无别名再采用原名
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
+                if (!XCStringUtil.isEmpty(name)) {
+                    rename(oldClassName + name, objectClass.getSimpleName() + name);
+                }
+            }
+        }
+    }
+
+    /**
+     * @author ZhangXuanChen
      * @date 2020/2/4
      * @description 保存
      */
@@ -85,7 +118,16 @@ public class SPManager {
      * @description 获取
      */
     public String get(String key) {
-        return sp.getString(key, "");
+        return get(key, "");
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 获取
+     */
+    public String get(String key, String defValue) {
+        return sp.getString(key, defValue);
     }
 
     /**
@@ -142,5 +184,15 @@ public class SPManager {
      */
     public void clearAll() {
         sp.edit().clear().commit();
+    }
+
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2022/3/11 14:39
+     * @description remove
+     */
+    public void remove(String key) {
+        sp.edit().remove(key).commit();
     }
 }

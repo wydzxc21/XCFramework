@@ -25,6 +25,24 @@ public class XCSPUtil {
     /**
      * @author ZhangXuanChen
      * @date 2020/2/4
+     * @description 重命名
+     */
+    public static void rename(Context context, String oldKey, String newKey) {
+        SPManager.getInstance(context).rename(oldKey, newKey);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 重命名
+     */
+    public static <T> void rename(Context context, String oldClassName, Class<T> objectClass) {
+        SPManager.getInstance(context).rename(oldClassName, objectClass);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/4
      * @description 保存
      */
     public static void save(Context context, String key, String value) {
@@ -48,6 +66,15 @@ public class XCSPUtil {
      */
     public static String get(Context context, String key) {
         return SPManager.getInstance(context).get(key);
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 获取
+     */
+    public static String get(Context context, String key, String defValue) {
+        return SPManager.getInstance(context).get(key, defValue);
     }
 
     /**
@@ -76,5 +103,14 @@ public class XCSPUtil {
      */
     public static void clearAll(Context context) {
         SPManager.getInstance(context).clearAll();
+    }
+
+    /**
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description remove
+     */
+    public static void remove(Context context, String key) {
+        SPManager.getInstance(context).remove(key);
     }
 }
