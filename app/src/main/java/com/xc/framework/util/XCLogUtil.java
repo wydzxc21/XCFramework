@@ -3,8 +3,6 @@ package com.xc.framework.util;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.multidex.BuildConfig;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -17,7 +15,7 @@ import java.util.List;
  */
 public class XCLogUtil {
     private static String FOLDER_NAME = "xcFramework";//文件夹名称
-    private static final boolean IS_LOG = BuildConfig.DEBUG;
+    private static final boolean IS_LOG = true;
 
     /**
      * Log.i
