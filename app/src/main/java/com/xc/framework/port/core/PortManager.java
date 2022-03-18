@@ -1,8 +1,7 @@
 package com.xc.framework.port.core;
 
-import android.util.Log;
-
 import com.xc.framework.util.XCByteUtil;
+import com.xc.framework.util.XCLogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -198,7 +197,7 @@ public abstract class PortManager {
             @Override
             public void run() {
                 getIPort().writePort(bytes);
-                Log.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
+                XCLogUtil.i(TAG, "指令-直接发送:[" + XCByteUtil.toHexStr(bytes, true) + "]");
                 doSend(-2, bytes, 1);
             }
         }).start();
@@ -325,7 +324,7 @@ public abstract class PortManager {
      * @Description：doException
      */
     private void doError(byte[] bytes, String msg) {
-        Log.i(TAG, "指令-异常:[" + msg + "]");
+        XCLogUtil.i(TAG, "指令-异常:[" + msg + "]");
         if (portSendListenerList != null && !portSendListenerList.isEmpty()) {
             for (OnPortSendListener listener : portSendListenerList) {
                 if (listener != null) {
