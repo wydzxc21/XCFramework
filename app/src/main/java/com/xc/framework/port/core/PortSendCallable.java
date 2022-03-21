@@ -102,7 +102,6 @@ public abstract class PortSendCallable implements Callable<byte[]> {
             XCLogUtil.i(TAG, "指令-发送请求:[" + XCByteUtil.toHexStr(sendDatas, true) + "],第" + sendCount + "次");
             onSend(what, sendDatas, sendCount);
             responseDatas = waitReceive(PortReceiveType.Response);
-            XCThreadUtil.sleep(1);
         }
         return responseDatas;
     }
@@ -131,12 +130,12 @@ public abstract class PortSendCallable implements Callable<byte[]> {
         long currentTime = System.currentTimeMillis();
         byte[] receiveDatas = null;
         while (receiveDatas == null && !isStopSend() && isTimeout(currentTime, receiveType)) {
+            XCThreadUtil.sleep(1);
             if (isPauseReceive()) {
                 currentTime = System.currentTimeMillis();
                 continue;
             }
             receiveDatas = portReceiveCache.getReceiveDatas(receiveType, sendDatas, portFilterCallback);
-            XCThreadUtil.sleep(1);
         }
         return receiveDatas;
     }
