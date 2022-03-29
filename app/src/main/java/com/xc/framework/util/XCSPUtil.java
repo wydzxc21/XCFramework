@@ -60,6 +60,17 @@ public class XCSPUtil {
     }
 
     /**
+     * @param tag         标识
+     * @param classObject 类对象,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 保存
+     */
+    public static <T> void save(Context context, String tag, T classObject) {
+        SPManager.getInstance(context).save(tag, classObject);
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/4
      * @description 获取
@@ -88,6 +99,18 @@ public class XCSPUtil {
     }
 
     /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 获取
+     */
+    public static <T> T get(Context context, String tag, Class<T> objectClass) {
+        return SPManager.getInstance(context).get(tag, objectClass);
+    }
+
+    /**
+     * @param objectClass 类,只支持String变量
      * @author ZhangXuanChen
      * @date 2020/2/4
      * @description clear
@@ -97,12 +120,44 @@ public class XCSPUtil {
     }
 
     /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description clear
+     */
+    public static <T> void clear(Context context, String tag, Class<T> objectClass) {
+        SPManager.getInstance(context).clear(tag, objectClass);
+    }
+
+    /**
      * @author ZhangXuanChen
      * @date 2020/2/4
      * @description clearAll
      */
     public static void clearAll(Context context) {
         SPManager.getInstance(context).clearAll();
+    }
+
+    /**
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description remove
+     */
+    public static <T> void remove(Context context, Class<T> objectClass) {
+        SPManager.getInstance(context).remove(objectClass);
+    }
+
+    /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description remove
+     */
+    public static <T> void remove(Context context, String tag, Class<T> objectClass) {
+        SPManager.getInstance(context).remove(tag, objectClass);
     }
 
     /**

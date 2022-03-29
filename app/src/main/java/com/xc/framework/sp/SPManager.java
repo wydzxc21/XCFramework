@@ -99,6 +99,17 @@ public class SPManager {
      * @description 保存
      */
     public <T> void save(T classObject) {
+        save("", classObject);
+    }
+
+    /**
+     * @param tag         标识
+     * @param classObject 类对象,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 保存
+     */
+    public <T> void save(String tag, T classObject) {
         List<FieldBean> fieldList = XCBeanUtil.getFieldList(classObject.getClass());
         if (fieldList != null && !fieldList.isEmpty()) {
             for (FieldBean entity : fieldList) {
@@ -107,7 +118,7 @@ public class SPManager {
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                 String value = "" + XCBeanUtil.invokeGetMethod(classObject, original);
-                sp.edit().putString(classObject.getClass().getSimpleName() + name, value).commit();
+                sp.edit().putString(tag + classObject.getClass().getSimpleName() + name, value).commit();
             }
         }
     }
@@ -137,6 +148,17 @@ public class SPManager {
      * @description 获取
      */
     public <T> T get(Class<T> objectClass) {
+        return get("", objectClass);
+    }
+
+    /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/4
+     * @description 获取
+     */
+    public <T> T get(String tag, Class<T> objectClass) {
         T info = null;
         try {
             info = (T) objectClass.newInstance();
@@ -148,7 +170,7 @@ public class SPManager {
                     //优先采用别名，无别名再采用原名
                     String name = !XCStringUtil.isEmpty(alias) ? alias : original;
                     if (!XCStringUtil.isEmpty(name)) {
-                        String value = sp.getString(objectClass.getSimpleName() + name, "");
+                        String value = sp.getString(tag + objectClass.getSimpleName() + name, "");
                         XCBeanUtil.invokeSetMethod(info, original, !XCStringUtil.isEmpty(value) ? value : "");//赋值给原名
                     }
                 }
@@ -160,11 +182,23 @@ public class SPManager {
     }
 
     /**
+     * @param objectClass 类,只支持String变量
      * @author ZhangXuanChen
      * @date 2020/2/7
      * @description clear
      */
     public <T> void clear(Class<T> objectClass) {
+        clear("", objectClass);
+    }
+
+    /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/7
+     * @description clear
+     */
+    public <T> void clear(String tag, Class<T> objectClass) {
         List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
         if (fieldList != null && !fieldList.isEmpty()) {
             for (FieldBean entity : fieldList) {
@@ -172,7 +206,7 @@ public class SPManager {
                 String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
                 //优先采用别名，无别名再采用原名
                 String name = !XCStringUtil.isEmpty(alias) ? alias : original;
-                sp.edit().putString(objectClass.getSimpleName() + name, "").commit();
+                sp.edit().putString(tag + objectClass.getSimpleName() + name, "").commit();
             }
         }
     }
@@ -186,6 +220,35 @@ public class SPManager {
         sp.edit().clear().commit();
     }
 
+    /**
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/7
+     * @description remove
+     */
+    public <T> void remove(Class<T> objectClass) {
+        remove("", objectClass);
+    }
+
+    /**
+     * @param tag         标识
+     * @param objectClass 类,只支持String变量
+     * @author ZhangXuanChen
+     * @date 2020/2/7
+     * @description remove
+     */
+    public <T> void remove(String tag, Class<T> objectClass) {
+        List<FieldBean> fieldList = XCBeanUtil.getFieldList(objectClass);
+        if (fieldList != null && !fieldList.isEmpty()) {
+            for (FieldBean entity : fieldList) {
+                String original = !XCStringUtil.isEmpty(entity.getOriginal()) ? entity.getOriginal() : "";
+                String alias = !XCStringUtil.isEmpty(entity.getAlias()) ? entity.getAlias() : "";
+                //优先采用别名，无别名再采用原名
+                String name = !XCStringUtil.isEmpty(alias) ? alias : original;
+                sp.edit().remove(tag + objectClass.getSimpleName() + name).commit();
+            }
+        }
+    }
 
     /**
      * @author ZhangXuanChen
